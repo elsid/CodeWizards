@@ -12,16 +12,16 @@ from strategy_barriers import Circular, make_circular_barriers
 from strategy_common import Point, normalize_angle
 
 Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn', 'step_size'))
+State = namedtuple('State', ('position', 'angle', 'intersection'))
 
 PARAMETERS_COUNT = 3
 DISTANCE_WEIGHT = 1.0
 INTERSECTION_WEIGHT = 10000
 SPEED_WEIGHT = 0.01
 TURN_WEIGHT = 0.1
-OPTIMIZATION_ITERATIONS_COUNT = 5
 
 
-def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, game: Game, step_sizes):
+def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, game: Game, step_sizes, iterations):
     bounds = Bounds(world=world, game=game)
     steps = sum(step_sizes)
 
@@ -39,25 +39,29 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
         make_circular_barriers(minions),
         make_circular_barriers(trees),
     ))
+    initial_position = Point(circular_unit.x, circular_unit.y)
+    initial_angle = normalize_angle(circular_unit.angle)
 
     def function(values):
-        position, angle, speed, intersection = simulate_move(
-            position=Point(circular_unit.x, circular_unit.y),
-            angle=normalize_angle(circular_unit.angle),
-            radius=circular_unit.radius,
+        simulation = simulate_move(
             movements=iter_movements(values, step_sizes),
+            position=initial_position,
+            angle=initial_angle,
+            radius=circular_unit.radius,
             bounds=bounds,
             barriers=barriers,
             map_size=game.map_size,
         )
-        direction = Point(1, 0).rotate(angle)
-        target_direction = (target - position).normalized()
+        last_state = State(position=initial_position, angle=initial_angle, intersection=False)
+        for state in simulation:
+            last_state = state
+        direction = Point(1, 0).rotate(last_state.angle)
+        target_direction = (target - last_state.position).normalized()
         return (
             1
-            * position.distance(target) * DISTANCE_WEIGHT
+            * last_state.position.distance(target) * DISTANCE_WEIGHT
             * (1 + direction.distance(target_direction) * TURN_WEIGHT)
-            / (1 + speed * SPEED_WEIGHT)
-            + intersection * INTERSECTION_WEIGHT
+            + last_state.intersection * INTERSECTION_WEIGHT / max(1, initial_position.distance(last_state.position))
         )
     minimized = minimize(
         fun=function,
@@ -65,7 +69,7 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
         bounds=[(bounds.min_speed, bounds.max_speed),
                 (bounds.min_strafe_speed, bounds.max_strafe_speed),
                 (bounds.min_turn, bounds.max_turn)] * steps,
-        options=dict(maxiter=OPTIMIZATION_ITERATIONS_COUNT),
+        options=dict(maxiter=iterations),
     )
     return iter_movements(minimized.x, step_sizes)
 
@@ -116,15 +120,10 @@ class Bounds:
         return -self.game.wizard_max_turn_angle
 
 
-def simulate_move(position: Point, angle: float, radius: float, movements, bounds: Bounds, barriers, map_size: float):
-    path_distance = 0
-    steps = 0
-    intersection = False
+def simulate_move(movements, position: Point, angle: float, radius: float, bounds: Bounds, barriers, map_size: float):
     barrier = Circular(position, radius)
-    last_step_size = 1
     for movement in movements:
-        last_step_size = movement.step_size
-        shift, rotation = get_shift_and_rotation(
+        shift, turn = get_shift_and_turn(
             angle=angle,
             bounds=bounds,
             speed=movement.speed,
@@ -132,19 +131,16 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
             turn=movement.turn,
         )
         shift *= movement.step_size
-        new_position = position + shift
-        barrier.position = new_position
-        if has_intersection_with_borders(barrier, map_size):
-            intersection = True
+        position = position + shift
+        barrier.position = position
+        angle = normalize_angle(angle + turn * movement.step_size)
+        intersection = (
+            has_intersection_with_borders(barrier, map_size) or
+            has_intersection_with_barriers(barrier, barriers)
+        )
+        yield State(position=position, angle=angle, intersection=intersection)
+        if intersection:
             break
-        if has_intersection_with_barriers(barrier, barriers):
-            intersection = True
-            break
-        position = new_position
-        angle = normalize_angle(angle + rotation * movement.step_size)
-        path_distance += shift.norm()
-        steps += movement.step_size
-    return position, angle, path_distance / max(last_step_size, steps), intersection
 
 
 def has_intersection_with_borders(circular: Circular, map_size):
@@ -162,7 +158,7 @@ def has_intersection_with_barriers(circular: Circular, barriers):
                  if barrier.has_intersection_with_circular(circular, circular.radius / 10)), False)
 
 
-def get_shift_and_rotation(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float):
+def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float):
     # TODO: use HASTENED
     speed, strafe_speed = limit_speed(speed, strafe_speed, bounds)
     turn = limit_turn(turn, bounds)

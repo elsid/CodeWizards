@@ -8,7 +8,7 @@ class Point:
         self.y = y
 
     def __repr__(self):
-        return 'Point(x={x}, y={y})'.format(x=self.x, y=self.y)
+        return 'Point({x}, {y})'.format(x=repr(self.x), y=repr(self.y))
 
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y

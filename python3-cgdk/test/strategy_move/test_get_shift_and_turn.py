@@ -1,6 +1,6 @@
 import pytest
 
-from strategy_move import get_shift_and_rotation, Bounds, Point
+from strategy_move import get_shift_and_turn, Bounds, Point
 
 from test.common import (
     World,
@@ -14,7 +14,7 @@ from test.common import (
 
 
 @pytest.mark.parametrize(
-    ('angle', 'speed', 'strafe_speed', 'turn', 'expected_shift', 'expected_rotation'), [
+    ('angle', 'speed', 'strafe_speed', 'turn', 'expected_shift', 'expected_turn'), [
         (0, 0, 0, 0, Point(0, 0), 0),
         (0, 0, 0, WIZARD_MAX_TURN_ANGLE, Point(0, 0), WIZARD_MAX_TURN_ANGLE),
         (0, 0, 0, 1, Point(0, 0), WIZARD_MAX_TURN_ANGLE),
@@ -31,7 +31,7 @@ from test.common import (
         (0, WIZARD_FORWARD_SPEED, WIZARD_STRAFE_SPEED, 0, Point(1, 1), 0),
     ]
 )
-def test_get_shift_and_rotation(angle, speed, strafe_speed, turn, expected_shift, expected_rotation):
+def test_get_shift_and_turn(angle, speed, strafe_speed, turn, expected_shift, expected_turn):
     world = World(
         buildings=tuple(),
         minions=tuple(),
@@ -46,5 +46,5 @@ def test_get_shift_and_rotation(angle, speed, strafe_speed, turn, expected_shift
         wizard_strafe_speed=WIZARD_STRAFE_SPEED,
     )
     bounds = Bounds(world=world, game=game)
-    result = get_shift_and_rotation(angle=angle, bounds=bounds, speed=speed, strafe_speed=strafe_speed, turn=turn)
-    assert result == (expected_shift, expected_rotation)
+    result = get_shift_and_turn(angle=angle, bounds=bounds, speed=speed, strafe_speed=strafe_speed, turn=turn)
+    assert result == (expected_shift, expected_turn)

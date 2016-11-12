@@ -3,7 +3,7 @@ from itertools import chain
 from model.Tree import Tree
 
 from strategy_barriers import make_circular_barriers
-from strategy_move import optimize_movement, Point, simulate_move, Bounds
+from strategy_move import optimize_movement, Point, simulate_move, Bounds, State
 
 from test.common import (
     CircularUnit,
@@ -47,9 +47,10 @@ def test_optimize_movement():
         circular_unit=circular_unit,
         world=world,
         game=game,
-        step_sizes=[1] * 30,
+        step_sizes=tuple([3] * 3),
+        iterations=10,
     ))
-    position, angle, speed, intersection = simulate_move(
+    simulation = list(simulate_move(
         position=Point(circular_unit.x, circular_unit.y),
         angle=circular_unit.angle,
         radius=circular_unit.radius,
@@ -57,10 +58,15 @@ def test_optimize_movement():
         bounds=Bounds(world=world, game=game),
         barriers=tuple(),
         map_size=game.map_size,
-    )
-    distance = position.distance(target)
-    turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
-    assert (distance, turn, speed, intersection) == (106.26638145082254, 0.10041658565837429, 1.2048886596892028, False)
+    ))
+    distance = simulation[-1].position.distance(target)
+    turn = Point(1, 0).rotate(simulation[-1].angle).distance((target - simulation[-1].position).normalized())
+
+    assert (simulation, distance, turn) == ([
+        State(position=Point(106.58142618192187, 107.52561361050149), angle=0.3141592653589793, intersection=False),
+        State(position=Point(110.51519194000983, 116.71667001132653), angle=0.6283185307179586, intersection=False),
+        State(position=Point(111.41665076299647, 126.67290938884074), angle=0.9424777960769379, intersection=False),
+    ], 114.9950954586416, 0.25037017627287766)
 
 
 def test_optimize_movement_with_barriers():
@@ -103,9 +109,10 @@ def test_optimize_movement_with_barriers():
         circular_unit=circular_unit,
         world=world,
         game=game,
-        step_sizes=[6] * 5,
+        step_sizes=[3] * 3,
+        iterations=10,
     ))
-    position, angle, speed, intersection = simulate_move(
+    simulation = list(simulate_move(
         position=Point(circular_unit.x, circular_unit.y),
         angle=circular_unit.angle,
         radius=circular_unit.radius,
@@ -118,52 +125,11 @@ def test_optimize_movement_with_barriers():
             make_circular_barriers(world.trees),
         )),
         map_size=game.map_size,
-    )
-    distance = position.distance(target)
-    turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
-    assert (distance, turn, speed, intersection) == (117.17993094235204, 0.2577828391716027, 0.8186261116446969, False)
-
-
-def test_optimize_movement_with_tenth_step_size():
-    position = Point(100, 100)
-    angle = 0
-    circular_unit = CircularUnit(
-        x=position.x,
-        y=position.y,
-        angle=angle,
-        radius=1,
-    )
-    world = World(
-        buildings=tuple(),
-        minions=tuple(),
-        wizards=tuple(),
-        trees=tuple(),
-    )
-    game = Game(
-        map_size=MAP_SIZE,
-        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
-        wizard_forward_speed=WIZARD_FORWARD_SPEED,
-        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
-        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
-    )
-    target = Point(200, 200)
-    movements = list(optimize_movement(
-        target=target,
-        circular_unit=circular_unit,
-        world=world,
-        game=game,
-        step_sizes=[10] * 3,
     ))
-    print(position.distance(target))
-    position, angle, speed, intersection = simulate_move(
-        position=Point(circular_unit.x, circular_unit.y),
-        angle=circular_unit.angle,
-        radius=circular_unit.radius,
-        movements=movements,
-        bounds=Bounds(world=world, game=game),
-        barriers=tuple(),
-        map_size=game.map_size,
-    )
-    distance = position.distance(target)
-    turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
-    assert (distance, turn, speed, intersection) == (37.8742845534996, 0.3891846697630219, 3.535446087879576, False)
+    distance = simulation[-1].position.distance(target)
+    turn = Point(1, 0).rotate(simulation[-1].angle).distance((target - simulation[-1].position).normalized())
+    assert (simulation, distance, turn) == ([
+        State(position=Point(105.94163683791089, 106.55177881145826), angle=0.25715550672935572, intersection=False),
+        State(position=Point(110.02177916000524, 114.39931055828966), angle=0.52105441700247268, intersection=False),
+        State(position=Point(111.91375335460272, 123.03950315636273), angle=0.78934197627537805, intersection=False),
+    ], 116.97053014538861, 0.07123660443328907)

@@ -1,3 +1,5 @@
+from itertools import tee
+
 from model.ActionType import ActionType
 from model.Game import Game
 from model.Move import Move
@@ -10,6 +12,7 @@ from strategy_move import optimize_movement
 
 OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 10)
 OPTIMIZE_MOVEMENT_TICKS = int(sum(OPTIMIZE_MOVEMENT_STEP_SIZES) * 0.9)
+OPTIMIZE_MOVEMENT_ITERATIONS = 5
 
 
 class Context:
@@ -28,6 +31,7 @@ class Strategy(LazyInit):
         self.__cur_movement = None
         self.__last_update_movements_tick_index = None
         self.__last_next_movement_tick_index = None
+        self.__target = None
 
     @lazy_init
     def move(self, context: Context):
@@ -37,18 +41,28 @@ class Strategy(LazyInit):
         context.move.turn = self.__cur_movement.turn
         context.move.action = ActionType.MAGIC_MISSILE
 
+    @property
+    def movements(self):
+        result, self.__movements_iter = tee(self.__movements_iter)
+        return tuple([self.__cur_movement] + list(result))
+
+    @property
+    def target(self):
+        return self.__target
+
     def _init_impl(self, context: Context):
-        pass
+        self.__target = Point(context.game.map_size - 400, 400)
 
     def __update_movements(self, context):
         if (self.__movements is None or
                 context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS):
             self.__movements = list(optimize_movement(
-                target=Point(context.game.map_size, context.game.map_size),
+                target=self.__target,
                 circular_unit=context.me,
                 world=context.world,
                 game=context.game,
                 step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
+                iterations=OPTIMIZE_MOVEMENT_ITERATIONS,
             ))
             self.__movements_iter = iter(self.__movements)
             self.__last_update_movements_tick_index = context.world.tick_index
