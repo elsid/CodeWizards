@@ -1,8 +1,8 @@
-from math import sqrt
 from collections import namedtuple
-from scipy.optimize import minimize
-from numpy import zeros
 from itertools import chain
+from math import sqrt, hypot
+from numpy import zeros
+from scipy.optimize import minimize
 
 from model.CircularUnit import CircularUnit
 from model.Game import Game
@@ -22,11 +22,20 @@ OPTIMIZATION_ITERATIONS_COUNT = 5
 
 def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, world: World, game: Game):
     bounds = Bounds(world=world, game=game)
+
+    def is_in_range(unit):
+        return (hypot(circular_unit.x - unit.x, circular_unit.y - unit.y) <=
+                unit.radius + circular_unit.radius + steps * game.wizard_forward_speed)
+
+    wizards = (v for v in world.wizards if v.id != circular_unit.id and is_in_range(v))
+    buildings = (v for v in world.buildings if is_in_range(v))
+    minions = (v for v in world.minions if is_in_range(v))
+    trees = (v for v in world.trees if is_in_range(v))
     barriers = list(chain(
-        make_circular_barriers(v for v in world.wizards if v.id != circular_unit.id),
-        make_circular_barriers(world.buildings),
-        make_circular_barriers(world.minions),
-        make_circular_barriers(world.trees),
+        make_circular_barriers(wizards),
+        make_circular_barriers(buildings),
+        make_circular_barriers(minions),
+        make_circular_barriers(trees),
     ))
 
     def function(values):
