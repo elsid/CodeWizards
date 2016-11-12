@@ -53,7 +53,9 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
             map_size=game.map_size,
         )
         last_state = State(position=initial_position, angle=initial_angle, intersection=False)
+        intersections = 0
         for state in simulation:
+            intersections += state.intersection
             last_state = state
         direction = Point(1, 0).rotate(last_state.angle)
         target_direction = (target - last_state.position).normalized()
@@ -61,7 +63,7 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
             1
             * last_state.position.distance(target) * DISTANCE_WEIGHT
             * (1 + direction.distance(target_direction) * TURN_WEIGHT)
-            + last_state.intersection * INTERSECTION_WEIGHT / max(1, initial_position.distance(last_state.position))
+            + intersections * INTERSECTION_WEIGHT / max(1, initial_position.distance(last_state.position))
         )
     minimized = minimize(
         fun=function,
@@ -131,16 +133,16 @@ def simulate_move(movements, position: Point, angle: float, radius: float, bound
             turn=movement.turn,
         )
         shift *= movement.step_size
-        position = position + shift
-        barrier.position = position
+        new_position = position + shift
         angle = normalize_angle(angle + turn * movement.step_size)
+        barrier.position = position
         intersection = (
             has_intersection_with_borders(barrier, map_size) or
             has_intersection_with_barriers(barrier, barriers)
         )
+        if not intersection:
+            position = new_position
         yield State(position=position, angle=angle, intersection=intersection)
-        if intersection:
-            break
 
 
 def has_intersection_with_borders(circular: Circular, map_size):
