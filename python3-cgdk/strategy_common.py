@@ -143,4 +143,4 @@ class LazyInit:
         self.__initialized = True
 
     def _init_impl(self, *args):
-        raise NotImplementedError
+        raise NotImplementedError()
