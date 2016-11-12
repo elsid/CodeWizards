@@ -63,7 +63,6 @@ def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, wo
                 (bounds.min_turn, bounds.max_turn)] * steps,
         options=dict(maxiter=OPTIMIZATION_ITERATIONS_COUNT),
     )
-    function(minimized.x)
     return iter_movements(minimized.x)
 
 
