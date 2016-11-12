@@ -11,18 +11,19 @@ from model.World import World
 from strategy_barriers import Circular, make_circular_barriers
 from strategy_common import Point, normalize_angle
 
-Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn'))
+Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn', 'step_size'))
 
-PARAMETERS_COUNT = len(Movement(0, 0, 0))
+PARAMETERS_COUNT = 3
 DISTANCE_WEIGHT = 1.0
-INTERSECTION_WEIGHT = 1000
+INTERSECTION_WEIGHT = 10000
 SPEED_WEIGHT = 0.01
 TURN_WEIGHT = 0.1
 OPTIMIZATION_ITERATIONS_COUNT = 5
 
 
-def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, world: World, game: Game):
+def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, game: Game, step_sizes):
     bounds = Bounds(world=world, game=game)
+    steps = sum(step_sizes)
 
     def is_in_range(unit):
         return (hypot(circular_unit.x - unit.x, circular_unit.y - unit.y) <=
@@ -44,7 +45,7 @@ def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, wo
             position=Point(circular_unit.x, circular_unit.y),
             angle=normalize_angle(circular_unit.angle),
             radius=circular_unit.radius,
-            movements=iter_movements(values),
+            movements=iter_movements(values, step_sizes),
             bounds=bounds,
             barriers=barriers,
             map_size=game.map_size,
@@ -66,12 +67,12 @@ def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, wo
                 (bounds.min_turn, bounds.max_turn)] * steps,
         options=dict(maxiter=OPTIMIZATION_ITERATIONS_COUNT),
     )
-    return iter_movements(minimized.x)
+    return iter_movements(minimized.x, step_sizes)
 
 
-def iter_movements(values):
-    for v in chunks(values, PARAMETERS_COUNT):
-        yield Movement(speed=v[0], strafe_speed=v[1], turn=v[2])
+def iter_movements(values, step_sizes):
+    for v, step_size in zip(chunks(values, PARAMETERS_COUNT), step_sizes):
+        yield Movement(speed=v[0], strafe_speed=v[1], turn=v[2], step_size=step_size)
 
 
 def chunks(values, size: int):
@@ -115,12 +116,14 @@ class Bounds:
         return -self.game.wizard_max_turn_angle
 
 
-def simulate_move(position: Point, angle: float, radius: float, movements, bounds: Bounds, barriers, map_size):
+def simulate_move(position: Point, angle: float, radius: float, movements, bounds: Bounds, barriers, map_size: float):
     path_distance = 0
     steps = 0
     intersection = False
     barrier = Circular(position, radius)
+    last_step_size = 1
     for movement in movements:
+        last_step_size = movement.step_size
         shift, rotation = get_shift_and_rotation(
             angle=angle,
             bounds=bounds,
@@ -128,6 +131,7 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
             strafe_speed=movement.strafe_speed,
             turn=movement.turn,
         )
+        shift *= movement.step_size
         new_position = position + shift
         barrier.position = new_position
         if has_intersection_with_borders(barrier, map_size):
@@ -137,10 +141,10 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
             intersection = True
             break
         position = new_position
-        angle = normalize_angle(angle + rotation)
+        angle = normalize_angle(angle + rotation * movement.step_size)
         path_distance += shift.norm()
-        steps += 1
-    return position, angle, path_distance / max(1, steps), intersection
+        steps += movement.step_size
+    return position, angle, path_distance / max(last_step_size, steps), intersection
 
 
 def has_intersection_with_borders(circular: Circular, map_size):

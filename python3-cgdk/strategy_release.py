@@ -8,8 +8,8 @@ from strategy_common import LazyInit, lazy_init, Point
 from strategy_move import optimize_movement
 
 
-OPTIMIZE_MOVEMENT_STEPS = 30
-OPTIMIZE_MOVEMENT_TICKS = int(OPTIMIZE_MOVEMENT_STEPS * 0.9)
+OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 10)
+OPTIMIZE_MOVEMENT_TICKS = int(sum(OPTIMIZE_MOVEMENT_STEP_SIZES) * 0.9)
 
 
 class Context:
@@ -27,6 +27,7 @@ class Strategy(LazyInit):
         self.__movements_iter = None
         self.__cur_movement = None
         self.__last_update_movements_tick_index = None
+        self.__last_next_movement_tick_index = None
 
     @lazy_init
     def move(self, context: Context):
@@ -44,11 +45,15 @@ class Strategy(LazyInit):
                 context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS):
             self.__movements = list(optimize_movement(
                 target=Point(context.game.map_size, context.game.map_size),
-                steps=OPTIMIZE_MOVEMENT_STEPS,
                 circular_unit=context.me,
                 world=context.world,
                 game=context.game,
+                step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
             ))
             self.__movements_iter = iter(self.__movements)
             self.__last_update_movements_tick_index = context.world.tick_index
-        self.__cur_movement = next(self.__movements_iter)
+            self.__cur_movement = next(self.__movements_iter)
+            self.__last_next_movement_tick_index = context.world.tick_index
+        elif context.world.tick_index - self.__last_next_movement_tick_index >= self.__cur_movement.step_size:
+            self.__cur_movement = next(self.__movements_iter)
+            self.__last_next_movement_tick_index = context.world.tick_index

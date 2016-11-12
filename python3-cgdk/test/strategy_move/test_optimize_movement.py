@@ -44,10 +44,10 @@ def test_optimize_movement():
     target = Point(200, 200)
     movements = list(optimize_movement(
         target=target,
-        steps=30,
         circular_unit=circular_unit,
         world=world,
         game=game,
+        step_sizes=[1] * 30,
     ))
     position, angle, speed, intersection = simulate_move(
         position=Point(circular_unit.x, circular_unit.y),
@@ -56,7 +56,7 @@ def test_optimize_movement():
         movements=movements,
         bounds=Bounds(world=world, game=game),
         barriers=tuple(),
-        map_size=game.map_size
+        map_size=game.map_size,
     )
     distance = position.distance(target)
     turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
@@ -100,10 +100,10 @@ def test_optimize_movement_with_barriers():
     target = Point(200, 200)
     movements = list(optimize_movement(
         target=target,
-        steps=30,
         circular_unit=circular_unit,
         world=world,
         game=game,
+        step_sizes=[6] * 5,
     ))
     position, angle, speed, intersection = simulate_move(
         position=Point(circular_unit.x, circular_unit.y),
@@ -121,4 +121,49 @@ def test_optimize_movement_with_barriers():
     )
     distance = position.distance(target)
     turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
-    assert (distance, turn, speed, intersection) == (116.6846469844918, 0.10478292131072671, 0.9340413774166266, False)
+    assert (distance, turn, speed, intersection) == (117.17993094235204, 0.2577828391716027, 0.8186261116446969, False)
+
+
+def test_optimize_movement_with_tenth_step_size():
+    position = Point(100, 100)
+    angle = 0
+    circular_unit = CircularUnit(
+        x=position.x,
+        y=position.y,
+        angle=angle,
+        radius=1,
+    )
+    world = World(
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=tuple(),
+        trees=tuple(),
+    )
+    game = Game(
+        map_size=MAP_SIZE,
+        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
+        wizard_forward_speed=WIZARD_FORWARD_SPEED,
+        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
+        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
+    )
+    target = Point(200, 200)
+    movements = list(optimize_movement(
+        target=target,
+        circular_unit=circular_unit,
+        world=world,
+        game=game,
+        step_sizes=[10] * 3,
+    ))
+    print(position.distance(target))
+    position, angle, speed, intersection = simulate_move(
+        position=Point(circular_unit.x, circular_unit.y),
+        angle=circular_unit.angle,
+        radius=circular_unit.radius,
+        movements=movements,
+        bounds=Bounds(world=world, game=game),
+        barriers=tuple(),
+        map_size=game.map_size,
+    )
+    distance = position.distance(target)
+    turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
+    assert (distance, turn, speed, intersection) == (37.8742845534996, 0.3891846697630219, 3.535446087879576, False)
