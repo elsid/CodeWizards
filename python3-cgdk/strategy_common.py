@@ -1,4 +1,4 @@
-from math import cos, sin, atan2, pi, hypot, sqrt
+from math import cos, sin, atan2, pi, hypot
 from numpy import arctan2
 
 
