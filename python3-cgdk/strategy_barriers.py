@@ -19,5 +19,5 @@ class Circular:
         return (self.position == other.position and
                 self.radius == other.radius)
 
-    def has_intersection_with_circular(self, circular):
-        return self.position.distance(circular.position) <= self.radius + circular.radius
+    def has_intersection_with_circular(self, circular, delta=1e-8):
+        return self.position.distance(circular.position) - self.radius - circular.radius <= delta

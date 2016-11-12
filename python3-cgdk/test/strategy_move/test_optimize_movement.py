@@ -3,12 +3,12 @@ from itertools import chain
 from model.Tree import Tree
 
 from strategy_barriers import make_circular_barriers
-from strategy_move import optimize_movement, Point, Movement, simulate_move, Bounds
+from strategy_move import optimize_movement, Point, simulate_move, Bounds
 
 from .common import (
-    Wizard,
-    World,
+    CircularUnit,
     Game,
+    World,
     TREE_RADIUS,
     WIZARD_BACKWARD_SPEED,
     WIZARD_FORWARD_SPEED,
@@ -21,7 +21,7 @@ from .common import (
 def test_optimize_movement():
     position = Point(0, 0)
     angle = 0
-    player = Wizard(
+    circular_unit = CircularUnit(
         x=position.x,
         y=position.y,
         angle=angle,
@@ -30,7 +30,7 @@ def test_optimize_movement():
     world = World(
         buildings=tuple(),
         minions=tuple(),
-        players=tuple(),
+        wizards=tuple(),
         trees=tuple(),
     )
     game = Game(
@@ -40,11 +40,17 @@ def test_optimize_movement():
         wizard_strafe_speed=WIZARD_STRAFE_SPEED,
     )
     target = Point(100, 100)
-    movements = list(optimize_movement(target=target, steps=30, player=player, world=world, game=game))
+    movements = list(optimize_movement(
+        target=target,
+        steps=30,
+        circular_unit=circular_unit,
+        world=world,
+        game=game,
+    ))
     position, angle, speed = simulate_move(
-        position=Point(player.x, player.y),
-        angle=player.angle,
-        radius=player.radius,
+        position=Point(circular_unit.x, circular_unit.y),
+        angle=circular_unit.angle,
+        radius=circular_unit.radius,
         movements=movements,
         bounds=Bounds(world=world, game=game),
         barriers=tuple(),
@@ -57,7 +63,7 @@ def test_optimize_movement():
 def test_optimize_movement_with_barriers():
     position = Point(0, 0)
     angle = 0
-    player = Wizard(
+    circular_unit = CircularUnit(
         x=position.x,
         y=position.y,
         angle=angle,
@@ -66,7 +72,6 @@ def test_optimize_movement_with_barriers():
     world = World(
         buildings=tuple(),
         minions=tuple(),
-        players=tuple(),
         trees=[Tree(
             id=None,
             x=WIZARD_RADIUS + TREE_RADIUS + 1,
@@ -80,6 +85,7 @@ def test_optimize_movement_with_barriers():
             max_life=None,
             statuses=None,
         )],
+        wizards=tuple(),
     )
     game = Game(
         wizard_backward_speed=WIZARD_BACKWARD_SPEED,
@@ -88,15 +94,21 @@ def test_optimize_movement_with_barriers():
         wizard_strafe_speed=WIZARD_STRAFE_SPEED,
     )
     target = Point(100, 100)
-    movements = list(optimize_movement(target=target, steps=30, player=player, world=world, game=game))
+    movements = list(optimize_movement(
+        target=target,
+        steps=30,
+        circular_unit=circular_unit,
+        world=world,
+        game=game,
+    ))
     position, angle, speed = simulate_move(
-        position=Point(player.x, player.y),
-        angle=player.angle,
-        radius=player.radius,
+        position=Point(circular_unit.x, circular_unit.y),
+        angle=circular_unit.angle,
+        radius=circular_unit.radius,
         movements=movements,
         bounds=Bounds(world=world, game=game),
         barriers=list(chain(
-            make_circular_barriers(v for v in world.players if v != player),
+            make_circular_barriers(v for v in world.wizards if v != circular_unit),
             make_circular_barriers(world.buildings),
             make_circular_barriers(world.minions),
             make_circular_barriers(world.trees),
@@ -104,4 +116,4 @@ def test_optimize_movement_with_barriers():
     )
     distance = position.distance(target)
     turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
-    assert (distance, turn, speed) == (116.45658786302063, 0.08511991403938413, 1.0693995568413381)
+    assert (distance, turn, speed) == (117.02350001474123, 0.019717558587932255, 1.4142135623730956)

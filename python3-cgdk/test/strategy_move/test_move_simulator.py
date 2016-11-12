@@ -34,8 +34,8 @@ def test_move_simulator(angle, speed, strafe_speed, turn, expected_shift, expect
     world = World(
         buildings=tuple(),
         minions=tuple(),
-        players=tuple(),
         trees=tuple(),
+        wizards=tuple(),
     )
     game = Game(
         wizard_backward_speed=WIZARD_BACKWARD_SPEED,

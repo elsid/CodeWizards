@@ -1,7 +1,7 @@
 from collections import namedtuple
 from math import pi
 
-Wizard = namedtuple('Wizard', (
+CircularUnit = namedtuple('CircularUnit', (
     'angle',
     'radius',
     'x',
@@ -9,9 +9,9 @@ Wizard = namedtuple('Wizard', (
 ))
 World = namedtuple('World', (
     'buildings',
-    'trees',
-    'players',
     'minions',
+    'trees',
+    'wizards',
 ))
 Game = namedtuple('Game', (
     'wizard_backward_speed',

@@ -4,8 +4,8 @@ from scipy.optimize import minimize
 from numpy import zeros
 from itertools import chain
 
+from model.CircularUnit import CircularUnit
 from model.Game import Game
-from model.Wizard import Wizard
 from model.World import World
 
 from strategy_barriers import Circular, make_circular_barriers
@@ -20,10 +20,10 @@ TURN_WEIGHT = 0.1
 OPTIMIZATION_ITERATIONS_COUNT = 5
 
 
-def optimize_movement(target: Point, steps: int, player: Wizard, world: World, game: Game):
+def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, world: World, game: Game):
     bounds = Bounds(world=world, game=game)
     barriers = list(chain(
-        make_circular_barriers(v for v in world.players if v != player),
+        make_circular_barriers(v for v in world.wizards if v.id != circular_unit.id),
         make_circular_barriers(world.buildings),
         make_circular_barriers(world.minions),
         make_circular_barriers(world.trees),
@@ -31,9 +31,9 @@ def optimize_movement(target: Point, steps: int, player: Wizard, world: World, g
 
     def function(values):
         position, angle, speed = simulate_move(
-            position=Point(player.x, player.y),
-            angle=normalize_angle(player.angle),
-            radius=player.radius,
+            position=Point(circular_unit.x, circular_unit.y),
+            angle=normalize_angle(circular_unit.angle),
+            radius=circular_unit.radius,
             movements=iter_movements(values),
             bounds=bounds,
             barriers=barriers,
@@ -122,11 +122,11 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
         angle = normalize_angle(angle + rotation)
         path_distance += shift.norm()
         steps += 1
-    return position, angle, path_distance / steps
+    return position, angle, path_distance / max(1, steps)
 
 
 def has_intersection_with_barriers(circular: Circular, barriers):
-    return next((True for barrier in barriers if barrier.has_intersection_with_circular(circular)), False)
+    return next((True for barrier in barriers if barrier.has_intersection_with_circular(circular, 1)), False)
 
 
 class MoveSimulator:
