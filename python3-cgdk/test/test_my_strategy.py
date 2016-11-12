@@ -6,6 +6,7 @@ from test.common import (
     Game,
     Wizard,
     World,
+    MAP_SIZE,
     WIZARD_BACKWARD_SPEED,
     WIZARD_FORWARD_SPEED,
     WIZARD_MAX_TURN_ANGLE,
@@ -27,6 +28,7 @@ def test_my_strategy_move():
         wizards=tuple(),
     )
     game = Game(
+        map_size=MAP_SIZE,
         wizard_backward_speed=WIZARD_BACKWARD_SPEED,
         wizard_forward_speed=WIZARD_FORWARD_SPEED,
         wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,

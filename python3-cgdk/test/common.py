@@ -20,12 +20,14 @@ World = namedtuple('World', (
     'wizards',
 ))
 Game = namedtuple('Game', (
+    'map_size',
     'wizard_backward_speed',
     'wizard_forward_speed',
     'wizard_max_turn_angle',
     'wizard_strafe_speed',
 ))
 
+MAP_SIZE = 4000
 TREE_RADIUS = 20
 WIZARD_BACKWARD_SPEED = 3.0
 WIZARD_FORWARD_SPEED = 4.0

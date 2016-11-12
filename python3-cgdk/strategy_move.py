@@ -46,6 +46,7 @@ def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, wo
             movements=iter_movements(values),
             bounds=bounds,
             barriers=barriers,
+            map_size=game.map_size,
         )
         direction = Point(1, 0).rotate(angle)
         target_direction = (target - position).normalized()
@@ -112,9 +113,10 @@ class Bounds:
         return -self.game.wizard_max_turn_angle
 
 
-def simulate_move(position: Point, angle: float, radius: float, movements, bounds: Bounds, barriers):
+def simulate_move(position: Point, angle: float, radius: float, movements, bounds: Bounds, barriers, map_size):
     path_distance = 0
     steps = 0
+    barrier = Circular(position, radius)
     for movement in movements:
         shift, rotation = get_shift_and_rotation(
             angle=angle,
@@ -124,7 +126,9 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
             turn=movement.turn,
         )
         new_position = position + shift
-        barrier = Circular(new_position, radius)
+        barrier.position = new_position
+        if has_intersection_with_borders(barrier, map_size):
+            break
         if has_intersection_with_barriers(barrier, barriers):
             break
         position = new_position
@@ -132,6 +136,16 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
         path_distance += shift.norm()
         steps += 1
     return position, angle, path_distance / max(1, steps)
+
+
+def has_intersection_with_borders(circular: Circular, map_size):
+    delta = circular.radius * 0.1
+    return (
+        circular.position.x - circular.radius <= delta or
+        circular.position.y - circular.radius <= delta or
+        circular.position.x + circular.radius - map_size >= delta or
+        circular.position.y + circular.radius - map_size >= delta
+    )
 
 
 def has_intersection_with_barriers(circular: Circular, barriers):
