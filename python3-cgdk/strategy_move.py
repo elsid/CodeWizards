@@ -1,6 +1,6 @@
 from collections import namedtuple
 from itertools import chain
-from math import sqrt, hypot
+from math import hypot
 from numpy import zeros
 from scipy.optimize import minimize
 
@@ -117,8 +117,9 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
     path_distance = 0
     steps = 0
     for movement in movements:
-        simulator = MoveSimulator(angle=angle, bounds=bounds)
-        shift, rotation = simulator.apply(
+        shift, rotation = get_shift_and_rotation(
+            angle=angle,
+            bounds=bounds,
             speed=movement.speed,
             strafe_speed=movement.strafe_speed,
             turn=movement.turn,
@@ -139,27 +140,22 @@ def has_intersection_with_barriers(circular: Circular, barriers):
                  if barrier.has_intersection_with_circular(circular, circular.radius / 10)), False)
 
 
-class MoveSimulator:
-    def __init__(self, angle: float, bounds: Bounds):
-        self.angle = angle
-        self.bounds = bounds
+def get_shift_and_rotation(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float):
+    # TODO: use HASTENED
+    speed, strafe_speed = limit_speed(speed, strafe_speed, bounds)
+    turn = limit_turn(turn, bounds)
+    speed_direction = Point(1, 0).rotate(angle)
+    strafe_speed_direction = speed_direction.left_orthogonal()
+    return speed_direction * speed + strafe_speed_direction * strafe_speed, turn
 
-    def apply(self, speed: float, strafe_speed: float, turn: float):
-        # TODO: use HASTENED
-        speed, strafe_speed = self.limit_speed(speed, strafe_speed)
-        assert abs(speed) <= self.bounds.max_speed
-        assert abs(strafe_speed) <= self.bounds.max_strafe_speed
-        turn = self.limit_turn(turn)
-        speed_direction = Point(1, 0).rotate(self.angle)
-        strafe_speed_direction = Point(0, 1).rotate(self.angle)
-        return speed_direction * speed + strafe_speed_direction * strafe_speed, turn
 
-    def limit_speed(self, speed: float, strafe_speed: float):
-        speed = min(self.bounds.max_speed, max(self.bounds.min_speed, speed))
-        strafe_speed = min(self.bounds.max_strafe_speed, max(self.bounds.min_strafe_speed, strafe_speed))
-        if sqrt((speed / self.bounds.max_speed) ** 2 + (strafe_speed / self.bounds.max_strafe_speed) ** 2) > 1.0:
-            return speed / self.bounds.max_speed, strafe_speed / self.bounds.max_strafe_speed
-        return speed, strafe_speed
+def limit_speed(speed: float, strafe_speed: float, bounds: Bounds):
+    speed = min(bounds.max_speed, max(bounds.min_speed, speed))
+    strafe_speed = min(bounds.max_strafe_speed, max(bounds.min_strafe_speed, strafe_speed))
+    if hypot(speed / bounds.max_speed, strafe_speed / bounds.max_strafe_speed) > 1.0:
+        return speed / bounds.max_speed, strafe_speed / bounds.max_strafe_speed
+    return speed, strafe_speed
 
-    def limit_turn(self, value: float):
-        return min(self.bounds.max_turn, max(self.bounds.min_turn, value))
+
+def limit_turn(value: float, bounds: Bounds):
+    return min(bounds.max_turn, max(bounds.min_turn, value))

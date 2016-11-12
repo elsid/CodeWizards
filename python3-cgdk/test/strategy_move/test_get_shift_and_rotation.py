@@ -1,6 +1,6 @@
 import pytest
 
-from strategy_move import MoveSimulator, Bounds, Point
+from strategy_move import get_shift_and_rotation, Bounds, Point
 
 from .common import (
     World,
@@ -44,6 +44,5 @@ def test_get_shift_and_rotation(angle, speed, strafe_speed, turn, expected_shift
         wizard_strafe_speed=WIZARD_STRAFE_SPEED,
     )
     bounds = Bounds(world=world, game=game)
-    simulator = MoveSimulator(angle=angle, bounds=bounds)
-    result = simulator.apply(speed=speed, strafe_speed=strafe_speed, turn=turn)
+    result = get_shift_and_rotation(angle=angle, bounds=bounds, speed=speed, strafe_speed=strafe_speed, turn=turn)
     assert result == (expected_shift, expected_rotation)
