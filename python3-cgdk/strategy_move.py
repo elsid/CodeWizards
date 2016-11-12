@@ -17,6 +17,7 @@ PARAMETERS_COUNT = len(Movement(0, 0, 0))
 DISTANCE_WEIGHT = 1.0
 SPEED_WEIGHT = 0.01
 TURN_WEIGHT = 0.1
+OPTIMIZATION_ITERATIONS_COUNT = 5
 
 
 def optimize_movement(target: Point, steps: int, player: Wizard, world: World, game: Game):
@@ -51,7 +52,7 @@ def optimize_movement(target: Point, steps: int, player: Wizard, world: World, g
         bounds=[(bounds.min_speed, bounds.max_speed),
                 (bounds.min_strafe_speed, bounds.max_strafe_speed),
                 (bounds.min_turn, bounds.max_turn)] * steps,
-        options=dict(maxiter=5),
+        options=dict(maxiter=OPTIMIZATION_ITERATIONS_COUNT),
     )
     function(minimized.x)
     return iter_movements(minimized.x)
