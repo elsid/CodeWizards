@@ -12,10 +12,6 @@ from strategy_common import Point, normalize_angle
 Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn'))
 
 PARAMETERS_COUNT = len(Movement(0, 0, 0))
-MAX_SPEED = 4.0
-MIN_SPEED = -3.0
-MAX_STRAFE_SPEED = 3.0
-MIN_STRAFE_SPEED = -3.0
 TURN_WEIGHT = 0.1
 
 
@@ -62,22 +58,22 @@ class Bounds:
     @property
     def max_speed(self):
         # TODO: use skills
-        return MAX_SPEED
+        return self.game.wizard_forward_speed
 
     @property
     def min_speed(self):
         # TODO: use skills
-        return MIN_SPEED
+        return self.game.wizard_backward_speed
 
     @property
     def max_strafe_speed(self):
         # TODO: use skills
-        return MAX_STRAFE_SPEED
+        return self.game.wizard_strafe_speed
 
     @property
     def min_strafe_speed(self):
         # TODO: use skills
-        return MIN_STRAFE_SPEED
+        return -self.game.wizard_strafe_speed
 
     @property
     def max_turn(self):

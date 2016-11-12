@@ -1,12 +1,14 @@
-from collections import namedtuple
-from math import pi
-
 from strategy_move import optimize_movement, Point, Movement, simulate_move, Bounds
 
-
-Wizard = namedtuple('Wizard', ('x', 'y', 'angle'))
-World = namedtuple('World', tuple())
-Game = namedtuple('Game', ('wizard_max_turn_angle',))
+from .common import (
+    Wizard,
+    World,
+    Game,
+    WIZARD_BACKWARD_SPEED,
+    WIZARD_FORWARD_SPEED,
+    WIZARD_MAX_TURN_ANGLE,
+    WIZARD_STRAFE_SPEED,
+)
 
 
 def test_optimize_movement():
@@ -14,7 +16,12 @@ def test_optimize_movement():
     angle = 0
     player = Wizard(x=position.x, y=position.y, angle=angle)
     world = World()
-    game = Game(wizard_max_turn_angle=pi / 30)
+    game = Game(
+        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
+        wizard_forward_speed=WIZARD_FORWARD_SPEED,
+        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
+        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
+    )
     target = Point(100, 100)
     movements = list(optimize_movement(target=target, steps=30, player=player, world=world, game=game))
     assert movements == [
