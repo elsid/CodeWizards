@@ -126,7 +126,8 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
 
 
 def has_intersection_with_barriers(circular: Circular, barriers):
-    return next((True for barrier in barriers if barrier.has_intersection_with_circular(circular, 1)), False)
+    return next((True for barrier in barriers
+                 if barrier.has_intersection_with_circular(circular, circular.radius / 10)), False)
 
 
 class MoveSimulator:

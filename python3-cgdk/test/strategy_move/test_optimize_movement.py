@@ -116,4 +116,4 @@ def test_optimize_movement_with_barriers():
     )
     distance = position.distance(target)
     turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
-    assert (distance, turn, speed) == (117.02350001474123, 0.019717558587932255, 1.4142135623730956)
+    assert (distance, turn, speed) == (120.83835751612028, 0.19804043604763452, 1.357082592102652)
