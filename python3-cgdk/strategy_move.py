@@ -81,7 +81,7 @@ class Bounds:
     @property
     def min_speed(self):
         # TODO: use skills
-        return self.game.wizard_backward_speed
+        return -self.game.wizard_backward_speed
 
     @property
     def max_strafe_speed(self):

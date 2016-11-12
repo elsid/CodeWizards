@@ -22,15 +22,15 @@ from .common import (
         (0, 1, 1, 0, Point(1, 1), 0),
         (0, WIZARD_FORWARD_SPEED, 0, 0, Point(WIZARD_FORWARD_SPEED, 0), 0),
         (0, WIZARD_FORWARD_SPEED + 1, 0, 0, Point(WIZARD_FORWARD_SPEED, 0), 0),
-        (0, WIZARD_BACKWARD_SPEED, 0, 0, Point(WIZARD_BACKWARD_SPEED, 0), 0),
-        (0, WIZARD_BACKWARD_SPEED - 1, 0, 0, Point(WIZARD_BACKWARD_SPEED, 0), 0),
+        (0, -WIZARD_BACKWARD_SPEED, 0, 0, Point(-WIZARD_BACKWARD_SPEED, 0), 0),
+        (0, -WIZARD_BACKWARD_SPEED - 1, 0, 0, Point(-WIZARD_BACKWARD_SPEED, 0), 0),
         (0, 0, WIZARD_STRAFE_SPEED, 0, Point(0, WIZARD_STRAFE_SPEED), 0),
         (0, 0, WIZARD_STRAFE_SPEED + 1, 0, Point(0, WIZARD_STRAFE_SPEED), 0),
         (0, 0, -WIZARD_STRAFE_SPEED - 1, 0, Point(0, -WIZARD_STRAFE_SPEED), 0),
         (0, WIZARD_FORWARD_SPEED, WIZARD_STRAFE_SPEED, 0, Point(1, 1), 0),
     ]
 )
-def test_move_simulator(angle, speed, strafe_speed, turn, expected_shift, expected_rotation):
+def test_get_shift_and_rotation(angle, speed, strafe_speed, turn, expected_shift, expected_rotation):
     world = World(
         buildings=tuple(),
         minions=tuple(),
