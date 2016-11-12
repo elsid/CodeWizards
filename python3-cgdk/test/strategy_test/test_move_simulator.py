@@ -31,7 +31,12 @@ from .common import (
     ]
 )
 def test_move_simulator(angle, speed, strafe_speed, turn, expected_shift, expected_rotation):
-    world = World()
+    world = World(
+        buildings=tuple(),
+        minions=tuple(),
+        players=tuple(),
+        trees=tuple(),
+    )
     game = Game(
         wizard_backward_speed=WIZARD_BACKWARD_SPEED,
         wizard_forward_speed=WIZARD_FORWARD_SPEED,
