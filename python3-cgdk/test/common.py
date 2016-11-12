@@ -7,6 +7,12 @@ CircularUnit = namedtuple('CircularUnit', (
     'x',
     'y',
 ))
+Wizard = namedtuple('Wizard', (
+    'angle',
+    'radius',
+    'x',
+    'y',
+))
 World = namedtuple('World', (
     'buildings',
     'minions',

@@ -5,7 +5,7 @@ from model.Tree import Tree
 from strategy_barriers import make_circular_barriers
 from strategy_move import optimize_movement, Point, simulate_move, Bounds
 
-from .common import (
+from test.common import (
     CircularUnit,
     Game,
     World,

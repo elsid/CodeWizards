@@ -2,7 +2,7 @@ import pytest
 
 from strategy_move import get_shift_and_rotation, Bounds, Point
 
-from .common import (
+from test.common import (
     World,
     Game,
     WIZARD_BACKWARD_SPEED,
