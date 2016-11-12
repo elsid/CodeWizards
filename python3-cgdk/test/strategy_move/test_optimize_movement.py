@@ -49,7 +49,7 @@ def test_optimize_movement():
         world=world,
         game=game,
     ))
-    position, angle, speed = simulate_move(
+    position, angle, speed, intersection = simulate_move(
         position=Point(circular_unit.x, circular_unit.y),
         angle=circular_unit.angle,
         radius=circular_unit.radius,
@@ -60,7 +60,7 @@ def test_optimize_movement():
     )
     distance = position.distance(target)
     turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
-    assert (distance, turn, speed) == (106.26638145082254, 0.10041658565837429, 1.2048886596892028)
+    assert (distance, turn, speed, intersection) == (106.26638145082254, 0.10041658565837429, 1.2048886596892028, False)
 
 
 def test_optimize_movement_with_barriers():
@@ -105,7 +105,7 @@ def test_optimize_movement_with_barriers():
         world=world,
         game=game,
     ))
-    position, angle, speed = simulate_move(
+    position, angle, speed, intersection = simulate_move(
         position=Point(circular_unit.x, circular_unit.y),
         angle=circular_unit.angle,
         radius=circular_unit.radius,
@@ -121,4 +121,4 @@ def test_optimize_movement_with_barriers():
     )
     distance = position.distance(target)
     turn = Point(1, 0).rotate(angle).distance((target - position).normalized())
-    assert (distance, turn, speed) == (116.34647039376166, 0.11479053153397464, 1.0605333552847822)
+    assert (distance, turn, speed, intersection) == (116.6846469844918, 0.10478292131072671, 0.9340413774166266, False)

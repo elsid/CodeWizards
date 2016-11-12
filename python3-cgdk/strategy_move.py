@@ -15,6 +15,7 @@ Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn'))
 
 PARAMETERS_COUNT = len(Movement(0, 0, 0))
 DISTANCE_WEIGHT = 1.0
+INTERSECTION_WEIGHT = 1000
 SPEED_WEIGHT = 0.01
 TURN_WEIGHT = 0.1
 OPTIMIZATION_ITERATIONS_COUNT = 5
@@ -39,7 +40,7 @@ def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, wo
     ))
 
     def function(values):
-        position, angle, speed = simulate_move(
+        position, angle, speed, intersection = simulate_move(
             position=Point(circular_unit.x, circular_unit.y),
             angle=normalize_angle(circular_unit.angle),
             radius=circular_unit.radius,
@@ -55,6 +56,7 @@ def optimize_movement(target: Point, steps: int, circular_unit: CircularUnit, wo
             * position.distance(target) * DISTANCE_WEIGHT
             * (1 + direction.distance(target_direction) * TURN_WEIGHT)
             / (1 + speed * SPEED_WEIGHT)
+            + intersection * INTERSECTION_WEIGHT
         )
     minimized = minimize(
         fun=function,
@@ -116,6 +118,7 @@ class Bounds:
 def simulate_move(position: Point, angle: float, radius: float, movements, bounds: Bounds, barriers, map_size):
     path_distance = 0
     steps = 0
+    intersection = False
     barrier = Circular(position, radius)
     for movement in movements:
         shift, rotation = get_shift_and_rotation(
@@ -128,14 +131,16 @@ def simulate_move(position: Point, angle: float, radius: float, movements, bound
         new_position = position + shift
         barrier.position = new_position
         if has_intersection_with_borders(barrier, map_size):
+            intersection = True
             break
         if has_intersection_with_barriers(barrier, barriers):
+            intersection = True
             break
         position = new_position
         angle = normalize_angle(angle + rotation)
         path_distance += shift.norm()
         steps += 1
-    return position, angle, path_distance / max(1, steps)
+    return position, angle, path_distance / max(1, steps), intersection
 
 
 def has_intersection_with_borders(circular: Circular, map_size):
