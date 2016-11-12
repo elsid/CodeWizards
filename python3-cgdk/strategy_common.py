@@ -120,3 +120,27 @@ def normalize_angle(value):
     if value < -pi:
         return value + round(abs(value) / (2.0 * pi)) * 2.0 * pi
     return value
+
+
+def lazy_init(method):
+    def wrapper(self, *args):
+        if not self.initialized:
+            self.init(*args)
+        return method(self, *args)
+    return wrapper
+
+
+class LazyInit:
+    def __init__(self):
+        self.__initialized = False
+
+    @property
+    def initialized(self):
+        return self.__initialized
+
+    def init(self, *args):
+        self._init_impl(*args)
+        self.__initialized = True
+
+    def _init_impl(self, *args):
+        raise NotImplementedError
