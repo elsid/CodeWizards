@@ -1,0 +1,6 @@
+[submodule "russian-ai-cup-visual"]
+	path = russian-ai-cup-visual
+	url = git@github.com:JustAMan/russian-ai-cup-visual.git
+[submodule "local-runner-ru"]
+	path = local-runner-ru
+	url = git@github.com:Russian-AI-Cup-2016/local-runner-ru.git
