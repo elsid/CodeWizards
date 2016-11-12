@@ -8,8 +8,8 @@ from strategy_common import LazyInit, lazy_init, Point
 from strategy_move import optimize_movement
 
 
-RENEW_MOVEMENT_STEPS_TICKS_COUNT = 20
 OPTIMIZE_MOVEMENT_STEPS = 30
+OPTIMIZE_MOVEMENT_TICKS = int(OPTIMIZE_MOVEMENT_STEPS * 0.9)
 
 
 class Context:
@@ -26,10 +26,11 @@ class Strategy(LazyInit):
         self.__movements = None
         self.__movements_iter = None
         self.__cur_movement = None
+        self.__last_update_movements_tick_index = None
 
     @lazy_init
     def move(self, context: Context):
-        self.__renew_movements(context)
+        self.__update_movements(context)
         context.move.speed = self.__cur_movement.speed
         context.move.strafe_speed = self.__cur_movement.strafe_speed
         context.move.turn = self.__cur_movement.turn
@@ -38,8 +39,9 @@ class Strategy(LazyInit):
     def _init_impl(self, context: Context):
         pass
 
-    def __renew_movements(self, context):
-        if self.__movements is None or context.world.tick_index % RENEW_MOVEMENT_STEPS_TICKS_COUNT == 0:
+    def __update_movements(self, context):
+        if (self.__movements is None or
+                context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS):
             self.__movements = list(optimize_movement(
                 target=Point(context.game.map_size, context.game.map_size),
                 steps=OPTIMIZE_MOVEMENT_STEPS,
@@ -48,4 +50,5 @@ class Strategy(LazyInit):
                 game=context.game,
             ))
             self.__movements_iter = iter(self.__movements)
+            self.__last_update_movements_tick_index = context.world.tick_index
         self.__cur_movement = next(self.__movements_iter)
