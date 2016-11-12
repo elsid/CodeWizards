@@ -1,0 +1,1 @@
+../../russian-ai-cup-visual/clients/python/debug_client.py
