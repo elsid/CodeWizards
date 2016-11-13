@@ -24,13 +24,17 @@ class Strategy(LazyInit):
     def __init__(self):
         super().__init__()
         self.__movements = None
+        self.__states = None
         self.__cur_movement = None
         self.__last_update_movements_tick_index = None
         self.__last_next_movement_tick_index = None
         self.__target = None
+        self.__actual_path = list()
+        self.__expected_path = list()
 
     @lazy_init
     def move(self, context: Context):
+        self.__actual_path.append(Point(context.me.x, context.me.y))
         self.__update_movements(context)
         if self.__movements:
             movement = self.__movements[self.__cur_movement]
@@ -44,6 +48,18 @@ class Strategy(LazyInit):
         return self.__movements[self.__cur_movement:]
 
     @property
+    def states(self):
+        return self.__states[self.__cur_movement:]
+
+    @property
+    def actual_path(self):
+        return self.__actual_path
+
+    @property
+    def expected_path(self):
+        return self.__expected_path
+
+    @property
     def target(self):
         return self.__target
 
@@ -54,7 +70,7 @@ class Strategy(LazyInit):
         if (not self.__movements or
                 context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS or
                 self.__cur_movement >= len(self.__movements) - 1):
-            _, self.__movements = optimize_movement(
+            self.__states, self.__movements = optimize_movement(
                 target=self.__target,
                 circular_unit=context.me,
                 world=context.world,
@@ -65,7 +81,9 @@ class Strategy(LazyInit):
                 self.__cur_movement = 0
                 self.__last_update_movements_tick_index = context.world.tick_index
                 self.__last_next_movement_tick_index = context.world.tick_index
+                self.__expected_path.append(self.__states[self.__cur_movement].position)
         elif (context.world.tick_index - self.__last_next_movement_tick_index >=
               self.__movements[self.__cur_movement].step_size):
             self.__cur_movement += 1
             self.__last_next_movement_tick_index = context.world.tick_index
+            self.__expected_path.append(self.__states[self.__cur_movement].position)
