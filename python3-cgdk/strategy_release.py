@@ -31,8 +31,8 @@ class Context:
 class Strategy(LazyInit):
     def __init__(self):
         super().__init__()
-        self.__movements = None
-        self.__states = None
+        self.__movements = list()
+        self.__states = list()
         self.__cur_movement = None
         self.__last_update_movements_tick_index = None
         self.__last_next_movement_tick_index = None
