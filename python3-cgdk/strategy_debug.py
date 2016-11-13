@@ -27,6 +27,7 @@ class Strategy:
                 state=State(
                     position=last_position,
                     angle=normalize_angle(context.me.angle),
+                    path_length=0,
                     intersection=False,
                 ),
                 radius=context.me.radius,
