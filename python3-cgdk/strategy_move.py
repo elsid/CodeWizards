@@ -40,7 +40,7 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
     turn_values = (bounds.min_turn, 0, bounds.max_turn)
     branches = list()
     heappush(branches, (0, 0, 0, [initial_state], list(), initial_dynamic_units_positions))
-    base_penalty = calculate_penalty(cur_state=initial_state, prev_state=None, target=target, steps=1) * steps
+    base_penalty = calculate_penalty(cur_state=initial_state, target=target, steps=1) * steps
     result = None
     result_penalty = None
     while branches:
@@ -72,10 +72,8 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
             state = next(simulation)
             if state.intersection:
                 continue
-            prev_state = states[-2] if len(states) >= 2 else None
             new_depth = depth + 1
-            penalty = calculate_penalty(cur_state=state, prev_state=prev_state, target=target,
-                                        steps=sum(step_sizes[:new_depth]))
+            penalty = calculate_penalty(cur_state=state, target=target, steps=sum(step_sizes[:new_depth]))
             new_sum_penalty = sum_penalty + penalty
             if new_sum_penalty > base_penalty:
                 continue
@@ -94,15 +92,12 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
     return result if result else (tuple([initial_state]), tuple())
 
 
-def calculate_penalty(cur_state: State, prev_state: (State, None), target: Point, steps: int):
+def calculate_penalty(cur_state: State, target: Point, steps: int):
     direction = Point(1, 0).rotate(cur_state.angle)
-    move_direction = ((cur_state.position - prev_state.position).normalized()
-                      if prev_state and cur_state.position != prev_state.position else direction)
     target_direction = (target - cur_state.position).normalized() if target != cur_state.position else direction
     return (
         cur_state.position.distance(target)
         + direction.distance(target_direction)
-        - direction.distance(move_direction)
         - cur_state.path_length
         - cur_state.path_length / steps
     )
