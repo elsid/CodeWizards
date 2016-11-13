@@ -6,10 +6,12 @@ from model.World import World
 
 from strategy_common import LazyInit, lazy_init, Point
 from strategy_move import optimize_movement
+from strategy_target import get_target
 
 
 OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 30)
 OPTIMIZE_MOVEMENT_TICKS = int(sum(OPTIMIZE_MOVEMENT_STEP_SIZES) * 0.9)
+UPDATE_TARGET_TICKS = 30
 
 
 class Context:
@@ -18,6 +20,10 @@ class Context:
         self.world = world
         self.game = game
         self.move = move
+
+    @property
+    def my_position(self):
+        return Point(self.me.x, self.me.y)
 
 
 class Strategy(LazyInit):
@@ -29,12 +35,20 @@ class Strategy(LazyInit):
         self.__last_update_movements_tick_index = None
         self.__last_next_movement_tick_index = None
         self.__target = None
+        self.__target_position = None
         self.__actual_path = list()
         self.__expected_path = list()
+        self.__get_attack_range = None
+        self.__last_update_target = None
+        self.__cached_buildings = dict()
+        self.__cached_wizards = dict()
+        self.__cached_minions = dict()
 
     @lazy_init
     def move(self, context: Context):
         self.__actual_path.append(Point(context.me.x, context.me.y))
+        self.__update_cache(context)
+        self.__update_target(context)
         self.__update_movements(context)
         if self.__movements:
             movement = self.__movements[self.__cur_movement]
@@ -60,11 +74,38 @@ class Strategy(LazyInit):
         return self.__expected_path
 
     @property
-    def target(self):
-        return self.__target
+    def target_position(self):
+        return self.__target_position
 
     def _init_impl(self, context: Context):
-        self.__target = Point(context.game.map_size - 400, 400)
+        self.__target_position = Point(context.game.map_size / 2, context.game.map_size / 2)
+
+    def __update_cache(self, context: Context):
+        for v in context.world.buildings:
+            self.__cached_buildings[v.id] = v
+        for v in context.world.minions:
+            self.__cached_minions[v.id] = v
+        for v in context.world.wizards:
+            self.__cached_wizards[v.id] = v
+
+    def __update_target(self, context: Context):
+        if (self.__last_update_target is None or
+                context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
+            self.__target, position = get_target(
+                me=context.me,
+                buildings=self.__cached_buildings.values(),
+                minions=self.__cached_minions.values(),
+                wizards=self.__cached_wizards.values(),
+                guardian_tower_attack_range=context.game.guardian_tower_attack_range,
+                faction_base_attack_range=context.game.faction_base_attack_range,
+                orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
+                fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
+                wizard_cast_range=context.game.wizard_cast_range,
+            )
+            if position is not None and position != self.__target_position:
+                self.__target_position = position
+                self.__movements = None
+                self.__last_update_target = context.world.tick_index
 
     def __update_movements(self, context: Context):
         if (not self.__movements or
@@ -77,7 +118,7 @@ class Strategy(LazyInit):
 
     def __calculate_movements(self, context: Context):
         self.__states, self.__movements = optimize_movement(
-            target=self.__target,
+            target=self.__target_position,
             circular_unit=context.me,
             world=context.world,
             game=context.game,
