@@ -24,7 +24,8 @@ class Strategy:
 
     @staticmethod
     def __visualize_path(post, path, color):
-        last_position = path[0]
-        for position in path:
-            post.line(last_position.x, last_position.y, position.x, position.y, color)
-            last_position = position
+        if path:
+            last_position = path[0]
+            for position in path:
+                post.line(last_position.x, last_position.y, position.x, position.y, color)
+                last_position = position
