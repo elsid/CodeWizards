@@ -4,6 +4,7 @@ from scipy.optimize import minimize
 
 from model.Building import Building
 from model.BuildingType import BuildingType
+from model.Faction import Faction
 from model.Minion import Minion
 from model.MinionType import MinionType
 from model.Wizard import Wizard
@@ -11,20 +12,17 @@ from model.Wizard import Wizard
 from strategy_common import Point
 
 
-def get_target(me, buildings, minions, wizards, guardian_tower_attack_range, faction_base_attack_range,
+def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_range, faction_base_attack_range,
                orc_woodcutter_attack_range, fetish_blowdart_attack_range, wizard_cast_range):
     enemy_buildings = tuple(filter_enemies(buildings, me.faction))
     enemy_minions = tuple(filter_enemies(minions, me.faction))
-    neural_minions = tuple(filter_neural(minions))
     enemy_wizards = tuple(filter_enemies(wizards, me.faction))
-    units = tuple(chain(enemy_buildings, enemy_minions, neural_minions, enemy_wizards))
+    units = tuple(chain(enemy_buildings, enemy_minions, enemy_wizards))
     if not units:
         return None, None
     my_position = Point(me.x, me.y)
-    if enemy_wizards:
-        target = min(enemy_wizards, key=lambda v: Point(v.x, v.y).distance(my_position))
-    elif enemy_minions:
-        target = min(enemy_minions, key=lambda v: Point(v.x, v.y).distance(my_position))
+    if enemy_wizards or enemy_minions:
+        target = min(chain(enemy_wizards, enemy_minions), key=lambda v: Point(v.x, v.y).distance(my_position))
     else:
         target = None
     get_attack_range = make_get_attack_range(
@@ -51,11 +49,11 @@ def get_target(me, buildings, minions, wizards, guardian_tower_attack_range, fac
 
 
 def filter_enemies(units, my_faction):
-    return (v for v in units if v.faction is not None and v.faction != my_faction)
+    return (v for v in units if v.faction != my_faction and v.faction not in {Faction.NEUTRAL, Faction.OTHER})
 
 
 def filter_neural(units):
-    return (v for v in units if v.faction is None)
+    return (v for v in units if v.faction == Faction.NEUTRAL)
 
 
 def make_get_attack_range(guardian_tower_attack_range, faction_base_attack_range,

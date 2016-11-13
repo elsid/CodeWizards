@@ -16,7 +16,8 @@ State = namedtuple('State', ('position', 'angle', 'path_length', 'intersection')
 PARAMETERS_COUNT = 3
 
 
-def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, game: Game, step_sizes):
+def optimize_movement(target: Point, look_target: Point, circular_unit: CircularUnit,
+                      world: World, game: Game, step_sizes):
     bounds = Bounds(world=world, game=game)
     steps = sum(step_sizes)
 
@@ -35,12 +36,17 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
     initial_position = Point(circular_unit.x, circular_unit.y)
     initial_angle = normalize_angle(circular_unit.angle)
     initial_state = State(position=initial_position, angle=initial_angle, path_length=0, intersection=False)
-    speed_values = (bounds.min_speed, 0, bounds.max_speed)
-    strafe_speed_values = (bounds.min_strafe_speed, 0, bounds.max_strafe_speed)
-    turn_values = (bounds.min_turn, 0, bounds.max_turn)
+    if initial_position.distance(target) < bounds.max_speed:
+        speed_values = (0,)
+        strafe_speed_values = (0,)
+        turn_values = (bounds.min_turn, 0, bounds.max_turn)
+    else:
+        speed_values = (bounds.min_speed, 0, bounds.max_speed)
+        strafe_speed_values = (bounds.min_strafe_speed, 0, bounds.max_strafe_speed)
+        turn_values = (bounds.min_turn, 0, bounds.max_turn)
     branches = list()
     heappush(branches, (0, 0, 0, [initial_state], list(), initial_dynamic_units_positions))
-    base_penalty = calculate_penalty(cur_state=initial_state, target=target, steps=1) * steps
+    base_penalty = calculate_penalty(cur_state=initial_state, target=target, look_target=look_target, steps=1) * steps
     result = None
     result_penalty = None
     while branches:
@@ -73,7 +79,8 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
             if state.intersection:
                 continue
             new_depth = depth + 1
-            penalty = calculate_penalty(cur_state=state, target=target, steps=sum(step_sizes[:new_depth]))
+            penalty = calculate_penalty(cur_state=state, target=target, look_target=look_target,
+                                        steps=sum(step_sizes[:new_depth]))
             new_sum_penalty = sum_penalty + penalty
             if new_sum_penalty > base_penalty:
                 continue
@@ -92,12 +99,13 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
     return result if result else (tuple([initial_state]), tuple())
 
 
-def calculate_penalty(cur_state: State, target: Point, steps: int):
+def calculate_penalty(cur_state: State, target: Point, look_target: Point, steps: int):
     direction = Point(1, 0).rotate(cur_state.angle)
-    target_direction = (target - cur_state.position).normalized() if target != cur_state.position else direction
+    target_direction = ((look_target - cur_state.position).normalized()
+                        if look_target != cur_state.position else direction)
     return (
         cur_state.position.distance(target)
-        + direction.distance(target_direction)
+        * (1 + direction.distance(target_direction))
         - cur_state.path_length
         - cur_state.path_length / steps
     )

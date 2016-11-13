@@ -54,8 +54,12 @@ class Strategy(LazyInit):
             movement = self.__movements[self.__cur_movement]
             context.move.speed = movement.speed
             context.move.strafe_speed = movement.strafe_speed
-            context.move.turn = movement.turn
-            context.move.action = ActionType.MAGIC_MISSILE
+            context.move.turn = context.me.get_angle_to_unit(self.__target) if self.__target else movement.turn
+        if self.__target:
+            target_position = Point(self.__target.x, self.__target.y)
+            distance = target_position.distance(context.my_position)
+            if distance <= context.me.cast_range:
+                context.move.action = ActionType.MAGIC_MISSILE
 
     @property
     def movements(self):
@@ -93,9 +97,9 @@ class Strategy(LazyInit):
                 context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
             self.__target, position = get_target(
                 me=context.me,
-                buildings=self.__cached_buildings.values(),
-                minions=self.__cached_minions.values(),
-                wizards=self.__cached_wizards.values(),
+                buildings=tuple(self.__cached_buildings.values()),
+                minions=tuple(self.__cached_minions.values()),
+                wizards=tuple(self.__cached_wizards.values()),
                 guardian_tower_attack_range=context.game.guardian_tower_attack_range,
                 faction_base_attack_range=context.game.faction_base_attack_range,
                 orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
@@ -119,6 +123,7 @@ class Strategy(LazyInit):
     def __calculate_movements(self, context: Context):
         self.__states, self.__movements = optimize_movement(
             target=self.__target_position,
+            look_target=Point(self.__target.x, self.__target.y) if self.__target else self.__target_position,
             circular_unit=context.me,
             world=context.world,
             game=context.game,

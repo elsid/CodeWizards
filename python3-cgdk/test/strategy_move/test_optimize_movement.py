@@ -45,6 +45,7 @@ def test_optimize_movement():
     )
     states, movements = optimize_movement(
         target=target,
+        look_target=target,
         circular_unit=circular_unit,
         world=world,
         game=game,
@@ -92,6 +93,7 @@ def test_optimize_movement_with_static_barriers():
     )
     states, movements = optimize_movement(
         target=target,
+        look_target=target,
         circular_unit=circular_unit,
         world=world,
         game=game,
@@ -161,6 +163,7 @@ def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed, 
     )
     states, movements = list(optimize_movement(
         target=target,
+        look_target=target,
         circular_unit=circular_unit,
         world=world,
         game=game,
