@@ -31,6 +31,7 @@ class Strategy(LazyInit):
         self.__target = None
         self.__actual_path = list()
         self.__expected_path = list()
+        self.__error = 0
 
     @lazy_init
     def move(self, context: Context):
@@ -69,7 +70,7 @@ class Strategy(LazyInit):
     def __update_movements(self, context):
         if (not self.__movements or
                 context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS or
-                self.__cur_movement >= len(self.__movements) - 1):
+                self.__cur_movement >= len(self.__movements) - 1 or self.__error > context.game.wizard_radius * 2):
             self.__states, self.__movements = optimize_movement(
                 target=self.__target,
                 circular_unit=context.me,
@@ -82,8 +83,10 @@ class Strategy(LazyInit):
                 self.__last_update_movements_tick_index = context.world.tick_index
                 self.__last_next_movement_tick_index = context.world.tick_index
                 self.__expected_path.append(self.__states[self.__cur_movement].position)
+                self.__error = 0
         elif (context.world.tick_index - self.__last_next_movement_tick_index >=
               self.__movements[self.__cur_movement].step_size):
             self.__cur_movement += 1
             self.__last_next_movement_tick_index = context.world.tick_index
             self.__expected_path.append(self.__states[self.__cur_movement].position)
+            self.__error += abs(self.__expected_path[-1].distance(self.__actual_path[-1]))
