@@ -61,7 +61,6 @@ def test_optimize_movement():
     ))
     distance = simulation[-1].position.distance(target)
     turn = Point(1, 0).rotate(simulation[-1].angle).distance((target - simulation[-1].position).normalized())
-
     assert (simulation, distance, turn) == ([
         State(position=Point(106.58142618192187, 107.52561361050149), angle=0.3141592653589793, intersection=False),
         State(position=Point(110.51519194000983, 116.71667001132653), angle=0.6283185307179586, intersection=False),
@@ -129,7 +128,7 @@ def test_optimize_movement_with_barriers():
     distance = simulation[-1].position.distance(target)
     turn = Point(1, 0).rotate(simulation[-1].angle).distance((target - simulation[-1].position).normalized())
     assert (simulation, distance, turn) == ([
-        State(position=Point(106.58142618192187, 107.52561361050149), angle=0.3141592653589793, intersection=False),
-        State(position=Point(110.51519194000983, 116.71667001132653), angle=0.6283185307179586, intersection=False),
-        State(position=Point(111.41665076299647, 126.67290938884074), angle=0.9424777960769379, intersection=False),
-    ], 114.9950954586416, 0.25037017627287766)
+        State(position=Point(105.93586102734234, 106.54613605740953), angle=0.25691044696652243, intersection=False),
+        State(position=Point(110.01377363396229, 114.38574247121072), angle=0.52054804814880007, intersection=False),
+        State(position=Point(111.90791820485484, 123.01720783920956), angle=0.78859804802315003, intersection=False),
+    ], 116.98959425467721, 0.07038251353289851)

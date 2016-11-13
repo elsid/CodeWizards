@@ -135,7 +135,7 @@ def simulate_move(movements, position: Point, angle: float, radius: float, bound
         shift *= movement.step_size
         new_position = position + shift
         angle = normalize_angle(angle + turn * movement.step_size)
-        barrier.position = position
+        barrier.position = new_position
         intersection = (
             has_intersection_with_borders(barrier, map_size) or
             has_intersection_with_barriers(barrier, barriers)
