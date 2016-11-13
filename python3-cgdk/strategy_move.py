@@ -1,8 +1,7 @@
 from collections import namedtuple
-from itertools import chain
+from heapq import heappop, heappush
+from itertools import chain, product
 from math import hypot
-from numpy import zeros
-from scipy.optimize import minimize
 
 from model.CircularUnit import CircularUnit
 from model.Game import Game
@@ -15,14 +14,9 @@ Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn', 'step_size')
 State = namedtuple('State', ('position', 'angle', 'path_length', 'intersection'))
 
 PARAMETERS_COUNT = 3
-DISTANCE_WEIGHT = 1.0
-INTERSECTION_WEIGHT = 10000
-SPEED_WEIGHT = 0.01
-TURN_WEIGHT = 0.1
-PATH_LENGTH_WEIGHT = 1
 
 
-def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, game: Game, step_sizes, iterations):
+def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, game: Game, step_sizes):
     bounds = Bounds(world=world, game=game)
     steps = sum(step_sizes)
 
@@ -31,51 +25,87 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
                 unit.radius + circular_unit.radius + steps * game.wizard_forward_speed)
 
     wizards = (v for v in world.wizards if v.id != circular_unit.id and is_in_range(v))
-    buildings = (v for v in world.buildings if is_in_range(v))
     minions = (v for v in world.minions if is_in_range(v))
-    trees = (v for v in world.trees if is_in_range(v))
-    barriers = list(chain(
-        make_circular_barriers(wizards),
-        make_circular_barriers(buildings),
-        make_circular_barriers(minions),
-        make_circular_barriers(trees),
+    dynamic_units = {v.id: v for v in chain(wizards, minions)}
+    initial_dynamic_units_positions = {v.id: Point(v.x, v.y) for v in dynamic_units.values()}
+    static_barriers = list(chain(
+        make_circular_barriers(v for v in world.buildings if is_in_range(v)),
+        make_circular_barriers(v for v in world.trees if is_in_range(v)),
     ))
     initial_position = Point(circular_unit.x, circular_unit.y)
     initial_angle = normalize_angle(circular_unit.angle)
     initial_state = State(position=initial_position, angle=initial_angle, path_length=0, intersection=False)
+    speed_values = (bounds.min_speed, 0, bounds.max_speed)
+    strafe_speed_values = (bounds.min_strafe_speed, 0, bounds.max_strafe_speed)
+    turn_values = (bounds.min_turn, 0, bounds.max_turn)
+    branches = list()
+    heappush(branches, (0, 0, 0, [initial_state], list(), initial_dynamic_units_positions))
+    base_penalty = calculate_penalty(cur_state=initial_state, prev_state=None, target=target, steps=1) * steps
+    result = None
+    result_penalty = None
+    while branches:
+        _, depth, sum_penalty, states, movements, dynamic_units_positions = heappop(branches)
+        for speed, strafe_speed, turn in product(speed_values, strafe_speed_values, turn_values):
+            cur_state = states[-1]
+            new_movement = Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=step_sizes[depth])
 
-    def function(values):
-        simulation = simulate_move(
-            movements=iter_movements(values, step_sizes),
-            state=initial_state,
-            radius=circular_unit.radius,
-            bounds=bounds,
-            barriers=barriers,
-            map_size=game.map_size,
-        )
-        last_state = initial_state
-        intersections = 0
-        for state in simulation:
-            intersections += state.intersection
-            last_state = state
-        direction = Point(1, 0).rotate(last_state.angle)
-        target_direction = (target - last_state.position).normalized()
-        return (
-            (1 + last_state.position.distance(target) * DISTANCE_WEIGHT)
-            * (1 + direction.distance(target_direction) * TURN_WEIGHT)
-            / (1 + last_state.path_length * PATH_LENGTH_WEIGHT)
-            / (1 + last_state.path_length / steps * SPEED_WEIGHT)
-            + intersections * INTERSECTION_WEIGHT / max(1, initial_position.distance(last_state.position))
-        )
-    minimized = minimize(
-        fun=function,
-        x0=zeros(PARAMETERS_COUNT * steps),
-        bounds=[(bounds.min_speed, bounds.max_speed),
-                (bounds.min_strafe_speed, bounds.max_strafe_speed),
-                (bounds.min_turn, bounds.max_turn)] * steps,
-        options=dict(maxiter=iterations),
+            def update_dynamic_units_positions():
+                for k, v in dynamic_units_positions.items():
+                    dynamic_unit = dynamic_units[k]
+                    yield k, v + Point(dynamic_unit.speed_x, dynamic_unit.speed_y)
+
+            new_dynamic_units = dict(update_dynamic_units_positions())
+
+            def make_dynamic_barriers():
+                for k, v in new_dynamic_units.items():
+                    dynamic_unit = dynamic_units[k]
+                    yield Circular(position=v, radius=dynamic_unit.radius)
+
+            simulation = simulate_move(
+                movements=[new_movement],
+                state=cur_state,
+                radius=circular_unit.radius,
+                bounds=bounds,
+                barriers=chain(static_barriers, make_dynamic_barriers()),
+                map_size=game.map_size,
+            )
+            state = next(simulation)
+            if state.intersection:
+                continue
+            prev_state = states[-2] if len(states) >= 2 else None
+            new_depth = depth + 1
+            penalty = calculate_penalty(cur_state=state, prev_state=prev_state, target=target,
+                                        steps=sum(step_sizes[:new_depth]))
+            new_sum_penalty = sum_penalty + penalty
+            if new_sum_penalty > base_penalty:
+                continue
+            if result_penalty is not None and new_depth * penalty > result_penalty:
+                continue
+            new_states = states + [state]
+            new_movements = movements + [new_movement]
+            if new_depth < len(step_sizes) and state.position.distance(target) > bounds.max_speed:
+                heappush(branches, (-new_depth, new_depth, new_sum_penalty,
+                                    new_states, new_movements, new_dynamic_units))
+                continue
+            if result_penalty is None or result_penalty > penalty:
+                result_penalty = penalty
+                base_penalty = new_sum_penalty
+                result = (new_states, new_movements)
+    return result if result else (tuple([initial_state]), tuple())
+
+
+def calculate_penalty(cur_state: State, prev_state: (State, None), target: Point, steps: int):
+    direction = Point(1, 0).rotate(cur_state.angle)
+    move_direction = ((cur_state.position - prev_state.position).normalized()
+                      if prev_state and cur_state.position != prev_state.position else direction)
+    target_direction = (target - cur_state.position).normalized() if target != cur_state.position else direction
+    return (
+        cur_state.position.distance(target)
+        + direction.distance(target_direction)
+        - direction.distance(move_direction)
+        - cur_state.path_length
+        - cur_state.path_length / steps
     )
-    return iter_movements(minimized.x, step_sizes)
 
 
 def iter_movements(values, step_sizes):
@@ -164,8 +194,7 @@ def has_intersection_with_borders(circular: Circular, map_size):
 
 
 def has_intersection_with_barriers(circular: Circular, barriers):
-    return next((True for barrier in barriers
-                 if barrier.has_intersection_with_circular(circular, circular.radius / 10)), False)
+    return next((True for barrier in barriers if barrier.has_intersection_with_circular(circular, 1)), False)
 
 
 def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float):

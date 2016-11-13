@@ -8,9 +8,8 @@ from strategy_common import LazyInit, lazy_init, Point
 from strategy_move import optimize_movement
 
 
-OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 10)
+OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 30)
 OPTIMIZE_MOVEMENT_TICKS = int(sum(OPTIMIZE_MOVEMENT_STEP_SIZES) * 0.9)
-OPTIMIZE_MOVEMENT_ITERATIONS = 5
 
 
 class Context:
@@ -55,14 +54,13 @@ class Strategy(LazyInit):
         if (not self.__movements or
                 context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS or
                 self.__cur_movement >= len(self.__movements) - 1):
-            self.__movements = list(optimize_movement(
+            _, self.__movements = optimize_movement(
                 target=self.__target,
                 circular_unit=context.me,
                 world=context.world,
                 game=context.game,
                 step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
-                iterations=OPTIMIZE_MOVEMENT_ITERATIONS,
-            ))
+            )
             if self.__movements:
                 self.__cur_movement = 0
                 self.__last_update_movements_tick_index = context.world.tick_index
