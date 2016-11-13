@@ -41,18 +41,18 @@ def optimize_movement(target: Point, circular_unit: CircularUnit, world: World, 
     ))
     initial_position = Point(circular_unit.x, circular_unit.y)
     initial_angle = normalize_angle(circular_unit.angle)
+    initial_state = State(position=initial_position, angle=initial_angle, intersection=False)
 
     def function(values):
         simulation = simulate_move(
             movements=iter_movements(values, step_sizes),
-            position=initial_position,
-            angle=initial_angle,
+            state=initial_state,
             radius=circular_unit.radius,
             bounds=bounds,
             barriers=barriers,
             map_size=game.map_size,
         )
-        last_state = State(position=initial_position, angle=initial_angle, intersection=False)
+        last_state = initial_state
         intersections = 0
         for state in simulation:
             intersections += state.intersection
@@ -122,8 +122,12 @@ class Bounds:
         return -self.game.wizard_max_turn_angle
 
 
-def simulate_move(movements, position: Point, angle: float, radius: float, bounds: Bounds, barriers, map_size: float):
-    barrier = Circular(position, radius)
+def simulate_move(movements, state: State, radius: float, bounds: Bounds, barriers, map_size: float):
+    if state.intersection:
+        return
+    barrier = Circular(state.position, radius)
+    position = state.position
+    angle = state.angle
     for movement in movements:
         shift, turn = get_shift_and_turn(
             angle=angle,

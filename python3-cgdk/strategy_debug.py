@@ -1,5 +1,5 @@
 from strategy_common import Point, normalize_angle
-from strategy_move import Bounds, simulate_move
+from strategy_move import Bounds, simulate_move, State
 from strategy_release import Strategy as ReleaseStrategy, Context
 from debug.client import DebugClient
 
@@ -24,8 +24,11 @@ class Strategy:
             steps = len(movements)
             simulation = simulate_move(
                 movements=movements,
-                position=last_position,
-                angle=normalize_angle(context.me.angle),
+                state=State(
+                    position=last_position,
+                    angle=normalize_angle(context.me.angle),
+                    intersection=False,
+                ),
                 radius=context.me.radius,
                 bounds=Bounds(world=context.world, game=context.game),
                 barriers=tuple(),
