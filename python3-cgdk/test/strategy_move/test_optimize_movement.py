@@ -129,28 +129,28 @@ def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed, 
         angle=angle,
         radius=WIZARD_RADIUS,
     )
+    minion = Minion(
+        id=1,
+        x=minion_position.x,
+        y=minion_position.y,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=None,
+        radius=MINION_RADIUS,
+        life=None,
+        max_life=None,
+        statuses=None,
+        type=None,
+        vision_range=None,
+        damage=None,
+        cooldown_ticks=None,
+        remaining_action_cooldown_ticks=None,
+    )
+    setattr(minion, 'mean_speed', minion_speed)
     world = World(
         buildings=tuple(),
-        minions=[
-            Minion(
-                id=1,
-                x=minion_position.x,
-                y=minion_position.y,
-                speed_x=minion_speed.x,
-                speed_y=minion_speed.y,
-                angle=None,
-                faction=None,
-                radius=MINION_RADIUS,
-                life=None,
-                max_life=None,
-                statuses=None,
-                type=None,
-                vision_range=None,
-                damage=None,
-                cooldown_ticks=None,
-                remaining_action_cooldown_ticks=None,
-            )
-        ],
+        minions=[minion],
         trees=tuple(),
         wizards=tuple(),
     )

@@ -58,7 +58,7 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
             def update_dynamic_units_positions():
                 for k, v in dynamic_units_positions.items():
                     dynamic_unit = dynamic_units[k]
-                    yield k, v + Point(dynamic_unit.speed_x, dynamic_unit.speed_y)
+                    yield k, v + dynamic_unit.mean_speed * (depth + 1)
 
             new_dynamic_units = dict(update_dynamic_units_positions())
 

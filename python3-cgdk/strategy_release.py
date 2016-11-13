@@ -1,3 +1,5 @@
+from functools import reduce
+
 from model.ActionType import ActionType
 from model.Game import Game
 from model.Move import Move
@@ -88,9 +90,9 @@ class Strategy(LazyInit):
         for v in context.world.buildings:
             self.__cached_buildings[v.id] = v
         for v in context.world.minions:
-            self.__cached_minions[v.id] = v
+            update_dynamic_unit(self.__cached_minions, v)
         for v in context.world.wizards:
-            self.__cached_wizards[v.id] = v
+            update_dynamic_unit(self.__cached_wizards, v)
 
     def __update_target(self, context: Context):
         if (self.__last_update_target is None or
@@ -143,3 +145,17 @@ class Strategy(LazyInit):
             self.__calculate_movements(context)
         else:
             self.__last_next_movement_tick_index = context.world.tick_index
+
+
+def update_dynamic_unit(cache, new):
+    old = cache.get(new.id)
+    new_position = Point(new.x, new.y)
+    if old is None:
+        speed = Point(new.speed_x, new.speed_y)
+        setattr(new, 'positions_history', [new_position - speed, new_position])
+        setattr(new, 'mean_speed', speed)
+    else:
+        setattr(new, 'positions_history', old.positions_history[-3:] + [new_position])
+        setattr(new, 'mean_speed',
+                reduce(lambda s, v: s + v, old.positions_history, Point(0, 0)) / len(old.positions_history))
+    cache[new.id] = new
