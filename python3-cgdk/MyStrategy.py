@@ -36,6 +36,7 @@ class MyStrategy:
             self.__strategy = ReleaseStrategy
         self.__impl = self.__strategy()
 
+    @profile
     def move(self, me: Wizard, world: World, game: Game, move: Move):
         if 'MAX_TICKS' in environ and world.tick_index >= int(environ['MAX_TICKS']):
             exit(0)
