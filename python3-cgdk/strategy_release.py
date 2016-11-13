@@ -11,9 +11,9 @@ from strategy_move import optimize_movement
 from strategy_target import get_target
 
 
-OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 30)
-OPTIMIZE_MOVEMENT_TICKS = int(sum(OPTIMIZE_MOVEMENT_STEP_SIZES) * 0.9)
-UPDATE_TARGET_TICKS = 30
+OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 10 + [20, 40])
+OPTIMIZE_MOVEMENT_TICKS = sum(OPTIMIZE_MOVEMENT_STEP_SIZES) // 2
+UPDATE_TARGET_TICKS = 50
 
 
 class Context:
@@ -84,7 +84,7 @@ class Strategy(LazyInit):
         return self.__target_position
 
     def _init_impl(self, context: Context):
-        self.__target_position = Point(context.game.map_size / 2, context.game.map_size / 2)
+        self.__target_position = Point(context.game.map_size / 2 - 300, context.game.map_size / 2 - 300)
 
     def __update_cache(self, context: Context):
         for v in context.world.buildings:
