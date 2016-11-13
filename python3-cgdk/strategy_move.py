@@ -161,25 +161,31 @@ def simulate_move(movements, state: State, radius: float, bounds: Bounds, barrie
     position = state.position
     angle = state.angle
     path_length = state.path_length
+    intersection = False
     for movement in movements:
-        shift, turn = get_shift_and_turn(
-            angle=angle,
-            bounds=bounds,
-            speed=movement.speed,
-            strafe_speed=movement.strafe_speed,
-            turn=movement.turn,
-        )
-        shift *= movement.step_size
-        new_position = position + shift
-        angle = normalize_angle(angle + turn * movement.step_size)
-        barrier.position = new_position
-        intersection = (
-            has_intersection_with_borders(barrier, map_size) or
-            has_intersection_with_barriers(barrier, barriers)
-        )
+        new_position = position
+        new_angle = angle
+        for _ in range(movement.step_size):
+            shift, turn = get_shift_and_turn(
+                angle=new_angle,
+                bounds=bounds,
+                speed=movement.speed,
+                strafe_speed=movement.strafe_speed,
+                turn=movement.turn,
+            )
+            new_position += shift
+            new_angle = normalize_angle(new_angle + turn)
+            barrier.position = new_position
+            intersection = (
+                has_intersection_with_borders(barrier, map_size) or
+                has_intersection_with_barriers(barrier, barriers)
+            )
+            if intersection:
+                break
         if not intersection:
             path_length += position.distance(new_position)
             position = new_position
+            angle = new_angle
         yield State(position=position, angle=angle, path_length=path_length, intersection=intersection)
 
 
