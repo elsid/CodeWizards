@@ -122,12 +122,13 @@ class Strategy(LazyInit):
             self.__target, position = get_target(
                 me=context.me,
                 buildings=tuple(self.__cached_buildings.values()),
-                minions=tuple(self.__cached_minions.values()),
-                wizards=tuple(self.__cached_wizards.values()),
+                minions=context.world.minions,
+                wizards=context.world.wizards,
                 guardian_tower_attack_range=context.game.guardian_tower_attack_range,
                 faction_base_attack_range=context.game.faction_base_attack_range,
                 orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
                 fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
+                magic_missile_direct_damage=context.game.magic_missile_direct_damage,
             )
             if position is not None and position != self.__target_position:
                 self.__target_position = position
