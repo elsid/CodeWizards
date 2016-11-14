@@ -109,7 +109,11 @@ class Strategy(LazyInit):
             update_dynamic_unit(self.__cached_wizards, v)
 
     def __update_target(self, context: Context):
-        if (self.__last_update_target is None or
+        if context.me.life < context.me.max_life / 2:
+            self.__target_position = Point(context.game.map_size / 4, context.game.map_size / 4)
+            self.__movements = None
+            self.__last_update_target = context.world.tick_index
+        elif (self.__last_update_target is None or
                 context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
             self.__target, position = get_target(
                 me=context.me,
