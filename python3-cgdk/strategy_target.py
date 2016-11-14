@@ -13,12 +13,11 @@ from strategy_common import Point
 
 
 def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_range, faction_base_attack_range,
-               orc_woodcutter_attack_range, fetish_blowdart_attack_range, wizard_cast_range):
+               orc_woodcutter_attack_range, fetish_blowdart_attack_range):
     enemy_buildings = tuple(filter_enemies(buildings, me.faction))
     enemy_minions = tuple(filter_enemies(minions, me.faction))
     enemy_wizards = tuple(filter_enemies(wizards, me.faction))
-    units = tuple(chain(enemy_buildings, enemy_minions, enemy_wizards))
-    if not units:
+    if not enemy_buildings and not enemy_minions and not enemy_wizards:
         return None, None
     my_position = Point(me.x, me.y)
     if enemy_wizards or enemy_minions:
@@ -30,8 +29,8 @@ def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_ra
         faction_base_attack_range=faction_base_attack_range,
         orc_woodcutter_attack_range=orc_woodcutter_attack_range,
         fetish_blowdart_attack_range=fetish_blowdart_attack_range,
-        wizard_cast_range=wizard_cast_range,
     )
+    units = tuple(chain(buildings, minions, (v for v in wizards if v.id != me.id)))
 
     def function(values):
         position = Point(values[0], values[1])
@@ -39,7 +38,10 @@ def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_ra
         def generate():
             for v in units:
                 distance = position.distance(Point(v.x, v.y))
-                safe_distance = max(get_attack_range(v) + v.radius, me.cast_range / 2)
+                if is_enemy(v, me.faction):
+                    safe_distance = max(get_attack_range(v), me.cast_range / 2)
+                else:
+                    safe_distance = 2 * (me.radius + v.radius)
                 yield -distance if distance < safe_distance else (distance - safe_distance) ** 2 - safe_distance
 
         return min(generate())
@@ -49,15 +51,15 @@ def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_ra
 
 
 def filter_enemies(units, my_faction):
-    return (v for v in units if v.faction != my_faction and v.faction not in {Faction.NEUTRAL, Faction.OTHER})
+    return (v for v in units if is_enemy(v, my_faction))
 
 
-def filter_neural(units):
-    return (v for v in units if v.faction == Faction.NEUTRAL)
+def is_enemy(unit, my_faction):
+    return unit.faction != my_faction and unit.faction not in {Faction.NEUTRAL, Faction.OTHER}
 
 
 def make_get_attack_range(guardian_tower_attack_range, faction_base_attack_range,
-                          orc_woodcutter_attack_range, fetish_blowdart_attack_range, wizard_cast_range):
+                          orc_woodcutter_attack_range, fetish_blowdart_attack_range):
     buildings = {
         BuildingType.GUARDIAN_TOWER: guardian_tower_attack_range,
         BuildingType.FACTION_BASE: faction_base_attack_range,
@@ -73,6 +75,6 @@ def make_get_attack_range(guardian_tower_attack_range, faction_base_attack_range
         if isinstance(unit, Minion):
             return minions[unit.type]
         if isinstance(unit, Wizard):
-            return wizard_cast_range
+            return unit.cast_range
 
     return impl

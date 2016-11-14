@@ -6,6 +6,7 @@ from model.Faction import Faction
 from model.Minion import Minion
 from model.MinionType import MinionType
 from model.Tree import Tree
+from model.Wizard import Wizard as ModelWizard
 
 from strategy_common import Point
 from strategy_target import get_target
@@ -21,18 +22,19 @@ from test.common import (
 )
 
 Wizard = namedtuple('Wizard', (
+    'cast_range',
+    'faction',
+    'id',
     'radius',
     'x',
     'y',
-    'faction',
-    'cast_range',
 ))
 
 
 @pytest.mark.parametrize(
     ('me', 'buildings', 'minions', 'wizards', 'expected_target', 'expected_position'), [
         (
-            Wizard(x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
+            Wizard(id=1, x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
             tuple(),
             tuple(),
             tuple(),
@@ -40,7 +42,7 @@ Wizard = namedtuple('Wizard', (
             None,
         ),
         (
-            Wizard(x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
+            Wizard(id=1, x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
             tuple(),
             [
                 Minion(
@@ -64,10 +66,10 @@ Wizard = namedtuple('Wizard', (
             ],
             tuple(),
             1,
-            Point(-115.66756876334426, -115.66756876334426),
+            Point(-112.13203496074424, -112.13203496074424),
         ),
-(
-            Wizard(x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
+        (
+            Wizard(id=1, x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
             tuple(),
             [
                 Minion(
@@ -95,7 +97,7 @@ Wizard = namedtuple('Wizard', (
             #Point(-112.13203496074424, -112.13203496074424),
         ),
         (
-            Wizard(x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
+            Wizard(id=1, x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
             tuple(),
             [
                 Minion(
@@ -122,7 +124,7 @@ Wizard = namedtuple('Wizard', (
             Point(-112.13203496074424, -112.13203496074424),
         ),
         (
-            Wizard(x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
+            Wizard(id=1, x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
             [
                 Tree(
                     id=None,
@@ -143,6 +145,41 @@ Wizard = namedtuple('Wizard', (
             None,
             None,
         ),
+        (
+            Wizard(id=1, x=0, y=0, radius=WIZARD_RADIUS, faction=Faction.ACADEMY, cast_range=WIZARD_CAST_RANGE),
+            tuple(),
+            tuple(),
+            [
+                ModelWizard(
+                    id=2,
+                    x=100,
+                    y=100,
+                    speed_x=None,
+                    speed_y=None,
+                    angle=None,
+                    faction=Faction.RENEGADES,
+                    radius=WIZARD_RADIUS,
+                    life=None,
+                    max_life=None,
+                    statuses=None,
+                    owner_player_id=None,
+                    me=None,
+                    mana=None,
+                    max_mana=None,
+                    vision_range=None,
+                    cast_range=WIZARD_CAST_RANGE,
+                    xp=None,
+                    level=None,
+                    skills=None,
+                    remaining_action_cooldown_ticks=None,
+                    remaining_cooldown_ticks_by_action=None,
+                    master=None,
+                    messages=None,
+                ),
+            ],
+            2,
+            Point(-324.26406987776716, -324.26406987776716),
+        ),
     ]
 )
 def test_get_target(me, buildings, minions, wizards, expected_target, expected_position):
@@ -155,6 +192,5 @@ def test_get_target(me, buildings, minions, wizards, expected_target, expected_p
         faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
-        wizard_cast_range=WIZARD_CAST_RANGE,
     )
     assert (target.id if target else None, position) == (expected_target, expected_position)

@@ -124,7 +124,6 @@ class Strategy(LazyInit):
                 faction_base_attack_range=context.game.faction_base_attack_range,
                 orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
                 fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
-                wizard_cast_range=context.game.wizard_cast_range,
             )
             if position is not None and position != self.__target_position:
                 self.__target_position = position
