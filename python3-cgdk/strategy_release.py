@@ -98,7 +98,7 @@ class Strategy(LazyInit):
         return self.__target_position
 
     def _init_impl(self, context: Context):
-        self.__target_position = Point(context.game.map_size / 2 - 300, context.game.map_size / 2 - 300)
+        self.__target_position = Point(context.world.width / 2 - 300, context.world.height / 2 + 300)
 
     def __update_cache(self, context: Context):
         for v in context.world.buildings:
@@ -110,7 +110,7 @@ class Strategy(LazyInit):
 
     def __update_target(self, context: Context):
         if context.me.life < context.me.max_life / 2:
-            self.__target_position = Point(context.game.map_size / 4, context.game.map_size / 4)
+            self.__target_position = Point(context.world.width / 2 - 1000, context.world.height / 2 + 1000)
             self.__movements = None
             self.__last_update_target = context.world.tick_index
         elif (self.__last_update_target is None or
