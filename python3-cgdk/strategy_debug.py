@@ -16,6 +16,7 @@ class Strategy:
     def __visualize(self, context: Context):
         with self.__client.post() as post:
             self.__visualize_target(context, post)
+            self.__visualize_target_position(context, post)
             self.__visualize_path(post, self.__impl.actual_path, (0, 0, 1))
             self.__visualize_path(post, self.__impl.expected_path, (0, 1, 0))
             self.__visualize_states(post)
@@ -24,6 +25,11 @@ class Strategy:
         self.__visualize_path(post, [v.position for v in self.__impl.states], (1, 0, 0))
 
     def __visualize_target(self, context: Context, post):
+        target = self.__impl.target
+        if target:
+            post.line(context.me.x, context.me.y, target.x, target.y, (1, 0, 1))
+
+    def __visualize_target_position(self, context: Context, post):
         target = self.__impl.target_position
         post.line(context.me.x, context.me.y, target.x, target.y, (0, 0, 0))
 

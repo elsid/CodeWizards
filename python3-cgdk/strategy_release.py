@@ -94,6 +94,10 @@ class Strategy(LazyInit):
         return self.__expected_path
 
     @property
+    def target(self):
+        return self.__target
+
+    @property
     def target_position(self):
         return self.__target_position
 
