@@ -40,13 +40,13 @@ class MyStrategy:
     def move(self, me: Wizard, world: World, game: Game, move: Move):
         if 'MAX_TICKS' in environ and world.tick_index >= int(environ['MAX_TICKS']):
             exit(0)
-        context = Context(me=me, world=world, game=game, move=move)
-        if self.__fail_on_exception:
-            self.__impl.move(context)
-        else:
-            try:
+        with Context(me=me, world=world, game=game, move=move) as context:
+            if self.__fail_on_exception:
                 self.__impl.move(context)
-            except Exception:
-                self.__impl = self.__strategy()
-            except BaseException:
-                self.__impl = self.__strategy()
+            else:
+                try:
+                    self.__impl.move(context)
+                except Exception:
+                    self.__impl = self.__strategy()
+                except BaseException:
+                    self.__impl = self.__strategy()

@@ -2,6 +2,7 @@ from collections import namedtuple
 from heapq import heappop, heappush
 from itertools import chain, product
 from math import hypot
+from time import time
 
 from model.CircularUnit import CircularUnit
 from model.Game import Game
@@ -17,7 +18,8 @@ PARAMETERS_COUNT = 3
 
 
 def optimize_movement(target: Point, look_target: Point, circular_unit: CircularUnit,
-                      world: World, game: Game, step_sizes):
+                      world: World, game: Game, step_sizes, max_time=None):
+    start = time()
     bounds = Bounds(world=world, game=game)
     steps = sum(step_sizes)
 
@@ -96,6 +98,8 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
                 result_penalty = penalty
                 base_penalty = new_sum_penalty
                 result = (new_states, new_movements)
+                if max_time is not None and time() - start > max_time:
+                    branches.clear()
     return result if result else (tuple([initial_state]), tuple())
 
 

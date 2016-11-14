@@ -1,4 +1,5 @@
 from functools import reduce
+from time import time
 
 from model.ActionType import ActionType
 from model.Game import Game
@@ -14,6 +15,7 @@ from strategy_target import get_target
 OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 10 + [20, 40])
 OPTIMIZE_MOVEMENT_TICKS = sum(OPTIMIZE_MOVEMENT_STEP_SIZES) // 2
 UPDATE_TARGET_TICKS = 50
+MAX_TIME = 0.1
 
 
 class Context:
@@ -22,10 +24,22 @@ class Context:
         self.world = world
         self.game = game
         self.move = move
+        self.__start = None
+        self.__finish = None
+
+    def __enter__(self):
+        self.__start = time()
+        return self
+
+    def __exit__(self, *_):
+        self.__finish = time()
 
     @property
     def my_position(self):
         return Point(self.me.x, self.me.y)
+
+    def time_left(self):
+        return time() - self.__start
 
 
 class Strategy(LazyInit):
@@ -130,6 +144,7 @@ class Strategy(LazyInit):
             world=context.world,
             game=context.game,
             step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
+            max_time=context.time_left(),
         )
         if self.__movements:
             self.__cur_movement = 0
