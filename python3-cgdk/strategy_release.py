@@ -17,6 +17,7 @@ OPTIMIZE_MOVEMENT_TICKS = sum(OPTIMIZE_MOVEMENT_STEP_SIZES) // 2
 UPDATE_TARGET_TICKS = 200
 MAX_TIME = 0.1
 CACHE_TTL = 100
+LOST_TARGET_TICKS = 5
 
 
 class Context:
@@ -121,13 +122,18 @@ class Strategy(LazyInit):
         invalidate_cache(self.__cached_wizards, context.world.tick_index - CACHE_TTL)
 
     def __update_target(self, context: Context):
-        if (self.__last_update_target is None or
+        if (self.__target is not None and (
+                context.world.tick_index - self.__target.last_seen > LOST_TARGET_TICKS
+                or self.__target.last_seen < context.world.tick_index
+                and self.__target.life < self.__target.max_life / 4)):
+            self.__target = None
+        if (self.__last_update_target is None or self.__target is None or
                 context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
             self.__target, position = get_target(
                 me=context.me,
                 buildings=tuple(self.__cached_buildings.values()),
-                minions=context.world.minions,
-                wizards=context.world.wizards,
+                minions=tuple(v for v in self.__cached_minions.values() if v.last_seen == context.world.tick_index),
+                wizards=tuple(v for v in self.__cached_wizards.values() if v.last_seen == context.world.tick_index),
                 guardian_tower_attack_range=context.game.guardian_tower_attack_range,
                 faction_base_attack_range=context.game.faction_base_attack_range,
                 orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
@@ -140,6 +146,8 @@ class Strategy(LazyInit):
                 self.__last_update_target = context.world.tick_index
 
     def __update_movements(self, context: Context):
+        if not self.__target_position:
+            return
         if (not self.__movements or
                 context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS or
                 self.__cur_movement >= len(self.__movements) - 1):
@@ -149,17 +157,16 @@ class Strategy(LazyInit):
             self.__next_movement(context)
 
     def __calculate_movements(self, context: Context):
-        if self.__target_position:
-            self.__states, self.__movements = optimize_movement(
-                target=self.__target_position,
-                look_target=Point(self.__target.x, self.__target.y) if self.__target else self.__target_position,
-                circular_unit=context.me,
-                world=context.world,
-                game=context.game,
-                step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
-                random_seed=context.game.random_seed,
-                max_time=context.time_left(),
-            )
+        self.__states, self.__movements = optimize_movement(
+            target=self.__target_position,
+            look_target=Point(self.__target.x, self.__target.y) if self.__target else self.__target_position,
+            circular_unit=context.me,
+            world=context.world,
+            game=context.game,
+            step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
+            random_seed=context.game.random_seed,
+            max_time=context.time_left(),
+        )
         if self.__movements:
             self.__cur_movement = 0
             self.__last_update_movements_tick_index = context.world.tick_index
