@@ -105,7 +105,7 @@ class Strategy(LazyInit):
         return self.__target_position
 
     def _init_impl(self, context: Context):
-        self.__target_position = Point(context.world.width / 2 - 300, context.world.height / 2 + 300)
+        self.__target_position = Point(context.world.width / 2, context.world.height / 2 + 300)
 
     def __update_cache(self, context: Context):
         for v in context.world.buildings:
