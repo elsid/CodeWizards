@@ -49,9 +49,10 @@ def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_ra
                 distance = position.distance(Point(v.x, v.y))
                 if is_enemy(v, me.faction):
                     safe_distance = max(get_attack_range(v), me.cast_range / 2)
+                    yield -distance if distance < safe_distance else (distance - safe_distance) ** 2 - safe_distance
                 else:
                     safe_distance = 2 * (me.radius + v.radius)
-                yield -distance if distance < safe_distance else (distance - safe_distance) ** 2 - safe_distance
+                    yield -distance if distance < safe_distance else 0
 
         return min(generate())
 
