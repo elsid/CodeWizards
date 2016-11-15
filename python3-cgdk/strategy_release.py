@@ -71,12 +71,13 @@ class Strategy(LazyInit):
             movement = self.__movements[self.__cur_movement]
             context.move.speed = movement.speed
             context.move.strafe_speed = movement.strafe_speed
-            context.move.turn = context.me.get_angle_to_unit(self.__target) if self.__target else movement.turn
+            context.move.turn = movement.turn
         if self.__target:
             target_position = Point(self.__target.x, self.__target.y)
             distance = target_position.distance(context.my_position)
             if distance <= context.me.cast_range:
                 context.move.action = ActionType.MAGIC_MISSILE
+                context.move.turn = context.me.get_angle_to_unit(self.__target)
 
     @property
     def movements(self):
