@@ -16,6 +16,7 @@ OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 10 + [20, 40])
 OPTIMIZE_MOVEMENT_TICKS = sum(OPTIMIZE_MOVEMENT_STEP_SIZES) // 2
 UPDATE_TARGET_TICKS = 200
 MAX_TIME = 0.1
+CACHE_TTL = 100
 
 
 class Context:
@@ -107,10 +108,16 @@ class Strategy(LazyInit):
     def __update_cache(self, context: Context):
         for v in context.world.buildings:
             self.__cached_buildings[v.id] = v
+            setattr(v, 'last_seen', context.world.tick_index)
         for v in context.world.minions:
             update_dynamic_unit(self.__cached_minions, v)
+            setattr(v, 'last_seen', context.world.tick_index)
         for v in context.world.wizards:
             update_dynamic_unit(self.__cached_wizards, v)
+            setattr(v, 'last_seen', context.world.tick_index)
+        invalidate_cache(self.__cached_buildings, context.world.tick_index - CACHE_TTL)
+        invalidate_cache(self.__cached_minions, context.world.tick_index - CACHE_TTL)
+        invalidate_cache(self.__cached_wizards, context.world.tick_index - CACHE_TTL)
 
     def __update_target(self, context: Context):
         if (self.__last_update_target is None or
@@ -180,3 +187,9 @@ def update_dynamic_unit(cache, new):
         setattr(new, 'mean_speed',
                 reduce(lambda s, v: s + v, old.positions_history, Point(0, 0)) / len(old.positions_history))
     cache[new.id] = new
+
+
+def invalidate_cache(cache, earliest_last_seen):
+    to_rm = [v.id for v in cache.values() if v.last_seen < earliest_last_seen]
+    for v in to_rm:
+        del cache[v]
