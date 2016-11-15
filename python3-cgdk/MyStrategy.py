@@ -29,6 +29,7 @@ def profile(func):
 class MyStrategy:
     def __init__(self):
         self.__fail_on_exception = 'FAIL_ON_EXCEPTION' in environ and environ['FAIL_ON_EXCEPTION'] == '1'
+        self.__verbose = 'VERBOSE' in environ and environ['VERBOSE'] == '1'
         if 'DEBUG' in environ and environ['DEBUG'] == '1':
             from strategy_debug import Strategy as DebugStrategy
             self.__strategy = DebugStrategy
@@ -40,7 +41,7 @@ class MyStrategy:
     def move(self, me: Wizard, world: World, game: Game, move: Move):
         if 'MAX_TICKS' in environ and world.tick_index >= int(environ['MAX_TICKS']):
             exit(0)
-        with Context(me=me, world=world, game=game, move=move) as context:
+        with Context(me=me, world=world, game=game, move=move, log_events=self.__verbose) as context:
             if self.__fail_on_exception:
                 self.__impl.move(context)
             else:

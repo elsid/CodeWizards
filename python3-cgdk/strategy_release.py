@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from functools import reduce
 from time import time
 
@@ -22,20 +23,28 @@ LOST_TARGET_TICKS = 30
 
 
 class Context:
-    def __init__(self, me: Wizard, world: World, game: Game, move: Move):
+    def __init__(self, me: Wizard, world: World, game: Game, move: Move, log_events: bool):
         self.me = me
         self.world = world
         self.game = game
         self.move = move
         self.__start = None
-        self.__finish = None
+        self.__events = list()
+        if log_events:
+            from debug import log_dict
+            self.__write_log = log_dict
+        else:
+            self.__write_log = lambda _: None
 
     def __enter__(self):
         self.__start = time()
+        self.post_event(name='start')
         return self
 
     def __exit__(self, *_):
-        self.__finish = time()
+        self.post_event(name='finish', duration=time() - self.__events[0]['time'])
+        for event in self.__events:
+            self.__write_log(event)
 
     @property
     def my_position(self):
@@ -43,6 +52,15 @@ class Context:
 
     def time_left(self):
         return time() - self.__start
+
+    def post_event(self, **kwargs):
+        data = OrderedDict()
+        data['tick'] = self.world.tick_index
+        data['time'] = time()
+        data['id'] = self.me.id
+        for k, v in kwargs.items():
+            data[k] = v
+        self.__events.append(data)
 
 
 class Strategy(LazyInit):
@@ -65,11 +83,13 @@ class Strategy(LazyInit):
 
     @lazy_init
     def move(self, context: Context):
+        context.post_event(name='strategy_release_move')
         self.__actual_path.append(Point(context.me.x, context.me.y))
         self.__update_cache(context)
         self.__update_target(context)
         self.__update_movements(context)
         if self.__movements:
+            context.post_event(name='apply_movement')
             movement = self.__movements[self.__cur_movement]
             context.move.speed = movement.speed
             context.move.strafe_speed = movement.strafe_speed
@@ -78,6 +98,7 @@ class Strategy(LazyInit):
             target_position = Point(self.__target.x, self.__target.y)
             distance = target_position.distance(context.my_position)
             if distance <= context.me.cast_range:
+                context.post_event(name='apply_target_turn_and_action')
                 context.move.action = ActionType.MAGIC_MISSILE
                 context.move.turn = context.me.get_angle_to_unit(self.__target)
 
@@ -109,6 +130,7 @@ class Strategy(LazyInit):
         self.__target_position = Point(context.world.width / 2, context.world.height / 2 + 300)
 
     def __update_cache(self, context: Context):
+        context.post_event(name='update_cache')
         for v in context.world.buildings:
             self.__cached_buildings[v.id] = v
             setattr(v, 'last_seen', context.world.tick_index)
@@ -123,13 +145,16 @@ class Strategy(LazyInit):
         invalidate_cache(self.__cached_wizards, context.world.tick_index - CACHE_TTL)
 
     def __update_target(self, context: Context):
+        context.post_event(name='update_target')
         if (self.__target is not None and (
                 context.world.tick_index - self.__target.last_seen > LOST_TARGET_TICKS
                 or self.__target.last_seen < context.world.tick_index
                 and self.__target.life < self.__target.max_life / 4)):
             self.__target = None
+            context.post_event(name='reset_target')
         if (self.__last_update_target is None or self.__target is None or
                 context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
+            context.post_event(name='get_target')
             self.__target, position = get_target(
                 me=context.me,
                 buildings=tuple(self.__cached_buildings.values()),
@@ -141,12 +166,19 @@ class Strategy(LazyInit):
                 fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
                 magic_missile_direct_damage=context.game.magic_missile_direct_damage,
             )
+            if self.__target:
+                context.post_event(name='target_updated', target_type=str(type(self.__target)),
+                                   target_id=self.__target.id)
+            else:
+                context.post_event(name='target_updated')
             if self.__target_position is None or position is not None and position != self.__target_position:
+                context.post_event(name='reset_target_position', position=str(position))
                 self.__target_position = position
                 self.__movements = None
                 self.__last_update_target = context.world.tick_index
 
     def __update_movements(self, context: Context):
+        context.post_event(name='update_movements')
         if not self.__target_position:
             return
         if (not self.__movements or
@@ -158,6 +190,7 @@ class Strategy(LazyInit):
             self.__next_movement(context)
 
     def __calculate_movements(self, context: Context):
+        context.post_event(name='calculate_movements')
         self.__states, self.__movements = optimize_movement(
             target=self.__target_position,
             look_target=Point(self.__target.x, self.__target.y) if self.__target else self.__target_position,
@@ -169,12 +202,14 @@ class Strategy(LazyInit):
             max_time=context.time_left(),
         )
         if self.__movements:
+            context.post_event(name='update_movements')
             self.__cur_movement = 0
             self.__last_update_movements_tick_index = context.world.tick_index
             self.__last_next_movement_tick_index = context.world.tick_index
             self.__expected_path.append(self.__states[self.__cur_movement].position)
 
     def __next_movement(self, context: Context):
+        context.post_event(name='next_movement')
         self.__cur_movement += 1
         self.__expected_path.append(self.__states[self.__cur_movement].position)
         error = abs(self.__expected_path[-1].distance(self.__actual_path[-1]))
