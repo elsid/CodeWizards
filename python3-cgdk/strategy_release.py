@@ -114,7 +114,7 @@ class Strategy(LazyInit):
 
     def __update_target(self, context: Context):
         if context.me.life < context.me.max_life / 2:
-            self.__target_position = Point(context.world.width / 2 - 1000, context.world.height / 2 + 1000)
+            self.__target_position = Point(context.world.width / 2 - 1500, context.world.height / 2 + 1500)
             self.__movements = None
             self.__last_update_target = context.world.tick_index
         elif (self.__last_update_target is None or
