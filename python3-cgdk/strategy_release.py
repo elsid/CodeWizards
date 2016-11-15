@@ -38,11 +38,13 @@ class Context:
 
     def __enter__(self):
         self.__start = time()
-        self.post_event(name='start')
+        self.post_event(name='start', x=self.me.x, y=self.me.y, angle=self.me.angle,
+                        speed_x=self.me.speed_x, speed_y=self.me.speed_y, life=self.me.life)
         return self
 
     def __exit__(self, *_):
-        self.post_event(name='finish', duration=time() - self.__events[0]['time'])
+        self.post_event(name='finish', duration=time() - self.__events[0]['time'], speed=self.move.speed,
+                        strafe_speed=self.move.strafe_speed, turn=self.move.turn, action=self.move.action)
         for event in self.__events:
             self.__write_log(event)
 
@@ -53,11 +55,12 @@ class Context:
     def time_left(self):
         return time() - self.__start
 
-    def post_event(self, **kwargs):
+    def post_event(self, name, **kwargs):
         data = OrderedDict()
         data['tick'] = self.world.tick_index
         data['time'] = time()
         data['id'] = self.me.id
+        data['name'] = name
         for k, v in kwargs.items():
             data[k] = v
         self.__events.append(data)
