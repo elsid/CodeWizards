@@ -153,11 +153,11 @@ class Strategy(LazyInit):
                 context.world.tick_index - self.__target.last_seen > LOST_TARGET_TICKS
                 or self.__target.last_seen < context.world.tick_index
                 and self.__target.life < self.__target.max_life / 4)):
+            context.post_event(name='reset_target', last_seen=self.__target.last_seen, life=self.__target.life)
             self.__target = None
-            context.post_event(name='reset_target')
         if (self.__last_update_target is None or self.__target is None or
                 context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
-            context.post_event(name='get_target')
+            context.post_event(name='get_target', last_update_target=self.__last_update_target, target=self.__target)
             self.__target, position = get_target(
                 me=context.me,
                 buildings=tuple(self.__cached_buildings.values()),
@@ -175,7 +175,7 @@ class Strategy(LazyInit):
             else:
                 context.post_event(name='target_updated')
             if self.__target_position is None or position is not None and position != self.__target_position:
-                context.post_event(name='reset_target_position', position=str(position))
+                context.post_event(name='reset_target_position', old=str(position), new=str(position))
                 self.__target_position = position
                 self.__movements = None
                 self.__last_update_target = context.world.tick_index
