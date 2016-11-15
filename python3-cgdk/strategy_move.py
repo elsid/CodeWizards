@@ -53,9 +53,9 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
     result = None
     result_penalty = None
     seed(random_seed)
+    values = list(product(speed_values, strafe_speed_values, turn_values))
     while branches:
         _, depth, sum_penalty, states, movements, dynamic_units_positions = heappop(branches)
-        values = list(product(speed_values, strafe_speed_values, turn_values))
         shuffle(values)
         for speed, strafe_speed, turn in values:
             cur_state = states[-1]
