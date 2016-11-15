@@ -31,7 +31,8 @@ class Strategy:
 
     def __visualize_target_position(self, context: Context, post):
         target = self.__impl.target_position
-        post.line(context.me.x, context.me.y, target.x, target.y, (0, 0, 0))
+        if target:
+            post.line(context.me.x, context.me.y, target.x, target.y, (0, 0, 0))
 
     @staticmethod
     def __visualize_path(post, path, color):

@@ -126,7 +126,7 @@ class Strategy(LazyInit):
                 fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
                 magic_missile_direct_damage=context.game.magic_missile_direct_damage,
             )
-            if position is not None and position != self.__target_position:
+            if self.__target_position is None or position is not None and position != self.__target_position:
                 self.__target_position = position
                 self.__movements = None
                 self.__last_update_target = context.world.tick_index
@@ -141,16 +141,17 @@ class Strategy(LazyInit):
             self.__next_movement(context)
 
     def __calculate_movements(self, context: Context):
-        self.__states, self.__movements = optimize_movement(
-            target=self.__target_position,
-            look_target=Point(self.__target.x, self.__target.y) if self.__target else self.__target_position,
-            circular_unit=context.me,
-            world=context.world,
-            game=context.game,
-            step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
-            random_seed=context.game.random_seed,
-            max_time=context.time_left(),
-        )
+        if self.__target_position:
+            self.__states, self.__movements = optimize_movement(
+                target=self.__target_position,
+                look_target=Point(self.__target.x, self.__target.y) if self.__target else self.__target_position,
+                circular_unit=context.me,
+                world=context.world,
+                game=context.game,
+                step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
+                random_seed=context.game.random_seed,
+                max_time=context.time_left(),
+            )
         if self.__movements:
             self.__cur_movement = 0
             self.__last_update_movements_tick_index = context.world.tick_index
