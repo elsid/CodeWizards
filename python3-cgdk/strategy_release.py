@@ -152,6 +152,7 @@ class Strategy(LazyInit):
             world=context.world,
             game=context.game,
             step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
+            random_seed=context.game.random_seed,
             max_time=context.time_left(),
         )
         if self.__movements:

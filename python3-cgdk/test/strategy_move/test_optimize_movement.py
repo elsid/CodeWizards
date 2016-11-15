@@ -50,6 +50,7 @@ def test_optimize_movement():
         world=world,
         game=game,
         step_sizes=tuple([3] * 3),
+        random_seed=0,
     )
     assert len(states) == 4
     assert len(movements) == 3
@@ -98,6 +99,7 @@ def test_optimize_movement_with_static_barriers():
         world=world,
         game=game,
         step_sizes=[3] * 3,
+        random_seed=0,
     )
     assert len(states) == 4
     assert len(movements) == 3
@@ -168,6 +170,7 @@ def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed, 
         world=world,
         game=game,
         step_sizes=[3] * 3,
+        random_seed=0,
     ))
     assert len(states) == expected_states
     assert len(movements) == expected_movements

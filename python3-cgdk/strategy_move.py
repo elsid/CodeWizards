@@ -2,6 +2,7 @@ from collections import namedtuple
 from heapq import heappop, heappush
 from itertools import chain, product
 from math import hypot
+from random import shuffle, seed
 from time import time
 
 from model.CircularUnit import CircularUnit
@@ -18,7 +19,7 @@ PARAMETERS_COUNT = 3
 
 
 def optimize_movement(target: Point, look_target: Point, circular_unit: CircularUnit,
-                      world: World, game: Game, step_sizes, max_time=None):
+                      world: World, game: Game, step_sizes, random_seed, max_time=None):
     start = time()
     bounds = Bounds(world=world, game=game)
     steps = sum(step_sizes)
@@ -51,9 +52,12 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
     base_penalty = calculate_penalty(cur_state=initial_state, target=target, look_target=look_target, steps=1) * steps
     result = None
     result_penalty = None
+    seed(random_seed)
     while branches:
         _, depth, sum_penalty, states, movements, dynamic_units_positions = heappop(branches)
-        for speed, strafe_speed, turn in product(speed_values, strafe_speed_values, turn_values):
+        values = list(product(speed_values, strafe_speed_values, turn_values))
+        shuffle(values)
+        for speed, strafe_speed, turn in values:
             cur_state = states[-1]
             new_movement = Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=step_sizes[depth])
 
