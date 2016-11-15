@@ -104,6 +104,8 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
                 result = (new_states, new_movements)
                 if max_time is not None and time() - start > max_time:
                     branches.clear()
+        if max_time is not None and time() - start > max_time and result:
+            branches.clear()
     return result if result else (tuple([initial_state]), tuple())
 
 
