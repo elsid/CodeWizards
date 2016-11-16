@@ -47,9 +47,10 @@ def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_ra
         def generate():
             for v in units:
                 if is_enemy(v, me.faction):
-                    safe_distance = max(get_attack_range(v), me.cast_range / 2)
+                    safe_distance = max(get_attack_range(v) * v.life / v.max_life,
+                                        me.cast_range / 2 * me.max_life / (1 + me.life))
                 else:
-                    safe_distance = 2 * (me.radius + v.radius)
+                    safe_distance = 2 * me.radius + v.radius
                 unit_position = Point(v.x, v.y)
                 if unit_position == position:
                     distance_to_position = safe_distance
@@ -59,7 +60,9 @@ def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_ra
                     distance_to_position = my_position.distance(preferred_position)
                 distance_to_unit = position.distance(unit_position)
                 if distance_to_unit < safe_distance:
-                    yield distance_to_position - distance_to_unit if is_enemy(v, me.faction) else 1e10
+                    yield distance_to_position - distance_to_unit + (
+                        1e10 if is_enemy(v, me.faction) and distance_to_unit <= me.radius + v.radius else 0
+                    )
                 else:
                     yield (distance_to_unit - 2 * safe_distance + distance_to_position
                            if is_enemy(v, me.faction) else 0)
