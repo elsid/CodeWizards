@@ -69,7 +69,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                     distance_to_preferred_position = my_position.distance(preferred_position)
                 distance_to_unit = position.distance(unit_position)
                 if distance_to_unit <= me.radius + v.radius:
-                    yield distance_to_preferred_position - distance_to_unit + 1e4 * (1 + distance_to_position)
+                    yield distance_to_preferred_position - distance_to_unit + 1e10 * (1 + distance_to_position)
                 elif distance_to_unit < safe_distance:
                     yield distance_to_preferred_position - distance_to_unit
                 else:
@@ -77,14 +77,14 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                            if is_enemy(v, me.faction) else 0)
             for v in projectiles:
                 if distance_to_unit < me.radius + v.radius:
-                    yield distance_to_position - distance_to_unit + 1e4 * (1 + distance_to_position)
+                    yield distance_to_position - distance_to_unit + 1e10 * (1 + distance_to_position)
                 else:
                     yield 0
             for v in bonuses:
                 unit_position = Point(v.x, v.y)
                 yield position.distance(unit_position)
 
-        penalty = sum(generate()) if not intersection_penalty else 1e4 * (1 + distance_to_position)
+        penalty = sum(generate()) if not intersection_penalty else 1e10 * (1 + distance_to_position)
         if penalties is not None:
             penalties.append((position, penalty))
         return penalty
