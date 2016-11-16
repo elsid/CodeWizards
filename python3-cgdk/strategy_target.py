@@ -79,7 +79,8 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
         return sum(generate())
 
-    result = minimize(position_penalty, array([my_position.x, my_position.y]), method='Nelder-Mead').x
+    result = minimize(position_penalty, array([my_position.x, my_position.y]),
+                      method='Nelder-Mead', options=dict(maxiter=50)).x
     return target if target else None, Point(result[0], result[1])
 
 

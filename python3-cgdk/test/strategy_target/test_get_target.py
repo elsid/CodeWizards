@@ -95,7 +95,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(-112.1320343561172, -112.13203435611726),
+            Point(-112.12787499999999, -112.12762500000004),
         ),
         (
             Minion(
@@ -117,7 +117,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(-110.03177187085154, -110.03166249585158),
+            Point(-110.07974999999998, -110.07975000000005),
         ),
         (
             Minion(
@@ -139,7 +139,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(789.96819687841753, 789.96836875341819),
+            Point(786.43199999999968, 786.43174999999997),
         ),
     ]
 )
@@ -230,7 +230,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(-324.26230749337776, -324.2657728367725),
+            Point(-325.48194438171373, -325.48555561828624),
         ),
         (
             [
@@ -282,7 +282,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(-36.277485737001747, -194.80603061666744),
+            Point(-36.276570207209446, -194.80094953623865),
         ),
         (
             [
@@ -334,7 +334,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(-159.46268619445195, -150.59585798105934),
+            Point(-36.265036467690905, -194.81294730381165),
         ),
     ]
 )
@@ -414,4 +414,4 @@ def test_get_target_with_me_and_bonus():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
     )
-    assert (target.id, position) == (2, Point(100.0000415039062, 99.999995605468811))
+    assert (target.id, position) == (2, Point(100.09593749999995, 100.09581250000006))
