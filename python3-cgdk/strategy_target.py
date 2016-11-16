@@ -89,7 +89,8 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
             penalties.append((position, penalty))
         return penalty
 
-    result = minimize(position_penalty, array([my_position.x, my_position.y]),
+    initial = Point(target.x, target.y) if target else my_position
+    result = minimize(position_penalty, array([initial.x, initial.y]),
                       method='Nelder-Mead', options=dict(maxiter=50)).x
     return target if target else None, Point(result[0], result[1])
 

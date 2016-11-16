@@ -97,7 +97,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(-112.12787499999999, -112.12762500000004),
+            Point(-112.04627923756561, -112.21771578102562),
         ),
         (
             Minion(
@@ -119,7 +119,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(-110.07974999999998, -110.07975000000005),
+            Point(-109.85012111195829, -110.21294659527484),
         ),
         (
             Minion(
@@ -141,7 +141,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(786.43199999999968, 786.43174999999997),
+            Point(790.30114142903756, 789.64079423305975),
         ),
     ]
 )
@@ -234,7 +234,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(-325.48194438171373, -325.48555561828624),
+            Point(-321.53561644809088, -326.97547424031654),
         ),
         (
             [
@@ -286,7 +286,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(-36.276570207209446, -194.80094953623865),
+            Point(0.0023329194122469771, -197.02983361947332),
         ),
         (
             [
@@ -338,7 +338,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(-36.265036467690905, -194.81294730381165),
+            Point(-200.00002920627594, 0.0026182888373732583),
         ),
     ]
 )
@@ -421,7 +421,7 @@ def test_get_target_with_me_and_bonus():
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
     )
-    assert (target.id, position) == (2, Point(100.09593749999995, 100.09581250000006))
+    assert (target.id, position) == (2, Point(100, 100))
 
 
 @pytest.mark.parametrize(
@@ -466,7 +466,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(-12.128062500000002, -12.127812500000001),
+            Point(-12.123867812503555, -12.140182099150376),
         ),
         (
             [
@@ -508,7 +508,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(-88.58637450507571, 29.094044136056592),
+            Point(-0.0073811921720334794, 0.00093435422454103928),
         ),
     ]
 )
