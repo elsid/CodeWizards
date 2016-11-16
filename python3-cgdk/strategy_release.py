@@ -158,7 +158,8 @@ class Strategy(LazyInit):
             self.__target = None
         if (self.__last_update_target is None or self.__target is None or
                 context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
-            context.post_event(name='get_target', last_update_target=self.__last_update_target, target=self.__target)
+            context.post_event(name='get_target', last_update_target=self.__last_update_target,
+                               target=str(self.__target))
             self.__target, position = get_target(
                 me=context.me,
                 buildings=tuple(self.__cached_buildings.values()),
