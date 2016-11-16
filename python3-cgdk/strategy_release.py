@@ -54,7 +54,7 @@ class Context:
         return Point(self.me.x, self.me.y)
 
     def time_left(self):
-        return time() - self.__start
+        return (self.__start + MAX_TIME) - time()
 
     def post_event(self, name, **kwargs):
         data = OrderedDict()
