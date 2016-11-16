@@ -144,3 +144,60 @@ class LazyInit:
 
     def _init_impl(self, *args):
         raise NotImplementedError()
+
+
+class Line:
+    def __init__(self, begin: Point, end: Point):
+        self.begin = begin
+        self.end = end
+
+    def __call__(self, parameter):
+        return self.begin + (self.end - self.begin) * parameter
+
+    def __repr__(self):
+        return 'Line(begin={b}, end={e})'.format(
+            b=repr(self.begin), e=repr(self.end))
+
+    def distance(self, point):
+        to_end = self.end - self.begin
+        to_point = point - self.begin
+        norm = to_point.dot(to_end) / to_end.norm()
+        return sqrt(to_point.norm() ** 2 - norm ** 2)
+
+    def nearest(self, point):
+        to_end = self.end - self.begin
+        to_end_norm = to_end.norm()
+        if to_end_norm == 0:
+            return Point(self.begin.x, self.begin.y)
+        to_point = point - self.begin
+        return self.begin + to_end * to_point.dot(to_end) / (to_end_norm ** 2)
+
+    def length(self):
+        return (self.end - self.begin).norm()
+
+    def has_point(self, point: Point, max_error=1e-8):
+        to_end = self.end - point
+        if to_end.norm() == 0:
+            return True
+        to_begin = self.begin - point
+        if to_begin.norm() == 0:
+            return True
+        return abs(1 + to_begin.cos(to_end)) <= max_error
+
+    def __eq__(self, other):
+        return self.begin == other.begin and self.end == other.end
+
+    def intersection(self, other):
+        x_diff = Point(self.begin.x - self.end.x, other.begin.x - other.end.x)
+        y_diff = Point(self.begin.y - self.end.y, other.begin.y - other.end.y)
+
+        def det(a, b):
+            return a.x * b.y - a.y * b.x
+
+        div = det(x_diff, y_diff)
+        if div == 0:
+            return None
+        d = Point(det(self.begin, self.end), det(other.begin, other.end))
+        x = det(d, x_diff) / div
+        y = det(d, y_diff) / div
+        return Point(x, y)

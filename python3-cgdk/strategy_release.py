@@ -203,6 +203,7 @@ class Strategy(LazyInit):
                 orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
                 fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
                 magic_missile_direct_damage=context.game.magic_missile_direct_damage,
+                magic_missile_radius=context.game.magic_missile_radius,
                 penalties=self.__target_positions_penalties,
             )
             if self.__target:

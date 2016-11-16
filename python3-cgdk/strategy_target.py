@@ -10,12 +10,12 @@ from model.Minion import Minion
 from model.MinionType import MinionType
 from model.Wizard import Wizard
 
-from strategy_common import Point
+from strategy_common import Point, Line
 
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, guardian_tower_attack_range,
                faction_base_attack_range, orc_woodcutter_attack_range, fetish_blowdart_attack_range,
-               magic_missile_direct_damage, penalties=None):
+               magic_missile_direct_damage, magic_missile_radius, penalties=None):
     enemy_buildings = tuple(filter_enemies(buildings, me.faction))
     enemy_minions = tuple(filter_enemies(minions, me.faction))
     enemy_wizards = tuple(filter_enemies(wizards, me.faction))
@@ -44,10 +44,15 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         orc_woodcutter_attack_range=orc_woodcutter_attack_range,
         fetish_blowdart_attack_range=fetish_blowdart_attack_range,
     )
-    units = tuple(chain(buildings, trees, minions, (v for v in wizards if v.id != me.id)))
+    other_wizards = tuple(v for v in wizards if v.id != me.id)
+    units = tuple(chain(buildings, trees, minions, other_wizards))
+    friends_units = tuple(filter_friends(chain(buildings, minions, other_wizards), me.faction))
 
     def position_penalty(values):
         position = Point(values[0], values[1])
+        distance_to_position = my_position.distance(position)
+        intersection_penalty = next((True for v in friends_units
+                                     if has_intersection(v, Line(my_position, position), magic_missile_radius)), False)
 
         def generate():
             for v in units:
@@ -58,30 +63,28 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                     safe_distance = 2 * me.radius + v.radius
                 unit_position = Point(v.x, v.y)
                 if unit_position == position:
-                    distance_to_position = safe_distance
+                    distance_to_preferred_position = safe_distance
                 else:
                     preferred_position = (unit_position + (position - unit_position).normalized() * safe_distance)
-                    distance_to_position = my_position.distance(preferred_position)
+                    distance_to_preferred_position = my_position.distance(preferred_position)
                 distance_to_unit = position.distance(unit_position)
                 if distance_to_unit <= me.radius + v.radius:
-                    yield distance_to_position - distance_to_unit + 1e3 * (1 + distance_to_position)
+                    yield distance_to_preferred_position - distance_to_unit + 1e4 * (1 + distance_to_position)
                 elif distance_to_unit < safe_distance:
-                    yield distance_to_position - distance_to_unit
+                    yield distance_to_preferred_position - distance_to_unit
                 else:
-                    yield (distance_to_unit - 2 * safe_distance + distance_to_position
+                    yield (distance_to_unit - 2 * safe_distance + distance_to_preferred_position
                            if is_enemy(v, me.faction) else 0)
             for v in projectiles:
                 if distance_to_unit < me.radius + v.radius:
-                    yield distance_to_position - distance_to_unit + 1e3 * (1 + distance_to_position)
+                    yield distance_to_position - distance_to_unit + 1e4 * (1 + distance_to_position)
                 else:
                     yield 0
             for v in bonuses:
                 unit_position = Point(v.x, v.y)
-                distance_to_position = my_position.distance(unit_position)
-                distance_to_unit = position.distance(unit_position)
-                yield distance_to_unit - distance_to_position
+                yield position.distance(unit_position)
 
-        penalty = sum(generate())
+        penalty = sum(generate()) if not intersection_penalty else 1e4 * (1 + distance_to_position)
         if penalties is not None:
             penalties.append((position, penalty))
         return penalty
@@ -89,6 +92,10 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     result = minimize(position_penalty, array([my_position.x, my_position.y]),
                       method='Nelder-Mead', options=dict(maxiter=50)).x
     return target if target else None, Point(result[0], result[1])
+
+
+def filter_friends(units, my_faction):
+    return (v for v in units if v.faction == my_faction)
 
 
 def filter_enemies(units, my_faction):
@@ -130,3 +137,11 @@ def make_get_damage(magic_missile_direct_damage):
             return magic_missile_direct_damage
 
     return impl
+
+
+def has_intersection(unit, line: Line, my_radius):
+    unit_position = Point(unit.x, unit.y)
+    unit_radius = (line.end - line.begin).normalized().left_orthogonal() * (unit.radius + my_radius)
+    unit_line = Line(unit_position - unit_radius, unit_position + unit_radius)
+    intersection = line.intersection(unit_line)
+    return unit_line.has_point(intersection)
