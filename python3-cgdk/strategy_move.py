@@ -1,8 +1,7 @@
 from collections import namedtuple
 from heapq import heappop, heappush
-from itertools import chain, product
+from itertools import chain
 from math import hypot
-from random import shuffle, seed
 from time import time
 
 from model.CircularUnit import CircularUnit
@@ -19,47 +18,89 @@ PARAMETERS_COUNT = 3
 
 
 def optimize_movement(target: Point, look_target: Point, circular_unit: CircularUnit,
-                      world: World, game: Game, step_sizes, random_seed, max_time=None):
+                      world: World, game: Game, step_size, max_barriers_range, max_time=None):
     start = time()
+
+    def is_unit_in_range(unit):
+        return hypot(circular_unit.x - unit.x, circular_unit.y - unit.y) <= max_barriers_range
+
     bounds = Bounds(world=world, game=game)
-    steps = sum(step_sizes)
-
-    def is_in_range(unit):
-        return (hypot(circular_unit.x - unit.x, circular_unit.y - unit.y) <=
-                unit.radius + circular_unit.radius + steps * game.wizard_forward_speed)
-
-    wizards = (v for v in world.wizards if v.id != circular_unit.id and is_in_range(v))
-    minions = (v for v in world.minions if is_in_range(v))
-    dynamic_units = {v.id: v for v in chain(wizards, minions)}
+    wizards = (v for v in world.wizards if v.id != circular_unit.id)
+    dynamic_units = {v.id: v for v in chain(wizards, world.minions)}
     initial_dynamic_units_positions = {v.id: Point(v.x, v.y) for v in dynamic_units.values()}
     static_barriers = list(chain(
-        make_circular_barriers(v for v in world.buildings if is_in_range(v)),
-        make_circular_barriers(v for v in world.trees if is_in_range(v)),
+        make_circular_barriers(v for v in world.buildings if is_unit_in_range(v)),
+        make_circular_barriers(v for v in world.trees if is_unit_in_range(v)),
     ))
     initial_position = Point(circular_unit.x, circular_unit.y)
     initial_angle = normalize_angle(circular_unit.angle)
     initial_state = State(position=initial_position, angle=initial_angle, path_length=0, intersection=False)
-    if initial_position.distance(target) < bounds.max_speed:
-        speed_values = (0,)
-        strafe_speed_values = (0,)
-        turn_values = (bounds.min_turn, 0, bounds.max_turn)
-    else:
-        speed_values = (bounds.min_speed, 0, bounds.max_speed)
-        strafe_speed_values = (bounds.min_strafe_speed, 0, bounds.max_strafe_speed)
-        turn_values = (bounds.min_turn, 0, bounds.max_turn)
+    initial_priority = calculate_priority(state=initial_state, target=target, look_target=look_target)
+    speed_values = (
+        (bounds.max_speed, 0, 0),
+        (0, bounds.max_strafe_speed, 0),
+        (0, bounds.min_strafe_speed, 0),
+        (bounds.max_speed, bounds.max_strafe_speed, 0),
+        (bounds.max_speed, bounds.min_strafe_speed, 0),
+        (bounds.min_speed, 0, 0),
+        (bounds.min_speed, bounds.max_strafe_speed, 0),
+        (bounds.min_speed, bounds.min_strafe_speed, 0),
+    )
+    turn_values = (
+        (0, 0, bounds.max_turn),
+        (0, 0, bounds.min_turn),
+    )
+    all_values = (
+        (bounds.max_speed, 0, 0),
+        (0, bounds.max_strafe_speed, 0),
+        (0, bounds.min_strafe_speed, 0),
+        (bounds.max_speed, bounds.max_strafe_speed, 0),
+        (bounds.max_speed, bounds.min_strafe_speed, 0),
+        (bounds.max_speed, 0, bounds.max_turn),
+        (bounds.max_speed, 0, bounds.min_turn),
+        (0, bounds.max_strafe_speed, bounds.max_turn),
+        (0, bounds.max_strafe_speed, bounds.min_turn),
+        (0, bounds.min_strafe_speed, bounds.max_turn),
+        (0, bounds.min_strafe_speed, bounds.min_turn),
+        (bounds.max_speed, bounds.max_strafe_speed, bounds.max_turn),
+        (bounds.max_speed, bounds.max_strafe_speed, bounds.min_turn),
+        (bounds.max_speed, bounds.min_strafe_speed, bounds.max_turn),
+        (bounds.max_speed, bounds.min_strafe_speed, bounds.min_turn),
+        (bounds.min_speed, 0, 0),
+        (bounds.min_speed, bounds.max_strafe_speed, 0),
+        (bounds.min_speed, bounds.min_strafe_speed, 0),
+        (bounds.min_speed, 0, bounds.max_turn),
+        (bounds.min_speed, 0, bounds.min_turn),
+        (bounds.min_speed, bounds.max_strafe_speed, bounds.max_turn),
+        (bounds.min_speed, bounds.max_strafe_speed, bounds.min_turn),
+        (bounds.min_speed, bounds.min_strafe_speed, bounds.max_turn),
+        (bounds.min_speed, bounds.min_strafe_speed, bounds.min_turn),
+        (0, 0, bounds.max_turn),
+        (0, 0, bounds.min_turn),
+    )
+    visited = set()
     branches = list()
-    heappush(branches, (0, 0, 0, [initial_state], list(), initial_dynamic_units_positions))
-    base_penalty = calculate_penalty(cur_state=initial_state, target=target, look_target=look_target, steps=1) * steps
+    heappush(branches, (initial_priority, 0, step_size, [initial_state], list(), initial_dynamic_units_positions))
     result = None
-    result_penalty = None
-    seed(random_seed)
-    values = list(product(speed_values, strafe_speed_values, turn_values))
     while branches:
-        _, depth, sum_penalty, states, movements, dynamic_units_positions = heappop(branches)
-        shuffle(values)
+        if max_time is not None and time() - start >= max_time:
+            break
+        _, depth, step_size, states, movements, dynamic_units_positions = heappop(branches)
+        cur_state = states[-1]
+        visited.add((int(cur_state.position.x), int(cur_state.position.y)))
+        distance_to_target = target.distance(cur_state.position)
+        angle_to_target = abs((look_target - cur_state.position).absolute_rotation() - cur_state.angle)
+        if distance_to_target < 1.5 * bounds.max_speed and angle_to_target < 1.5 * bounds.max_turn:
+            result = (states, movements)
+            break
+        if distance_to_target < 2 * bounds.max_speed:
+            values = turn_values
+        elif angle_to_target < 2 * bounds.max_turn:
+            values = speed_values
+        else:
+            values = all_values
         for speed, strafe_speed, turn in values:
-            cur_state = states[-1]
-            new_movement = Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=step_sizes[depth])
+            new_movement = Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=step_size)
 
             def update_dynamic_units_positions():
                 for k, v in dynamic_units_positions.items():
@@ -81,43 +122,30 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
                 barriers=chain(static_barriers, make_dynamic_barriers()),
                 map_size=game.map_size,
             )
-            state = next(simulation)
-            if state.intersection:
+            new_state = next(simulation)
+            if new_state.intersection:
+                continue
+            if (int(new_state.position.x), int(new_state.position.y)) in visited:
                 continue
             new_depth = depth + 1
-            penalty = calculate_penalty(cur_state=state, target=target, look_target=look_target,
-                                        steps=sum(step_sizes[:new_depth]))
-            new_sum_penalty = sum_penalty + penalty
-            if new_sum_penalty > base_penalty:
-                continue
-            if result_penalty is not None and new_depth * penalty > result_penalty:
-                continue
-            new_states = states + [state]
+            new_states = states + [new_state]
             new_movements = movements + [new_movement]
-            if new_depth < len(step_sizes) and state.position.distance(target) > bounds.max_speed:
-                heappush(branches, (-new_depth, new_depth, new_sum_penalty,
-                                    new_states, new_movements, new_dynamic_units))
-                continue
-            if result_penalty is None or result_penalty > penalty:
-                result_penalty = penalty
-                base_penalty = new_sum_penalty
-                result = (new_states, new_movements)
-                if max_time is not None and time() - start > max_time:
-                    branches.clear()
-        if max_time is not None and time() - start > max_time and result:
-            branches.clear()
+            if new_state.position.distance(target) < 2 * bounds.max_speed * step_size:
+                new_step_size = max(1, step_size // 2)
+            else:
+                new_step_size = step_size
+            priority = calculate_priority(state=new_state, target=target, look_target=look_target)
+            heappush(branches, (priority, new_depth, new_step_size, new_states, new_movements, new_dynamic_units))
     return result if result else (tuple([initial_state]), tuple())
 
 
-def calculate_penalty(cur_state: State, target: Point, look_target: Point, steps: int):
-    direction = Point(1, 0).rotate(cur_state.angle)
-    target_direction = ((look_target - cur_state.position).normalized()
-                        if look_target != cur_state.position else direction)
+def calculate_priority(state: State, target: Point, look_target: Point):
+    direction = Point(1, 0).rotate(state.angle)
+    target_direction = ((look_target - state.position).normalized()
+                        if look_target != state.position else direction)
     return (
-        cur_state.position.distance(target)
+        target.distance(state.position)
         * (1 + direction.distance(target_direction))
-        - cur_state.path_length
-        - cur_state.path_length / steps
     )
 
 

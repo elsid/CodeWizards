@@ -3,7 +3,7 @@ import pytest
 from model.Tree import Tree
 from model.Minion import Minion
 
-from strategy_move import optimize_movement, Point
+from strategy_move import optimize_movement, Point, State
 
 from test.common import (
     CircularUnit,
@@ -49,11 +49,17 @@ def test_optimize_movement():
         circular_unit=circular_unit,
         world=world,
         game=game,
-        step_sizes=tuple([3] * 3),
-        random_seed=0,
+        step_size=3,
+        max_barriers_range=1000,
     )
-    assert len(states) == 4
-    assert len(movements) == 3
+    assert states[-1] == State(
+        position=Point(196.16652224137027, 196.16652224137027),
+        angle=0.7853981633974483,
+        path_length=135.99999999999972,
+        intersection=False,
+    )
+    assert len(states) == 15
+    assert len(movements) == 14
 
 
 def test_optimize_movement_with_static_barriers():
@@ -98,30 +104,49 @@ def test_optimize_movement_with_static_barriers():
         circular_unit=circular_unit,
         world=world,
         game=game,
-        step_sizes=[3] * 3,
-        random_seed=0,
+        step_size=3,
+        max_barriers_range=1000,
     )
-    assert len(states) == 4
-    assert len(movements) == 3
+    assert states[-1] == State(
+        position=Point(194.86191844058868, 199.50591705228348),
+        angle=0.05235987755982989,
+        path_length=234.966008674939,
+        intersection=False,
+    )
+    assert len(states) == 42
+    assert len(movements) == 41
 
 
 @pytest.mark.parametrize(
-    ('minion_position', 'minion_speed', 'expected_states', 'expected_movements'), [
+    ('minion_position', 'minion_speed', 'expected_final_state', 'expected_states', 'expected_movements'), [
         (
             Point(103 + WIZARD_RADIUS + MINION_RADIUS, 103 + WIZARD_RADIUS + MINION_RADIUS),
             Point(4, 4),
-            4,
-            3,
+            State(
+                position=Point(196.16652224137027, 196.16652224137027),
+                angle=0.7853981633974483,
+                path_length=135.99999999999972,
+                intersection=False,
+            ),
+            15,
+            14,
         ),
         (
-            Point(110 + WIZARD_RADIUS + MINION_RADIUS, 110 + WIZARD_RADIUS + MINION_RADIUS),
+            Point(115 + WIZARD_RADIUS + MINION_RADIUS, 115 + WIZARD_RADIUS + MINION_RADIUS),
             Point(-3, -3),
-            4,
-            3,
+            State(
+                position=Point(195.4238836902783, 196.89126501749823),
+                angle=0.4712388980384689,
+                path_length=187.79555849695595,
+                intersection=False,
+            ),
+            21,
+            20,
         )
     ]
 )
-def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed, expected_states, expected_movements):
+def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed,
+                                                 expected_final_state, expected_states, expected_movements):
     position = Point(100, 100)
     target = Point(200, 200)
     angle = (target - position).absolute_rotation()
@@ -169,8 +194,9 @@ def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed, 
         circular_unit=circular_unit,
         world=world,
         game=game,
-        step_sizes=[3] * 3,
-        random_seed=0,
+        step_size=3,
+        max_barriers_range=1000,
     ))
+    assert states[-1] == expected_final_state
     assert len(states) == expected_states
     assert len(movements) == expected_movements

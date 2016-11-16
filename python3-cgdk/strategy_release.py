@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from functools import reduce
+from math import sqrt
 from time import time
 
 from model.ActionType import ActionType
@@ -13,11 +14,11 @@ from strategy_move import optimize_movement
 from strategy_target import get_target
 
 
-OPTIMIZE_MOVEMENT_STEP_SIZES = tuple([10] * 10 + [20, 40])
-OPTIMIZE_MOVEMENT_TICKS = sum(OPTIMIZE_MOVEMENT_STEP_SIZES) // 2
+OPTIMIZE_MOVEMENT_STEP_SIZE = 10
+OPTIMIZE_MOVEMENT_TICKS = 100
 UPDATE_TARGET_POSITION_TICKS = 30
 UPDATE_TARGET_TICKS = 200
-MAX_TIME = 0.1
+MAX_TIME = 0.5
 CACHE_TTL = 100
 LOST_TARGET_TICKS = 30
 
@@ -200,8 +201,8 @@ class Strategy(LazyInit):
             circular_unit=context.me,
             world=context.world,
             game=context.game,
-            step_sizes=OPTIMIZE_MOVEMENT_STEP_SIZES,
-            random_seed=context.game.random_seed,
+            step_size=OPTIMIZE_MOVEMENT_STEP_SIZE,
+            max_barriers_range=OPTIMIZE_MOVEMENT_TICKS * context.game.wizard_forward_speed,
             max_time=context.time_left(),
         )
         if self.__movements:
