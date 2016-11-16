@@ -15,7 +15,7 @@ from strategy_common import Point
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, guardian_tower_attack_range,
                faction_base_attack_range, orc_woodcutter_attack_range, fetish_blowdart_attack_range,
-               magic_missile_direct_damage):
+               magic_missile_direct_damage, penalties=None):
     enemy_buildings = tuple(filter_enemies(buildings, me.faction))
     enemy_minions = tuple(filter_enemies(minions, me.faction))
     enemy_wizards = tuple(filter_enemies(wizards, me.faction))
@@ -44,7 +44,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         orc_woodcutter_attack_range=orc_woodcutter_attack_range,
         fetish_blowdart_attack_range=fetish_blowdart_attack_range,
     )
-    units = tuple(chain(buildings, trees, minions, projectiles, (v for v in wizards if v.id != me.id)))
+    units = tuple(chain(buildings, trees, minions, (v for v in wizards if v.id != me.id)))
 
     def position_penalty(values):
         position = Point(values[0], values[1])
@@ -63,21 +63,28 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                     preferred_position = (unit_position + (position - unit_position).normalized() * safe_distance)
                     distance_to_position = my_position.distance(preferred_position)
                 distance_to_unit = position.distance(unit_position)
-                if distance_to_unit < safe_distance:
-                    yield distance_to_position - distance_to_unit + (
-                        1e3 * (1 + distance_to_position)
-                        if not is_enemy(v, me.faction) and distance_to_unit <= me.radius + v.radius else 0
-                    )
+                if distance_to_unit <= me.radius + v.radius:
+                    yield distance_to_position - distance_to_unit + 1e3 * (1 + distance_to_position)
+                elif distance_to_unit < safe_distance:
+                    yield distance_to_position - distance_to_unit
                 else:
                     yield (distance_to_unit - 2 * safe_distance + distance_to_position
                            if is_enemy(v, me.faction) else 0)
+            for v in projectiles:
+                if distance_to_unit < me.radius + v.radius:
+                    yield distance_to_position - distance_to_unit + 1e3 * (1 + distance_to_position)
+                else:
+                    yield 0
             for v in bonuses:
                 unit_position = Point(v.x, v.y)
                 distance_to_position = my_position.distance(unit_position)
                 distance_to_unit = position.distance(unit_position)
                 yield distance_to_unit - distance_to_position
 
-        return sum(generate())
+        penalty = sum(generate())
+        if penalties is not None:
+            penalties.append((position, penalty))
+        return penalty
 
     result = minimize(position_penalty, array([my_position.x, my_position.y]),
                       method='Nelder-Mead', options=dict(maxiter=50)).x

@@ -91,6 +91,7 @@ class Strategy(LazyInit):
         self.__cached_trees = dict()
         self.__cached_projectiles = dict()
         self.__cached_bonuses = dict()
+        self.__target_positions_penalties = list()
 
     @lazy_init
     def move(self, context: Context):
@@ -141,6 +142,10 @@ class Strategy(LazyInit):
     def target_position(self):
         return self.__target_position
 
+    @property
+    def target_positions_penalties(self):
+        return self.__target_positions_penalties
+
     def _init_impl(self, context: Context):
         self.__target_position = Point(context.world.width / 2, context.world.height / 2 + 300)
 
@@ -178,12 +183,14 @@ class Strategy(LazyInit):
 
         context.post_event(name='update_target')
         if self.__target is not None and context.world.tick_index - self.__target.last_seen > LOST_TARGET_TICKS:
-            context.post_event(name='reset_target', last_seen=self.__target.last_seen, life=self.__target.life)
+            context.post_event(name='reset_target', last_seen=self.__target.last_seen,
+                               life=self.__target.life if hasattr(self.__target, 'life') else None)
             self.__target = None
         if (self.__last_update_target is None or self.__target is None or
                 context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
             context.post_event(name='get_target', last_update_target=self.__last_update_target,
                                target=str(self.__target))
+            self.__target_positions_penalties.clear()
             self.__target, position = get_target(
                 me=context.me,
                 buildings=tuple(self.__cached_buildings.values()),
@@ -197,6 +204,7 @@ class Strategy(LazyInit):
                 orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
                 fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
                 magic_missile_direct_damage=context.game.magic_missile_direct_damage,
+                penalties=self.__target_positions_penalties,
             )
             if self.__target:
                 context.post_event(name='target_updated', target_type=str(type(self.__target)),
