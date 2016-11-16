@@ -18,7 +18,12 @@ OPTIMIZE_MOVEMENT_TICKS = 100
 UPDATE_TARGET_POSITION_TICKS = 30
 UPDATE_TARGET_TICKS = 200
 MAX_TIME = 1
-CACHE_TTL = 100
+CACHE_TTL_BONUSES = 100
+CACHE_TTL_BUILDINGS = 200
+CACHE_TTL_TREES = 200
+CACHE_TTL_WIZARDS = 30
+CACHE_TTL_MINIONS = 30
+CACHE_TTL_PROJECTILES = 10
 LOST_TARGET_TICKS = 30
 
 
@@ -83,6 +88,9 @@ class Strategy(LazyInit):
         self.__cached_buildings = dict()
         self.__cached_wizards = dict()
         self.__cached_minions = dict()
+        self.__cached_trees = dict()
+        self.__cached_projectiles = dict()
+        self.__cached_bonuses = dict()
 
     @lazy_init
     def move(self, context: Context):
@@ -141,15 +149,27 @@ class Strategy(LazyInit):
         for v in context.world.buildings:
             self.__cached_buildings[v.id] = v
             setattr(v, 'last_seen', context.world.tick_index)
+        invalidate_cache(self.__cached_buildings, context.world.tick_index - CACHE_TTL_BUILDINGS)
         for v in context.world.minions:
             update_dynamic_unit(self.__cached_minions, v)
             setattr(v, 'last_seen', context.world.tick_index)
+        invalidate_cache(self.__cached_minions, context.world.tick_index - CACHE_TTL_MINIONS)
         for v in context.world.wizards:
             update_dynamic_unit(self.__cached_wizards, v)
             setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_buildings, context.world.tick_index - CACHE_TTL)
-        invalidate_cache(self.__cached_minions, context.world.tick_index - CACHE_TTL)
-        invalidate_cache(self.__cached_wizards, context.world.tick_index - CACHE_TTL)
+        invalidate_cache(self.__cached_wizards, context.world.tick_index - CACHE_TTL_WIZARDS)
+        for v in context.world.trees:
+            self.__cached_trees[v.id] = v
+            setattr(v, 'last_seen', context.world.tick_index)
+        invalidate_cache(self.__cached_trees, context.world.tick_index - CACHE_TTL_BUILDINGS)
+        for v in context.world.projectiles:
+            self.__cached_projectiles[v.id] = v
+            setattr(v, 'last_seen', context.world.tick_index)
+        invalidate_cache(self.__cached_projectiles, context.world.tick_index - CACHE_TTL_TREES)
+        for v in context.world.bonuses:
+            self.__cached_bonuses[v.id] = v
+            setattr(v, 'last_seen', context.world.tick_index)
+        invalidate_cache(self.__cached_bonuses, context.world.tick_index - CACHE_TTL_BONUSES)
 
     def __update_target(self, context: Context):
         context.post_event(name='update_target')
