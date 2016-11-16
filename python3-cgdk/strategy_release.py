@@ -17,7 +17,7 @@ OPTIMIZE_MOVEMENT_STEP_SIZE = 10
 OPTIMIZE_MOVEMENT_TICKS = 100
 UPDATE_TARGET_POSITION_TICKS = 30
 UPDATE_TARGET_TICKS = 200
-MAX_TIME = 0.5
+MAX_TIME = 1
 CACHE_TTL = 100
 LOST_TARGET_TICKS = 30
 
@@ -71,7 +71,7 @@ class Strategy(LazyInit):
         super().__init__()
         self.__movements = list()
         self.__states = list()
-        self.__cur_movement = None
+        self.__cur_movement = 0
         self.__last_update_movements_tick_index = None
         self.__last_next_movement_tick_index = None
         self.__target = None
@@ -91,7 +91,7 @@ class Strategy(LazyInit):
         self.__update_cache(context)
         self.__update_target(context)
         self.__update_movements(context)
-        if self.__movements:
+        if self.__cur_movement < len(self.__movements):
             context.post_event(name='apply_movement')
             movement = self.__movements[self.__cur_movement]
             context.move.speed = movement.speed
@@ -182,18 +182,17 @@ class Strategy(LazyInit):
             if self.__target_position is None or position is not None and position != self.__target_position:
                 context.post_event(name='reset_target_position', old=str(position), new=str(position))
                 self.__target_position = position
-                self.__movements = None
                 self.__last_update_target = context.world.tick_index
 
     def __update_movements(self, context: Context):
         context.post_event(name='update_movements')
         if not self.__target_position:
             return
-        if (not self.__movements or
-                context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS or
-                self.__cur_movement >= len(self.__movements) - 1):
+        if (self.__last_update_movements_tick_index is None or
+                context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS):
             self.__calculate_movements(context)
-        elif (context.world.tick_index - self.__last_next_movement_tick_index >=
+        elif (self.__cur_movement < len(self.__movements) and
+              context.world.tick_index - self.__last_next_movement_tick_index >=
               self.__movements[self.__cur_movement].step_size):
             self.__next_movement(context)
 
@@ -209,10 +208,10 @@ class Strategy(LazyInit):
             max_barriers_range=OPTIMIZE_MOVEMENT_TICKS * context.game.wizard_forward_speed,
             max_time=context.time_left(),
         )
+        self.__last_update_movements_tick_index = context.world.tick_index
         if self.__movements:
             context.post_event(name='update_movements')
             self.__cur_movement = 0
-            self.__last_update_movements_tick_index = context.world.tick_index
             self.__last_next_movement_tick_index = context.world.tick_index
             self.__expected_path.append(self.__states[self.__cur_movement].position)
 
