@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from functools import reduce
-from math import sqrt
 from time import time
 
 from model.ActionType import ActionType
@@ -101,10 +100,14 @@ class Strategy(LazyInit):
         if self.__target:
             target_position = Point(self.__target.x, self.__target.y)
             distance = target_position.distance(context.my_position)
-            if distance <= context.me.cast_range:
-                context.post_event(name='apply_target_turn_and_action')
-                context.move.action = ActionType.MAGIC_MISSILE
+            direction = Point(1, 0).rotate(context.me.angle)
+            if distance <= context.me.cast_range + context.me.radius + self.__target.radius:
+                context.post_event(name='apply_target_turn')
                 context.move.turn = context.me.get_angle_to_unit(self.__target)
+                if (target_position.distance(context.my_position + direction * distance) <
+                        context.game.magic_missile_radius + self.__target.radius):
+                    context.post_event(name='apply_target_action')
+                    context.move.action = ActionType.MAGIC_MISSILE
 
     @property
     def movements(self):
