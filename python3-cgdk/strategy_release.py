@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, deque
 from functools import reduce
 from time import time
 
@@ -80,8 +80,8 @@ class Strategy(LazyInit):
         self.__last_next_movement_tick_index = None
         self.__target = None
         self.__target_position = None
-        self.__actual_path = list()
-        self.__expected_path = list()
+        self.__actual_path = deque(maxlen=100 * OPTIMIZE_MOVEMENT_STEP_SIZE)
+        self.__expected_path = deque(maxlen=100)
         self.__get_attack_range = None
         self.__last_update_target = None
         self.__cached_buildings = dict()
