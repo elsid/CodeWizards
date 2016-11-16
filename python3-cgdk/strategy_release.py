@@ -153,10 +153,7 @@ class Strategy(LazyInit):
 
     def __update_target(self, context: Context):
         context.post_event(name='update_target')
-        if (self.__target is not None and (
-                context.world.tick_index - self.__target.last_seen > LOST_TARGET_TICKS
-                or self.__target.last_seen < context.world.tick_index
-                and self.__target.life < self.__target.max_life / 4)):
+        if self.__target is not None and context.world.tick_index - self.__target.last_seen > LOST_TARGET_TICKS:
             context.post_event(name='reset_target', last_seen=self.__target.last_seen, life=self.__target.life)
             self.__target = None
         if (self.__last_update_target is None or self.__target is None or
