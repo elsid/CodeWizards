@@ -59,11 +59,12 @@ def get_target(me: Wizard, buildings, minions, wizards, guardian_tower_attack_ra
                     distance_to_position = my_position.distance(preferred_position)
                 distance_to_unit = position.distance(unit_position)
                 if distance_to_unit < safe_distance:
-                    yield distance_to_position - distance_to_unit
+                    yield distance_to_position - distance_to_unit if is_enemy(v, me.faction) else 1e10
                 else:
-                    yield distance_to_unit - 2 * safe_distance + distance_to_position
+                    yield (distance_to_unit - 2 * safe_distance + distance_to_position
+                           if is_enemy(v, me.faction) else 0)
 
-        return max(generate())
+        return sum(generate())
 
     result = minimize(position_penalty, array([my_position.x, my_position.y]), method='Nelder-Mead').x
     return target if target else None, Point(result[0], result[1])
