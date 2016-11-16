@@ -1,5 +1,6 @@
 import pytest
 
+from model.Bonus import Bonus
 from model.Faction import Faction
 from model.Minion import Minion
 from model.MinionType import MinionType
@@ -10,6 +11,7 @@ from strategy_common import Point
 from strategy_target import get_target
 
 from test.common import (
+    BONUS_RADIUS,
     FACTION_BASE_ATTACK_RANGE,
     FETISH_BLOWDART_ATTACK_RANGE,
     FETISH_BLOWDART_DAMAGE,
@@ -54,131 +56,150 @@ WIZARD = Wizard(
 )
 
 
+def test_get_target_with_only_me():
+    assert (None, None) == get_target(
+        me=WIZARD,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=[WIZARD],
+        trees=tuple(),
+        projectiles=tuple(),
+        bonuses=tuple(),
+        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
+        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
+        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
+        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
+        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
+    )
+
+
 @pytest.mark.parametrize(
-    ('me', 'buildings', 'minions', 'wizards', 'expected_target', 'expected_position'), [
+    ('minion', 'expected_target', 'expected_position'), [
         (
-            WIZARD,
-            tuple(),
-            tuple(),
-            tuple(),
-            None,
-            None,
-        ),
-        (
-            WIZARD,
-            tuple(),
-            tuple(),
-            [WIZARD],
-            None,
-            None,
-        ),
-        (
-            WIZARD,
-            tuple(),
-            [
-                Minion(
-                    id=2,
-                    x=100,
-                    y=100,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.RENEGADES,
-                    radius=MINION_RADIUS,
-                    life=FETISH_BLOWDART_MAX_LIFE,
-                    max_life=FETISH_BLOWDART_MAX_LIFE,
-                    statuses=None,
-                    type=MinionType.FETISH_BLOWDART,
-                    vision_range=None,
-                    damage=FETISH_BLOWDART_DAMAGE,
-                    cooldown_ticks=None,
-                    remaining_action_cooldown_ticks=None,
-                ),
-            ],
-            tuple(),
+            Minion(
+                id=2,
+                x=100,
+                y=100,
+                speed_x=None,
+                speed_y=None,
+                angle=None,
+                faction=Faction.RENEGADES,
+                radius=MINION_RADIUS,
+                life=FETISH_BLOWDART_MAX_LIFE,
+                max_life=FETISH_BLOWDART_MAX_LIFE,
+                statuses=None,
+                type=MinionType.FETISH_BLOWDART,
+                vision_range=None,
+                damage=FETISH_BLOWDART_DAMAGE,
+                cooldown_ticks=None,
+                remaining_action_cooldown_ticks=None,
+            ),
             2,
             Point(-112.1320343561172, -112.13203435611726),
         ),
         (
-            WIZARD,
-            tuple(),
-            [
-                Minion(
-                    id=2,
-                    x=100,
-                    y=100,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.NEUTRAL,
-                    radius=MINION_RADIUS,
-                    life=FETISH_BLOWDART_MAX_LIFE,
-                    max_life=None,
-                    statuses=None,
-                    type=MinionType.FETISH_BLOWDART,
-                    vision_range=None,
-                    damage=None,
-                    cooldown_ticks=None,
-                    remaining_action_cooldown_ticks=None,
-                ),
-            ],
-            tuple(),
-            None,
-            None,
-            #Point(-112.13203496074424, -112.13203496074424),
-        ),
-        (
-            WIZARD,
-            tuple(),
-            [
-                Minion(
-                    id=2,
-                    x=100,
-                    y=100,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.RENEGADES,
-                    radius=MINION_RADIUS,
-                    life=ORC_WOODCUTTER_MAX_LIFE,
-                    max_life=ORC_WOODCUTTER_MAX_LIFE,
-                    statuses=None,
-                    type=MinionType.ORC_WOODCUTTER,
-                    vision_range=None,
-                    damage=ORC_WOODCUTTER_DAMAGE,
-                    cooldown_ticks=None,
-                    remaining_action_cooldown_ticks=None,
-                ),
-            ],
-            tuple(),
+            Minion(
+                id=2,
+                x=100,
+                y=100,
+                speed_x=None,
+                speed_y=None,
+                angle=None,
+                faction=Faction.RENEGADES,
+                radius=MINION_RADIUS,
+                life=ORC_WOODCUTTER_MAX_LIFE,
+                max_life=ORC_WOODCUTTER_MAX_LIFE,
+                statuses=None,
+                type=MinionType.ORC_WOODCUTTER,
+                vision_range=None,
+                damage=ORC_WOODCUTTER_DAMAGE,
+                cooldown_ticks=None,
+                remaining_action_cooldown_ticks=None,
+            ),
             2,
             Point(-110.03177187085154, -110.03166249585158),
         ),
         (
-            WIZARD,
-            [
-                Tree(
-                    id=None,
-                    x=100,
-                    y=100,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.OTHER,
-                    radius=None,
-                    life=None,
-                    max_life=None,
-                    statuses=None,
-                )
-            ],
-            tuple(),
-            tuple(),
-            None,
-            None,
+            Minion(
+                id=2,
+                x=1000,
+                y=1000,
+                speed_x=None,
+                speed_y=None,
+                angle=None,
+                faction=Faction.RENEGADES,
+                radius=MINION_RADIUS,
+                life=ORC_WOODCUTTER_MAX_LIFE,
+                max_life=ORC_WOODCUTTER_MAX_LIFE,
+                statuses=None,
+                type=MinionType.ORC_WOODCUTTER,
+                vision_range=None,
+                damage=ORC_WOODCUTTER_DAMAGE,
+                cooldown_ticks=None,
+                remaining_action_cooldown_ticks=None,
+            ),
+            2,
+            Point(789.96819687841753, 789.96836875341819),
         ),
+    ]
+)
+def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_position):
+    target, position = get_target(
+        me=WIZARD,
+        buildings=tuple(),
+        minions=[minion],
+        wizards=[WIZARD],
+        trees=tuple(),
+        projectiles=tuple(),
+        bonuses=tuple(),
+        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
+        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
+        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
+        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
+        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
+    )
+    assert (target.id, position) == (expected_target, expected_position)
+
+
+def test_get_target_with_me_and_neural_minion():
+    assert (None, None) == get_target(
+        me=WIZARD,
+        buildings=tuple(),
+        minions=[
+            Minion(
+                id=2,
+                x=100,
+                y=100,
+                speed_x=None,
+                speed_y=None,
+                angle=None,
+                faction=Faction.NEUTRAL,
+                radius=MINION_RADIUS,
+                life=FETISH_BLOWDART_MAX_LIFE,
+                max_life=None,
+                statuses=None,
+                type=MinionType.FETISH_BLOWDART,
+                vision_range=None,
+                damage=None,
+                cooldown_ticks=None,
+                remaining_action_cooldown_ticks=None,
+            ),
+        ],
+        wizards=[WIZARD],
+        trees=tuple(),
+        projectiles=tuple(),
+        bonuses=tuple(),
+        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
+        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
+        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
+        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
+        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
+    )
+
+
+@pytest.mark.parametrize(
+    ('minions', 'wizards', 'expected_target', 'expected_position'), [
         (
-            WIZARD,
-            tuple(),
             tuple(),
             [
                 Wizard(
@@ -212,8 +233,6 @@ WIZARD = Wizard(
             Point(-324.26230749337776, -324.2657728367725),
         ),
         (
-            WIZARD,
-            tuple(),
             [
                 Minion(
                     id=2,
@@ -266,8 +285,6 @@ WIZARD = Wizard(
             Point(-36.277485737001747, -194.80603061666744),
         ),
         (
-            WIZARD,
-            tuple(),
             [
                 Minion(
                     id=2,
@@ -319,45 +336,82 @@ WIZARD = Wizard(
             3,
             Point(-159.46268619445195, -150.59585798105934),
         ),
-        (
-            WIZARD,
-            tuple(),
-            [
-                Minion(
-                    id=2,
-                    x=1000,
-                    y=1000,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.RENEGADES,
-                    radius=MINION_RADIUS,
-                    life=ORC_WOODCUTTER_MAX_LIFE,
-                    max_life=ORC_WOODCUTTER_MAX_LIFE,
-                    statuses=None,
-                    type=MinionType.ORC_WOODCUTTER,
-                    vision_range=None,
-                    damage=ORC_WOODCUTTER_DAMAGE,
-                    cooldown_ticks=None,
-                    remaining_action_cooldown_ticks=None,
-                ),
-            ],
-            tuple(),
-            2,
-            Point(789.96819687841753, 789.96836875341819),
-        ),
     ]
 )
-def test_get_target(me, buildings, minions, wizards, expected_target, expected_position):
+def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_target, expected_position):
     target, position = get_target(
-        me=me,
-        buildings=buildings,
+        me=WIZARD,
+        buildings=tuple(),
         minions=minions,
-        wizards=wizards,
+        wizards=wizards + [WIZARD],
+        trees=tuple(),
+        projectiles=tuple(),
+        bonuses=tuple(),
         guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
         faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
     )
-    assert (target.id if target else None, position) == (expected_target, expected_position)
+    assert (target.id, position) == (expected_target, expected_position)
+
+
+def test_get_target_with_me_and_tree():
+    assert (None, None) == get_target(
+        me=WIZARD,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=[WIZARD],
+        trees=[
+            Tree(
+                id=None,
+                x=100,
+                y=100,
+                speed_x=None,
+                speed_y=None,
+                angle=None,
+                faction=Faction.OTHER,
+                radius=None,
+                life=None,
+                max_life=None,
+                statuses=None,
+            ),
+        ],
+        projectiles=tuple(),
+        bonuses=tuple(),
+        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
+        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
+        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
+        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
+        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
+    )
+
+
+def test_get_target_with_me_and_bonus():
+    target, position = get_target(
+        me=WIZARD,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=[WIZARD],
+        trees=tuple(),
+        projectiles=tuple(),
+        bonuses=[
+            Bonus(
+                id=2,
+                x=100,
+                y=100,
+                speed_x=None,
+                speed_y=None,
+                angle=None,
+                faction=None,
+                radius=BONUS_RADIUS,
+                type=None,
+            )
+        ],
+        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
+        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
+        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
+        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
+        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
+    )
+    assert (target.id, position) == (2, Point(100.0000415039062, 99.999995605468811))

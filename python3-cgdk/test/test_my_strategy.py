@@ -56,8 +56,8 @@ def test_my_strategy_move():
         players=None,
         wizards=[me],
         minions=tuple(),
-        projectiles=None,
-        bonuses=None,
+        projectiles=tuple(),
+        bonuses=tuple(),
         buildings=tuple(),
         trees=tuple(),
     )

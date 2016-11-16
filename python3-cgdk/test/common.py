@@ -27,6 +27,7 @@ Game = namedtuple('Game', (
     'wizard_strafe_speed',
 ))
 
+BONUS_RADIUS = 20
 FACTION_BASE_ATTACK_RANGE = 800
 FETISH_BLOWDART_ATTACK_RANGE = 300
 FETISH_BLOWDART_DAMAGE = 12

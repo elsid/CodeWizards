@@ -172,6 +172,10 @@ class Strategy(LazyInit):
         invalidate_cache(self.__cached_bonuses, context.world.tick_index - CACHE_TTL_BONUSES)
 
     def __update_target(self, context: Context):
+
+        def is_recently_seen(unit):
+            return unit.last_seen == context.world.tick_index
+
         context.post_event(name='update_target')
         if self.__target is not None and context.world.tick_index - self.__target.last_seen > LOST_TARGET_TICKS:
             context.post_event(name='reset_target', last_seen=self.__target.last_seen, life=self.__target.life)
@@ -183,8 +187,11 @@ class Strategy(LazyInit):
             self.__target, position = get_target(
                 me=context.me,
                 buildings=tuple(self.__cached_buildings.values()),
-                minions=tuple(v for v in self.__cached_minions.values() if v.last_seen == context.world.tick_index),
-                wizards=tuple(v for v in self.__cached_wizards.values() if v.last_seen == context.world.tick_index),
+                minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
+                wizards=tuple(v for v in self.__cached_wizards.values() if is_recently_seen(v)),
+                trees=tuple(self.__cached_trees.values()),
+                projectiles=tuple(v for v in self.__cached_projectiles.values() if is_recently_seen(v)),
+                bonuses=tuple(self.__cached_bonuses.values()),
                 guardian_tower_attack_range=context.game.guardian_tower_attack_range,
                 faction_base_attack_range=context.game.faction_base_attack_range,
                 orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
