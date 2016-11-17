@@ -108,13 +108,13 @@ def test_optimize_movement_with_static_barriers():
         max_barriers_range=1000,
     )
     assert states[-1] == State(
-        position=Point(195.06689183424223, 200.85136821385575),
-        angle=-0.052359877559829876,
-        path_length=344.3826896207336,
+        position=Point(195.558304287408, 199.47628200043968),
+        angle=0.15707963267948966,
+        path_length=298.54142544811884,
         intersection=False,
     )
-    assert len(states) == 36
-    assert len(movements) == 35
+    assert len(states) == 31
+    assert len(movements) == 30
 
 
 @pytest.mark.parametrize(
@@ -135,13 +135,13 @@ def test_optimize_movement_with_static_barriers():
             Point(115 + WIZARD_RADIUS + MINION_RADIUS, 115 + WIZARD_RADIUS + MINION_RADIUS),
             Point(-3, -3),
             State(
-                position=Point(195.11813858782853, 196.73548010674176),
+                position=Point(194.9448120953963, 197.4745278848305),
                 angle=0.4712388980384689,
-                path_length=188.03819918407527,
+                path_length=192.8923389412841,
                 intersection=False,
             ),
+            21,
             20,
-            19,
         )
     ]
 )

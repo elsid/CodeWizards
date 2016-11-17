@@ -122,7 +122,9 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
                 barriers=chain(static_barriers, make_dynamic_barriers()),
                 map_size=game.map_size,
             )
-            new_state = next(simulation)
+            new_state = next(simulation, None)
+            if new_state is None:
+                continue
             if new_state.intersection:
                 continue
             if (int(new_state.position.x), int(new_state.position.y)) in visited:
@@ -202,10 +204,10 @@ def simulate_move(movements, state: State, radius: float, bounds: Bounds, barrie
     position = state.position
     angle = state.angle
     path_length = state.path_length
-    intersection = False
     for movement in movements:
         new_position = position
         new_angle = angle
+        barrier.position = new_position
         for _ in range(movement.step_size):
             shift, turn = get_shift_and_turn(
                 angle=new_angle,
@@ -216,13 +218,12 @@ def simulate_move(movements, state: State, radius: float, bounds: Bounds, barrie
             )
             new_position += shift
             new_angle = normalize_angle(new_angle + turn)
-            barrier.position = new_position
-            intersection = (
-                has_intersection_with_borders(barrier, map_size) or
-                has_intersection_with_barriers(barrier, barriers)
-            )
-            if intersection:
-                break
+        intersection = (
+            has_intersection_with_borders(barrier, map_size) or
+            has_intersection_with_barriers(barrier, new_position, barriers)
+        )
+        if intersection:
+            break
         if not intersection:
             path_length += position.distance(new_position)
             position = new_position
@@ -240,8 +241,9 @@ def has_intersection_with_borders(circular: Circular, map_size):
     )
 
 
-def has_intersection_with_barriers(circular: Circular, barriers):
-    return next((True for barrier in barriers if barrier.has_intersection_with_circular(circular, 1)), False)
+def has_intersection_with_barriers(circular: Circular, next_position: Point, barriers):
+    return next((True for barrier in barriers
+                 if barrier.has_intersection_with_moving_circular(circular, next_position)), False)
 
 
 def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float):

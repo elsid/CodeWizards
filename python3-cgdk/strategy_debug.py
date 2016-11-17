@@ -43,6 +43,7 @@ class Strategy:
             last_position = path[0]
             for position in path:
                 post.line(last_position.x, last_position.y, position.x, position.y, color)
+                post.fill_circle(position.x, position.y, 5, color)
                 last_position = position
 
     def __visualize_target_positions_penalties(self, post):

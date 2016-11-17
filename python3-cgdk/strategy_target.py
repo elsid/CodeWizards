@@ -10,7 +10,8 @@ from model.Minion import Minion
 from model.MinionType import MinionType
 from model.Wizard import Wizard
 
-from strategy_common import Point, Line
+from strategy_common import Point
+from strategy_barriers import Circular
 
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, guardian_tower_attack_range,
@@ -52,7 +53,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         position = Point(values[0], values[1])
         distance_to_position = my_position.distance(position)
         intersection_penalty = next((True for v in friends_units
-                                     if has_intersection(v, Line(my_position, position), magic_missile_radius)), False)
+                                     if has_intersection(v, my_position, position, magic_missile_radius)), False)
 
         def generate():
             for v in units:
@@ -140,9 +141,6 @@ def make_get_damage(magic_missile_direct_damage):
     return impl
 
 
-def has_intersection(unit, line: Line, my_radius):
-    unit_position = Point(unit.x, unit.y)
-    unit_radius = (line.end - line.begin).normalized().left_orthogonal() * (unit.radius + my_radius)
-    unit_line = Line(unit_position - unit_radius, unit_position + unit_radius)
-    intersection = line.intersection(unit_line)
-    return unit_line.has_point(intersection)
+def has_intersection(unit, position, next_position, my_radius):
+    unit_circular = Circular(Point(unit.x, unit.y), unit.radius)
+    return unit_circular.has_intersection_with_moving_circular(Circular(position, my_radius), next_position)
