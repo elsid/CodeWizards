@@ -162,7 +162,7 @@ class Line:
         to_end = self.end - self.begin
         to_point = point - self.begin
         norm = to_point.dot(to_end) / to_end.norm()
-        return sqrt(to_point.norm() ** 2 - norm ** 2)
+        return hypot(to_point.norm(), norm)
 
     def nearest(self, point):
         to_end = self.end - self.begin
