@@ -28,7 +28,7 @@ from test.common import (
         (0, 0, WIZARD_STRAFE_SPEED, 0, Point(0, WIZARD_STRAFE_SPEED), 0),
         (0, 0, WIZARD_STRAFE_SPEED + 1, 0, Point(0, WIZARD_STRAFE_SPEED), 0),
         (0, 0, -WIZARD_STRAFE_SPEED - 1, 0, Point(0, -WIZARD_STRAFE_SPEED), 0),
-        (0, WIZARD_FORWARD_SPEED, WIZARD_STRAFE_SPEED, 0, Point(1, 1), 0),
+        (0, WIZARD_FORWARD_SPEED, WIZARD_STRAFE_SPEED, 0, Point(2.82842712474619, 2.1213203435596424), 0),
     ]
 )
 def test_get_shift_and_turn(angle, speed, strafe_speed, turn, expected_shift, expected_turn):

@@ -256,9 +256,8 @@ def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed:
 def limit_speed(speed: float, strafe_speed: float, bounds: Bounds):
     speed = min(bounds.max_speed, max(bounds.min_speed, speed))
     strafe_speed = min(bounds.max_strafe_speed, max(bounds.min_strafe_speed, strafe_speed))
-    if hypot(speed / bounds.max_speed, strafe_speed / bounds.max_strafe_speed) > 1.0:
-        return speed / bounds.max_speed, strafe_speed / bounds.max_strafe_speed
-    return speed, strafe_speed
+    both = hypot(speed / bounds.max_speed, strafe_speed / bounds.max_strafe_speed)
+    return (speed / both, strafe_speed / both) if both > 1.0 else (speed, strafe_speed)
 
 
 def limit_turn(value: float, bounds: Bounds):
