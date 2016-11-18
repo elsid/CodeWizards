@@ -243,7 +243,7 @@ class Strategy(LazyInit):
         )
         self.__last_update_movements_tick_index = context.world.tick_index
         if self.__movements:
-            context.post_event(name='update_movements')
+            context.post_event(name='movements_updated')
             self.__cur_movement = 0
             self.__last_next_movement_tick_index = context.world.tick_index
             self.__expected_path.append(self.__states[self.__cur_movement].position)
