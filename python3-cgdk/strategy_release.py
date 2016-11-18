@@ -230,13 +230,24 @@ class Strategy(LazyInit):
             self.__next_movement(context)
 
     def __calculate_movements(self, context: Context):
+
+        def is_recently_seen(unit):
+            return unit.last_seen == context.world.tick_index
+
         context.post_event(name='calculate_movements')
         self.__states, self.__movements = optimize_movement(
             target=self.__target_position,
             look_target=Point(self.__target.x, self.__target.y) if self.__target else self.__target_position,
             circular_unit=context.me,
-            world=context.world,
-            game=context.game,
+            buildings=tuple(self.__cached_buildings.values()),
+            minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
+            wizards=tuple(v for v in self.__cached_wizards.values() if is_recently_seen(v)),
+            trees=tuple(self.__cached_trees.values()),
+            wizard_forward_speed=context.game.wizard_forward_speed,
+            wizard_backward_speed=context.game.wizard_backward_speed,
+            wizard_strafe_speed=context.game.wizard_strafe_speed,
+            wizard_max_turn_angle=context.game.wizard_max_turn_angle,
+            map_size=context.game.map_size,
             step_size=OPTIMIZE_MOVEMENT_STEP_SIZE,
             max_barriers_range=OPTIMIZE_MOVEMENT_TICKS * context.game.wizard_forward_speed,
             max_time=context.time_left(),

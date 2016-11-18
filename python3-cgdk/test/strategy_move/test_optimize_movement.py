@@ -30,25 +30,19 @@ def test_optimize_movement():
         angle=angle,
         radius=1,
     )
-    world = World(
-        buildings=tuple(),
-        minions=tuple(),
-        wizards=tuple(),
-        trees=tuple(),
-    )
-    game = Game(
-        map_size=MAP_SIZE,
-        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
-        wizard_forward_speed=WIZARD_FORWARD_SPEED,
-        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
-        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
-    )
     states, movements = optimize_movement(
         target=target,
         look_target=target,
         circular_unit=circular_unit,
-        world=world,
-        game=game,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=tuple(),
+        trees=tuple(),
+        wizard_forward_speed=WIZARD_FORWARD_SPEED,
+        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
+        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
+        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
+        map_size=MAP_SIZE,
         step_size=3,
         max_barriers_range=1000,
     )
@@ -73,10 +67,8 @@ def test_optimize_movement_with_static_barriers():
         radius=WIZARD_RADIUS,
     )
     tree_position = position + Point(WIZARD_RADIUS + TREE_RADIUS + 10, WIZARD_RADIUS + TREE_RADIUS + 10)
-    world = World(
-        buildings=tuple(),
-        minions=tuple(),
-        trees=[Tree(
+    trees = [
+        Tree(
             id=None,
             x=tree_position.x,
             y=tree_position.y,
@@ -88,22 +80,21 @@ def test_optimize_movement_with_static_barriers():
             life=None,
             max_life=None,
             statuses=None,
-        )],
-        wizards=tuple(),
-    )
-    game = Game(
-        map_size=MAP_SIZE,
-        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
-        wizard_forward_speed=WIZARD_FORWARD_SPEED,
-        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
-        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
-    )
+        ),
+    ]
     states, movements = optimize_movement(
         target=target,
         look_target=target,
         circular_unit=circular_unit,
-        world=world,
-        game=game,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=tuple(),
+        trees=trees,
+        wizard_forward_speed=WIZARD_FORWARD_SPEED,
+        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
+        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
+        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
+        map_size=MAP_SIZE,
         step_size=3,
         max_barriers_range=1000,
     )
@@ -175,25 +166,19 @@ def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed,
         remaining_action_cooldown_ticks=None,
     )
     setattr(minion, 'mean_speed', minion_speed)
-    world = World(
-        buildings=tuple(),
-        minions=[minion],
-        trees=tuple(),
-        wizards=tuple(),
-    )
-    game = Game(
-        map_size=MAP_SIZE,
-        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
-        wizard_forward_speed=WIZARD_FORWARD_SPEED,
-        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
-        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
-    )
     states, movements = list(optimize_movement(
         target=target,
         look_target=target,
         circular_unit=circular_unit,
-        world=world,
-        game=game,
+        buildings=tuple(),
+        minions=[minion],
+        wizards=tuple(),
+        trees=tuple(),
+        wizard_forward_speed=WIZARD_FORWARD_SPEED,
+        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
+        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
+        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
+        map_size=MAP_SIZE,
         step_size=3,
         max_barriers_range=1000,
     ))

@@ -17,19 +17,26 @@ PARAMETERS_COUNT = 3
 
 
 def optimize_movement(target: Point, look_target: Point, circular_unit: CircularUnit,
-                      world: World, game: Game, step_size, max_barriers_range, max_time=None):
+                      buildings, minions, wizards, trees,
+                      wizard_forward_speed, wizard_backward_speed, wizard_strafe_speed, wizard_max_turn_angle,
+                      map_size, step_size, max_barriers_range, max_time=None):
     start = time()
 
     def is_unit_in_range(unit):
         return hypot(circular_unit.x - unit.x, circular_unit.y - unit.y) <= max_barriers_range
 
-    bounds = Bounds(world=world, game=game)
-    wizards = (v for v in world.wizards if v.id != circular_unit.id)
-    dynamic_units = {v.id: v for v in chain(wizards, world.minions)}
+    bounds = Bounds(
+        wizard_forward_speed=wizard_forward_speed,
+        wizard_backward_speed=wizard_backward_speed,
+        wizard_strafe_speed=wizard_strafe_speed,
+        wizard_max_turn_angle=wizard_max_turn_angle,
+    )
+    wizards = (v for v in wizards if v.id != circular_unit.id)
+    dynamic_units = {v.id: v for v in chain(wizards, minions)}
     initial_dynamic_units_positions = {v.id: Point(v.x, v.y) for v in dynamic_units.values()}
     static_barriers = list(chain(
-        make_circles(v for v in world.buildings if is_unit_in_range(v)),
-        make_circles(v for v in world.trees if is_unit_in_range(v)),
+        make_circles(v for v in buildings if is_unit_in_range(v)),
+        make_circles(v for v in trees if is_unit_in_range(v)),
     ))
     initial_position = Point(circular_unit.x, circular_unit.y)
     initial_angle = normalize_angle(circular_unit.angle)
@@ -120,7 +127,7 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
                 radius=circular_unit.radius,
                 bounds=bounds,
                 barriers=chain(static_barriers, make_dynamic_barriers()),
-                map_size=game.map_size,
+                map_size=map_size,
             )
             new_state = next(simulation, None)
             if new_state is None:
@@ -162,39 +169,41 @@ def chunks(values, size: int):
 
 
 class Bounds:
-    def __init__(self, world: World, game: Game):
-        self.world = world
-        self.game = game
+    def __init__(self, wizard_forward_speed, wizard_backward_speed, wizard_strafe_speed, wizard_max_turn_angle):
+        self.wizard_forward_speed = wizard_forward_speed
+        self.wizard_backward_speed = wizard_backward_speed
+        self.wizard_strafe_speed = wizard_strafe_speed
+        self.wizard_max_turn_angle = wizard_max_turn_angle
 
     @property
     def max_speed(self):
         # TODO: use skills
-        return self.game.wizard_forward_speed
+        return self.wizard_forward_speed
 
     @property
     def min_speed(self):
         # TODO: use skills
-        return -self.game.wizard_backward_speed
+        return -self.wizard_backward_speed
 
     @property
     def max_strafe_speed(self):
         # TODO: use skills
-        return self.game.wizard_strafe_speed
+        return self.wizard_strafe_speed
 
     @property
     def min_strafe_speed(self):
         # TODO: use skills
-        return -self.game.wizard_strafe_speed
+        return -self.wizard_strafe_speed
 
     @property
     def max_turn(self):
         # TODO: use skills
-        return self.game.wizard_max_turn_angle
+        return self.wizard_max_turn_angle
 
     @property
     def min_turn(self):
         # TODO: use skills
-        return -self.game.wizard_max_turn_angle
+        return -self.wizard_max_turn_angle
 
 
 def simulate_move(movements, state: State, radius: float, bounds: Bounds, barriers, map_size: float):

@@ -32,19 +32,11 @@ from test.common import (
     ]
 )
 def test_get_shift_and_turn(angle, speed, strafe_speed, turn, expected_shift, expected_turn):
-    world = World(
-        buildings=tuple(),
-        minions=tuple(),
-        trees=tuple(),
-        wizards=tuple(),
-    )
-    game = Game(
-        map_size=MAP_SIZE,
-        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
+    bounds = Bounds(
         wizard_forward_speed=WIZARD_FORWARD_SPEED,
-        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
+        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
         wizard_strafe_speed=WIZARD_STRAFE_SPEED,
+        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
     )
-    bounds = Bounds(world=world, game=game)
     result = get_shift_and_turn(angle=angle, bounds=bounds, speed=speed, strafe_speed=strafe_speed, turn=turn)
     assert result == (expected_shift, expected_turn)
