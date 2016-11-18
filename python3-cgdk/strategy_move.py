@@ -85,6 +85,7 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
         if max_time is not None and time() - start >= max_time:
             break
         _, depth, step_size, states, movements, dynamic_units_positions = heappop(branches)
+        step = depth * step_size
         cur_state = states[-1]
         visited.add((int(cur_state.position.x), int(cur_state.position.y)))
         distance_to_target = target.distance(cur_state.position)
@@ -104,7 +105,7 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
             def update_dynamic_units_positions():
                 for k, v in dynamic_units_positions.items():
                     dynamic_unit = dynamic_units[k]
-                    yield k, v + dynamic_unit.mean_speed * (depth + 1)
+                    yield k, v + dynamic_unit.mean_speed * (step + step_size)
 
             new_dynamic_units = dict(update_dynamic_units_positions())
 
