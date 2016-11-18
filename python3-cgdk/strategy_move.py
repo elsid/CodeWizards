@@ -8,8 +8,7 @@ from model.CircularUnit import CircularUnit
 from model.Game import Game
 from model.World import World
 
-from strategy_barriers import Circular, make_circular_barriers
-from strategy_common import Point, normalize_angle
+from strategy_common import Point, Circle, normalize_angle
 
 Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn', 'step_size'))
 State = namedtuple('State', ('position', 'angle', 'path_length', 'intersection'))
@@ -29,8 +28,8 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
     dynamic_units = {v.id: v for v in chain(wizards, world.minions)}
     initial_dynamic_units_positions = {v.id: Point(v.x, v.y) for v in dynamic_units.values()}
     static_barriers = list(chain(
-        make_circular_barriers(v for v in world.buildings if is_unit_in_range(v)),
-        make_circular_barriers(v for v in world.trees if is_unit_in_range(v)),
+        make_circles(v for v in world.buildings if is_unit_in_range(v)),
+        make_circles(v for v in world.trees if is_unit_in_range(v)),
     ))
     initial_position = Point(circular_unit.x, circular_unit.y)
     initial_angle = normalize_angle(circular_unit.angle)
@@ -112,7 +111,7 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
             def make_dynamic_barriers():
                 for k, v in new_dynamic_units.items():
                     dynamic_unit = dynamic_units[k]
-                    yield Circular(position=v, radius=dynamic_unit.radius)
+                    yield Circle(position=v, radius=dynamic_unit.radius)
 
             simulation = simulate_move(
                 movements=[new_movement],
@@ -200,7 +199,7 @@ class Bounds:
 def simulate_move(movements, state: State, radius: float, bounds: Bounds, barriers, map_size: float):
     if state.intersection:
         return
-    barrier = Circular(state.position, radius)
+    barrier = Circle(state.position, radius)
     position = state.position
     angle = state.angle
     path_length = state.path_length
@@ -231,19 +230,19 @@ def simulate_move(movements, state: State, radius: float, bounds: Bounds, barrie
         yield State(position=position, angle=angle, path_length=path_length, intersection=intersection)
 
 
-def has_intersection_with_borders(circular: Circular, map_size):
-    delta = circular.radius * 0.1
+def has_intersection_with_borders(circle: Circle, map_size):
+    delta = circle.radius * 0.1
     return (
-        circular.position.x - circular.radius <= delta or
-        circular.position.y - circular.radius <= delta or
-        circular.position.x + circular.radius - map_size >= delta or
-        circular.position.y + circular.radius - map_size >= delta
+        circle.position.x - circle.radius <= delta or
+        circle.position.y - circle.radius <= delta or
+        circle.position.x + circle.radius - map_size >= delta or
+        circle.position.y + circle.radius - map_size >= delta
     )
 
 
-def has_intersection_with_barriers(circular: Circular, next_position: Point, barriers):
+def has_intersection_with_barriers(circle: Circle, next_position: Point, barriers):
     return next((True for barrier in barriers
-                 if barrier.has_intersection_with_moving_circular(circular, next_position)), False)
+                 if barrier.has_intersection_with_moving_circle(circle, next_position)), False)
 
 
 def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float):
@@ -264,3 +263,8 @@ def limit_speed(speed: float, strafe_speed: float, bounds: Bounds):
 
 def limit_turn(value: float, bounds: Bounds):
     return min(bounds.max_turn, max(bounds.min_turn, value))
+
+
+def make_circles(values):
+    for value in values:
+        yield Circle(position=Point(value.x, value.y), radius=value.radius)

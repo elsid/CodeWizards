@@ -201,3 +201,34 @@ class Line:
         x = det(d, x_diff) / div
         y = det(d, y_diff) / div
         return Point(x, y)
+
+
+class Circle:
+    def __init__(self, position, radius):
+        self.position = position
+        self.radius = radius
+
+    def __repr__(self):
+        return 'Circle(position={p}, radius={r})'.format(
+            p=repr(self.position), r=repr(self.radius))
+
+    def __eq__(self, other):
+        return (self.position == other.position and
+                self.radius == other.radius)
+
+    def has_intersection_with_circle(self, circle, delta=1e-8):
+        return self.position.distance(circle.position) - self.radius - circle.radius <= delta
+
+    def has_intersection_with_moving_circle(self, circle, next_position, delta=1e-8):
+        if self.has_intersection_with_circle(circle):
+            return True
+        if next_position == circle.position:
+            return False
+        if self.has_intersection_with_circle(Circle(next_position, circle.radius)):
+            return True
+        radius_vec = ((next_position - circle.position).normalized().left_orthogonal() *
+                      (self.radius + circle.radius))
+        line = Line(self.position - radius_vec, self.position + radius_vec)
+        circle_line = Line(circle.position, next_position)
+        intersection = line.intersection(circle_line)
+        return line.has_point(intersection, delta) and circle_line.has_point(intersection, delta)
