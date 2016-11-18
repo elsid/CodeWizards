@@ -15,16 +15,17 @@ from strategy_target import get_target
 
 
 OPTIMIZE_MOVEMENT_STEP_SIZE = 10
-OPTIMIZE_MOVEMENT_TICKS = 100
-UPDATE_TARGET_TICKS = 200
-MAX_TIME = 1
+OPTIMIZE_MOVEMENT_TICKS = 30
+UPDATE_TARGET_TICKS = 45
+MAX_TIME = 3
 CACHE_TTL_BONUSES = 100
 CACHE_TTL_BUILDINGS = 200
 CACHE_TTL_TREES = 200
 CACHE_TTL_WIZARDS = 30
 CACHE_TTL_MINIONS = 30
 CACHE_TTL_PROJECTILES = 10
-LOST_TARGET_TICKS = 10
+LOST_TARGET_TICKS = 5
+GET_TARGET_MAX_ITERATIONS = 10
 
 
 class Context:
@@ -87,8 +88,8 @@ class Strategy(LazyInit):
         self.__last_next_movement_tick_index = None
         self.__target = None
         self.__target_position = None
-        self.__actual_path = deque(maxlen=100 * OPTIMIZE_MOVEMENT_STEP_SIZE)
-        self.__expected_path = deque(maxlen=100)
+        self.__actual_path = deque(maxlen=20 * OPTIMIZE_MOVEMENT_STEP_SIZE)
+        self.__expected_path = deque(maxlen=20)
         self.__get_attack_range = None
         self.__last_update_target = None
         self.__cached_buildings = dict()
@@ -214,6 +215,7 @@ class Strategy(LazyInit):
                 magic_missile_radius=context.game.magic_missile_radius,
                 map_size=context.game.map_size,
                 penalties=self.__target_positions_penalties,
+                max_iterations=GET_TARGET_MAX_ITERATIONS,
             )
             if self.__target:
                 context.post_event(name='target_updated', target_type=str(type(self.__target)),
@@ -257,7 +259,7 @@ class Strategy(LazyInit):
             wizard_max_turn_angle=context.game.wizard_max_turn_angle,
             map_size=context.game.map_size,
             step_size=OPTIMIZE_MOVEMENT_STEP_SIZE,
-            max_barriers_range=OPTIMIZE_MOVEMENT_TICKS * context.game.wizard_forward_speed,
+            max_barriers_range=context.me.vision_range,
             max_time=context.time_left(),
         )
         self.__last_update_movements_tick_index = context.world.tick_index

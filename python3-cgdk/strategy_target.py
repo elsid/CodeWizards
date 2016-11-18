@@ -15,7 +15,7 @@ from strategy_common import Point, Line, Circle
 
 BONUS_WEIGHT = 1
 DIRECTION_WEIGHT = 1
-PROJECTILE_WEIGHT = 0.8
+PROJECTILE_WEIGHT = 0.5
 TARGET_DISTANCE_WEIGHT = 1
 UNIT_WEIGHT = 0.5
 
@@ -68,8 +68,8 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
                 return 0
-            safe_distance = max(me.radius + unit.radius, me.cast_range / 3,
-                                get_attack_range(unit) * unit.life / unit.max_life)
+            safe_distance = max(2 * me.radius + unit.radius, me.cast_range / 2,
+                                (me.radius + get_attack_range(unit)) * min(1, get_damage(unit) / me.life))
             unit_position = Point(unit.x, unit.y)
             distance_to_unit = position.distance(unit_position)
             return distance_penalty(distance_to_unit, safe_distance)
@@ -83,15 +83,6 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                 return max(unit_danger_penalty(target),
                            1 - distance_penalty(position.distance(target_position),
                                                 my_position.distance(target_position)))
-
-        def my_defensive_penalty(unit):
-            if not is_enemy(unit, me.faction):
-                return 0
-            safe_distance = max(me.radius + unit.radius, me.cast_range / 3,
-                                get_attack_range(unit) * (1 - me.life / me.max_life))
-            unit_position = Point(unit.x, unit.y)
-            distance_to_unit = position.distance(unit_position)
-            return distance_penalty(distance_to_unit, safe_distance)
 
         def friend_units_intersections_penalties():
             for friend in friends_units:
@@ -124,10 +115,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
         def units_penalties():
             for unit in units:
-                yield max(
-                    unit_intersection_penalty(unit),
-                    min(unit_danger_penalty(unit), my_defensive_penalty(unit)),
-                )
+                yield max(unit_intersection_penalty(unit), unit_danger_penalty(unit))
 
         def bonuses_penalties():
             for bonus in bonuses:
@@ -148,22 +136,19 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
             return (0 if me.radius < position.x < map_size - me.radius
                     and me.radius < position.y < map_size - me.radius else 1)
 
-        penalty = max(borders_penalty(), (
-            (
-                0
-                + sum(units_penalties()) * UNIT_WEIGHT
-                + sum(bonuses_penalties()) * BONUS_WEIGHT
-                + sum(projectiles_penalties()) * PROJECTILE_WEIGHT
-                + direction_penalty() * DIRECTION_WEIGHT
-                + target_distance_penalty() * TARGET_DISTANCE_WEIGHT
-            ) / ((
-                0
-                + len(units) * UNIT_WEIGHT
-                + len(bonuses) * BONUS_WEIGHT
-                + len(projectiles) * PROJECTILE_WEIGHT
-                + DIRECTION_WEIGHT if target_position and friends_units else 0
-                + TARGET_DISTANCE_WEIGHT if target_position else 0
-            ) or 1)
+        penalties_count = (
+            + len(units) * UNIT_WEIGHT
+            + len(bonuses) * BONUS_WEIGHT
+            + len(projectiles) * PROJECTILE_WEIGHT
+            + (DIRECTION_WEIGHT if target_position and friends_units else 0)
+            + (TARGET_DISTANCE_WEIGHT if target_position else 0)
+        )
+        penalty = max(borders_penalty() * penalties_count, (
+            + sum(units_penalties()) * UNIT_WEIGHT
+            + sum(bonuses_penalties()) * BONUS_WEIGHT
+            + sum(projectiles_penalties()) * PROJECTILE_WEIGHT
+            + direction_penalty() * DIRECTION_WEIGHT
+            + target_distance_penalty() * TARGET_DISTANCE_WEIGHT
         ))
         if penalties is not None:
             penalties.append((position, penalty))
