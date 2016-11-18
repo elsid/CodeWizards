@@ -33,6 +33,7 @@ class Context:
         self.game = game
         self.move = move
         self.__start = None
+        self.__finish = None
         self.__events = list()
         if log_events:
             from debug import log_dict
@@ -51,6 +52,7 @@ class Context:
                         strafe_speed=self.move.strafe_speed, turn=self.move.turn, action=self.move.action)
         for event in self.__events:
             self.__write_log(event)
+        self.__finish = time()
 
     @property
     def my_position(self):
@@ -68,6 +70,10 @@ class Context:
         for k, v in kwargs.items():
             data[k] = v
         self.__events.append(data)
+
+    @property
+    def duration(self):
+        return self.__finish - self.__start
 
 
 class Strategy(LazyInit):

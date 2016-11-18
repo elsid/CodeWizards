@@ -36,12 +36,15 @@ class MyStrategy:
         else:
             self.__strategy = ReleaseStrategy
         self.__impl = self.__strategy()
+        self.__duration = 0
+        self.__check_duration = 'CHECK_DURATION' in environ and environ['CHECK_DURATION'] == '1'
 
     @profile
     def move(self, me: Wizard, world: World, game: Game, move: Move):
         if 'MAX_TICKS' in environ and world.tick_index >= int(environ['MAX_TICKS']):
             exit(0)
-        with Context(me=me, world=world, game=game, move=move, log_events=self.__verbose) as context:
+        context = Context(me=me, world=world, game=game, move=move, log_events=self.__verbose)
+        with context:
             if self.__fail_on_exception:
                 self.__impl.move(context)
             else:
@@ -51,3 +54,7 @@ class MyStrategy:
                     self.__impl = self.__strategy()
                 except BaseException:
                     self.__impl = self.__strategy()
+        self.__duration += context.duration
+        if self.__check_duration:
+            assert (self.__duration < (10 * world.tick_index + 10000) / 1000,
+                    'Duration check failed on tick %s (%s s)' % (world.tick_index, self.__duration))
