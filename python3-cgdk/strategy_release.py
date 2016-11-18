@@ -167,7 +167,7 @@ class Strategy(LazyInit):
             setattr(v, 'last_seen', context.world.tick_index)
         invalidate_cache(self.__cached_trees, context.world.tick_index - CACHE_TTL_BUILDINGS)
         for v in context.world.projectiles:
-            self.__cached_projectiles[v.id] = v
+            update_dynamic_unit(self.__cached_projectiles, v)
             setattr(v, 'last_seen', context.world.tick_index)
         invalidate_cache(self.__cached_projectiles, context.world.tick_index - CACHE_TTL_TREES)
         for v in context.world.bonuses:
