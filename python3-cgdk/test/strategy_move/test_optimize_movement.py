@@ -132,16 +132,16 @@ def test_optimize_movement_with_static_barriers():
             14,
         ),
         (
-            Point(115 + WIZARD_RADIUS + MINION_RADIUS, 115 + WIZARD_RADIUS + MINION_RADIUS),
+            Point(300 + WIZARD_RADIUS + MINION_RADIUS, 300 + WIZARD_RADIUS + MINION_RADIUS),
             Point(-3, -3),
             State(
-                position=Point(194.9448120953963, 197.4745278848305),
-                angle=0.4712388980384689,
-                path_length=192.8923389412841,
+                position=Point(194.31693442016044, 199.73516556514113),
+                angle=0.15707963267948966,
+                path_length=175.67204387668457,
                 intersection=False,
             ),
-            21,
-            20,
+            18,
+            17,
         )
     ]
 )

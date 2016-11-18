@@ -158,11 +158,15 @@ class Line:
         return 'Line(begin={b}, end={e})'.format(
             b=repr(self.begin), e=repr(self.end))
 
+    def signed_distance(self, point):
+        return (
+           (self.begin.y - self.end.y) * point.x
+           + (self.end.x - self.begin.x) * point.y
+           + (self.begin.x * self.end.y - self.end.x * self.begin.y)
+        ) / self.length()
+
     def distance(self, point):
-        to_end = self.end - self.begin
-        to_point = point - self.begin
-        norm = to_point.dot(to_end) / to_end.norm()
-        return hypot(to_point.norm(), norm)
+        return abs(self.signed_distance(point))
 
     def nearest(self, point):
         to_end = self.end - self.begin
@@ -216,19 +220,21 @@ class Circle:
         return (self.position == other.position and
                 self.radius == other.radius)
 
-    def has_intersection_with_circle(self, circle, delta=1e-8):
-        return self.position.distance(circle.position) - self.radius - circle.radius <= delta
+    def has_intersection_with_circle(self, circle, max_error=1e-8):
+        return self.position.distance(circle.position) <= self.radius + circle.radius + max_error
 
-    def has_intersection_with_moving_circle(self, circle, next_position, delta=1e-8):
+    def has_intersection_with_line(self, line: Line, max_error=1e-8):
+        nearest = line.nearest(self.position)
+        return self.position.distance(nearest) - self.radius <= max_error and line.has_point(nearest, max_error)
+
+    def has_intersection_with_moving_circle(self, circle, next_position, max_error=1e-8):
         if self.has_intersection_with_circle(circle):
             return True
         if next_position == circle.position:
             return False
         if self.has_intersection_with_circle(Circle(next_position, circle.radius)):
             return True
-        radius_vec = ((next_position - circle.position).normalized().left_orthogonal() *
-                      (self.radius + circle.radius))
-        line = Line(self.position - radius_vec, self.position + radius_vec)
-        circle_line = Line(circle.position, next_position)
-        intersection = line.intersection(circle_line)
-        return line.has_point(intersection, delta) and circle_line.has_point(intersection, delta)
+        return (
+            Circle(self.position, self.radius + circle.radius)
+            .has_intersection_with_line(Line(circle.position, next_position), max_error)
+        )
