@@ -204,6 +204,7 @@ class Strategy(LazyInit):
                 fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
                 magic_missile_direct_damage=context.game.magic_missile_direct_damage,
                 magic_missile_radius=context.game.magic_missile_radius,
+                map_size=context.game.map_size,
                 penalties=self.__target_positions_penalties,
             )
             if self.__target:

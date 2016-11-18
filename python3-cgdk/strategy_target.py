@@ -1,4 +1,5 @@
 from itertools import chain
+from math import acos
 from numpy import array
 from scipy.optimize import minimize
 
@@ -10,12 +11,18 @@ from model.Minion import Minion
 from model.MinionType import MinionType
 from model.Wizard import Wizard
 
-from strategy_common import Point, Circle
+from strategy_common import Point, Line, Circle
+
+BONUS_WEIGHT = 1
+DIRECTION_WEIGHT = 1
+PROJECTILE_WEIGHT = 0.8
+TARGET_DISTANCE_WEIGHT = 1
+UNIT_WEIGHT = 0.5
 
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, guardian_tower_attack_range,
                faction_base_attack_range, orc_woodcutter_attack_range, fetish_blowdart_attack_range,
-               magic_missile_direct_damage, magic_missile_radius, penalties=None):
+               magic_missile_direct_damage, magic_missile_radius, map_size, max_iterations=None, penalties=None):
     enemy_buildings = tuple(filter_enemies(buildings, me.faction))
     enemy_minions = tuple(filter_enemies(minions, me.faction))
     enemy_wizards = tuple(filter_enemies(wizards, me.faction))
@@ -47,52 +54,125 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     other_wizards = tuple(v for v in wizards if v.id != me.id)
     units = tuple(chain(buildings, trees, minions, other_wizards))
     friends_units = tuple(filter_friends(chain(buildings, minions, other_wizards), me.faction))
+    target_position = Point(target.x, target.y) if target else None
 
     def position_penalty(values):
         position = Point(values[0], values[1])
-        distance_to_position = my_position.distance(position)
-        intersection_penalty = next((True for v in friends_units
-                                     if has_intersection(v, my_position, position, magic_missile_radius)), False)
 
-        def generate():
-            for v in units:
-                if is_enemy(v, me.faction):
-                    safe_distance = max(get_attack_range(v) * v.life / v.max_life,
-                                        me.cast_range / 2 * me.max_life / (1 + me.life))
-                else:
-                    safe_distance = 2 * me.radius + v.radius
-                unit_position = Point(v.x, v.y)
-                if unit_position == position:
-                    distance_to_preferred_position = safe_distance
-                else:
-                    preferred_position = (unit_position + (position - unit_position).normalized() * safe_distance)
-                    distance_to_preferred_position = my_position.distance(preferred_position)
-                distance_to_unit = position.distance(unit_position)
-                if distance_to_unit <= me.radius + v.radius:
-                    yield distance_to_preferred_position - distance_to_unit + 1e10 * (1 + distance_to_position)
-                elif distance_to_unit < safe_distance:
-                    yield distance_to_preferred_position - distance_to_unit
-                else:
-                    yield (distance_to_unit - 2 * safe_distance + distance_to_preferred_position
-                           if is_enemy(v, me.faction) else 0)
-            for v in projectiles:
-                if distance_to_unit < me.radius + v.radius:
-                    yield distance_to_position - distance_to_unit + 1e10 * (1 + distance_to_position)
-                else:
+        def unit_intersection_penalty(unit):
+            safe_distance = me.radius + unit.radius
+            unit_position = Point(unit.x, unit.y)
+            distance_to_unit = position.distance(unit_position)
+            return distance_penalty(distance_to_unit, safe_distance)
+
+        def unit_danger_penalty(unit):
+            if not is_enemy(unit, me.faction):
+                return 0
+            safe_distance = max(me.radius + unit.radius, me.cast_range / 3,
+                                get_attack_range(unit) * unit.life / unit.max_life)
+            unit_position = Point(unit.x, unit.y)
+            distance_to_unit = position.distance(unit_position)
+            return distance_penalty(distance_to_unit, safe_distance)
+
+        def target_distance_penalty():
+            if not target:
+                return 0
+            if isinstance(target, Bonus):
+                return bonus_penalty(target)
+            else:
+                return max(unit_danger_penalty(target),
+                           1 - distance_penalty(position.distance(target_position),
+                                                my_position.distance(target_position)))
+
+        def my_defensive_penalty(unit):
+            if not is_enemy(unit, me.faction):
+                return 0
+            safe_distance = max(me.radius + unit.radius, me.cast_range / 3,
+                                get_attack_range(unit) * (1 - me.life / me.max_life))
+            unit_position = Point(unit.x, unit.y)
+            distance_to_unit = position.distance(unit_position)
+            return distance_penalty(distance_to_unit, safe_distance)
+
+        def friend_units_intersections_penalties():
+            for friend in friends_units:
+                friend_position = Point(friend.x, friend.y)
+                circle = Circle(friend_position, friend.radius)
+                intersection = circle.has_intersection_with_moving_circle(
+                    Circle(position, magic_missile_radius), target_position)
+                if not intersection:
                     yield 0
-            for v in bonuses:
-                unit_position = Point(v.x, v.y)
-                yield position.distance(unit_position)
+                else:
+                    target_to_friend = friend_position - target_position
+                    tangent_angle = acos((friend.radius + magic_missile_radius)
+                                         / target_position.distance(friend_position))
+                    tangent1_direction = target_to_friend.rotate(tangent_angle)
+                    tangent2_direction = target_to_friend.rotate(-tangent_angle)
+                    tangent1 = target_position + tangent1_direction
+                    tangent2 = target_position + tangent2_direction
+                    tangent1_distance = Line(target_position, tangent1).distance(position)
+                    tangent2_distance = Line(target_position, tangent2).distance(position)
+                    max_distance = (tangent1_distance + tangent2_distance) * 0.5
+                    distance_to_tangent = min(tangent1_distance, tangent2_distance)
+                    yield distance_to_tangent / max_distance
 
-        penalty = sum(generate()) if not intersection_penalty else 1e10 * (1 + distance_to_position)
+        def direction_penalty():
+            return max(friend_units_intersections_penalties()) if target_position and friends_units else 0
+
+        def bonus_penalty(bonus):
+            bonus_position = Point(bonus.x, bonus.y)
+            return 1 - distance_penalty(position.distance(bonus_position), my_position.distance(bonus_position))
+
+        def units_penalties():
+            for unit in units:
+                yield max(
+                    unit_intersection_penalty(unit),
+                    min(unit_danger_penalty(unit), my_defensive_penalty(unit)),
+                )
+
+        def bonuses_penalties():
+            for bonus in bonuses:
+                yield bonus_penalty(bonus)
+
+        def projectile_penalty(projectile):
+            projectile_position = Point(projectile.x, projectile.y)
+            projectile_speed = projectile.mean_speed
+            safe_distance = me.radius + projectile.radius
+            distance_to = Line(projectile_position, projectile_position + projectile_speed).distance(position)
+            return distance_penalty(distance_to, safe_distance)
+
+        def projectiles_penalties():
+            for projectile in projectiles:
+                yield projectile_penalty(projectile)
+
+        def borders_penalty():
+            return (0 if me.radius < position.x < map_size - me.radius
+                    and me.radius < position.y < map_size - me.radius else 1)
+
+        penalty = max(borders_penalty(), (
+            (
+                0
+                + sum(units_penalties()) * UNIT_WEIGHT
+                + sum(bonuses_penalties()) * BONUS_WEIGHT
+                + sum(projectiles_penalties()) * PROJECTILE_WEIGHT
+                + direction_penalty() * DIRECTION_WEIGHT
+                + target_distance_penalty() * TARGET_DISTANCE_WEIGHT
+            ) / ((
+                0
+                + len(units) * UNIT_WEIGHT
+                + len(bonuses) * BONUS_WEIGHT
+                + len(projectiles) * PROJECTILE_WEIGHT
+                + DIRECTION_WEIGHT if target_position and friends_units else 0
+                + TARGET_DISTANCE_WEIGHT if target_position else 0
+            ) or 1)
+        ))
         if penalties is not None:
             penalties.append((position, penalty))
         return penalty
 
-    initial = Point(target.x, target.y) if target else my_position
-    result = minimize(position_penalty, array([initial.x, initial.y]),
-                      method='Nelder-Mead', options=dict(maxiter=50)).x
-    return target if target else None, Point(result[0], result[1])
+    from_my_position = minimize(position_penalty, array([my_position.x, my_position.y]),
+                                method='Nelder-Mead', options=dict(maxiter=max_iterations))
+    result = Point(from_my_position.x[0], from_my_position.x[1])
+    return target if target else None, result
 
 
 def filter_friends(units, my_faction):
@@ -140,6 +220,5 @@ def make_get_damage(magic_missile_direct_damage):
     return impl
 
 
-def has_intersection(unit, position, next_position, my_radius):
-    unit_circular = Circle(Point(unit.x, unit.y), unit.radius)
-    return unit_circular.has_intersection_with_moving_circle(Circle(position, my_radius), next_position)
+def distance_penalty(value, safe_distance):
+    return max(0, (safe_distance - value) / safe_distance)

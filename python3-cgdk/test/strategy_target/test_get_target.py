@@ -7,7 +7,7 @@ from model.MinionType import MinionType
 from model.Tree import Tree
 from model.Wizard import Wizard
 
-from strategy_common import Point
+from strategy_common import Point, Circle
 from strategy_target import get_target
 
 from test.common import (
@@ -19,6 +19,7 @@ from test.common import (
     GUARDIAN_TOWER_ATTACK_RANGE,
     MAGIC_MISSILE_DIRECT_DAMAGE,
     MAGIC_MISSILE_RADIUS,
+    MAP_SIZE,
     MINION_RADIUS,
     ORC_WOODCUTTER_ATTACK_RANGE,
     ORC_WOODCUTTER_DAMAGE,
@@ -31,8 +32,8 @@ from test.common import (
 
 WIZARD = Wizard(
     id=1,
-    x=0,
-    y=0,
+    x=1000,
+    y=1000,
     speed_x=None,
     speed_y=None,
     angle=None,
@@ -72,6 +73,7 @@ def test_get_target_with_only_me():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
     )
 
 
@@ -80,8 +82,8 @@ def test_get_target_with_only_me():
         (
             Minion(
                 id=2,
-                x=100,
-                y=100,
+                x=1100,
+                y=1100,
                 speed_x=None,
                 speed_y=None,
                 angle=None,
@@ -97,13 +99,13 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(-112.04627923756561, -112.21771578102562),
+            Point(1012.508915042152, 1060.2124147065297),
         ),
         (
             Minion(
                 id=2,
-                x=100,
-                y=100,
+                x=1100,
+                y=1100,
                 speed_x=None,
                 speed_y=None,
                 angle=None,
@@ -119,13 +121,13 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(-109.85012111195829, -110.21294659527484),
+            Point(1034.6126080683125, 1049.1334688961081),
         ),
         (
             Minion(
                 id=2,
-                x=1000,
-                y=1000,
+                x=2000,
+                y=2000,
                 speed_x=None,
                 speed_y=None,
                 angle=None,
@@ -141,7 +143,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(790.30114142903756, 789.64079423305975),
+            Point(2138.8362039767271, 2143.9600933082893),
         ),
     ]
 )
@@ -160,6 +162,7 @@ def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_p
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
     )
     assert (target.id, position) == (expected_target, expected_position)
 
@@ -171,8 +174,8 @@ def test_get_target_with_me_and_neural_minion():
         minions=[
             Minion(
                 id=2,
-                x=100,
-                y=100,
+                x=1100,
+                y=1100,
                 speed_x=None,
                 speed_y=None,
                 angle=None,
@@ -198,6 +201,7 @@ def test_get_target_with_me_and_neural_minion():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
     )
 
 
@@ -208,8 +212,8 @@ def test_get_target_with_me_and_neural_minion():
             [
                 Wizard(
                     id=2,
-                    x=100,
-                    y=100,
+                    x=1100,
+                    y=1100,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -234,14 +238,14 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(-321.53561644809088, -326.97547424031654),
+            Point(1019.5788785902897, 1018.5729613295753),
         ),
         (
             [
                 Minion(
                     id=2,
-                    x=0,
-                    y=100,
+                    x=1000,
+                    y=1100,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -260,8 +264,8 @@ def test_get_target_with_me_and_neural_minion():
             [
                 Wizard(
                     id=3,
-                    x=100,
-                    y=0,
+                    x=1100,
+                    y=1000,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -286,14 +290,14 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(0.0023329194122469771, -197.02983361947332),
+            Point(934.98963609455643, 1114.7681085227455),
         ),
         (
             [
                 Minion(
                     id=2,
-                    x=0,
-                    y=100,
+                    x=1000,
+                    y=1100,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -312,8 +316,8 @@ def test_get_target_with_me_and_neural_minion():
             [
                 Wizard(
                     id=3,
-                    x=100,
-                    y=0,
+                    x=1100,
+                    y=1000,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -338,7 +342,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(-200.00002920627594, 0.0026182888373732583),
+            Point(1099.0324795473271, 925.00624089849043),
         ),
     ]
 )
@@ -357,6 +361,7 @@ def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_ta
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
     )
     assert (target.id, position) == (expected_target, expected_position)
 
@@ -370,8 +375,8 @@ def test_get_target_with_me_and_tree():
         trees=[
             Tree(
                 id=None,
-                x=100,
-                y=100,
+                x=1100,
+                y=1100,
                 speed_x=None,
                 speed_y=None,
                 angle=None,
@@ -390,6 +395,7 @@ def test_get_target_with_me_and_tree():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
     )
 
 
@@ -404,8 +410,8 @@ def test_get_target_with_me_and_bonus():
         bonuses=[
             Bonus(
                 id=2,
-                x=100,
-                y=100,
+                x=1100,
+                y=1100,
                 speed_x=None,
                 speed_y=None,
                 angle=None,
@@ -420,8 +426,9 @@ def test_get_target_with_me_and_bonus():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
     )
-    assert (target.id, position) == (2, Point(100, 100))
+    assert (target.id, position) == (2, Point(1099.9999654385429, 1100.0000372327122))
 
 
 @pytest.mark.parametrize(
@@ -430,8 +437,8 @@ def test_get_target_with_me_and_bonus():
             [
                 Minion(
                     id=2,
-                    x=200,
-                    y=0,
+                    x=1200,
+                    y=1000,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -448,8 +455,8 @@ def test_get_target_with_me_and_bonus():
                 ),
                 Minion(
                     id=3,
-                    x=200,
-                    y=200,
+                    x=1200,
+                    y=1200,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -466,14 +473,14 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(-12.123867812503555, -12.140182099150376),
+            Point(1119.0288336670885, 1079.0103668938955),
         ),
         (
             [
                 Minion(
                     id=2,
-                    x=200,
-                    y=0,
+                    x=1200,
+                    y=1000,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -490,8 +497,8 @@ def test_get_target_with_me_and_bonus():
                 ),
                 Minion(
                     id=3,
-                    x=200 + 2 * MINION_RADIUS,
-                    y=0,
+                    x=1200 + 3 * MINION_RADIUS,
+                    y=1000,
                     speed_x=None,
                     speed_y=None,
                     angle=None,
@@ -508,7 +515,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(-89.999999642372131, -4.5758932828903502e-05),
+            Point(1171.4837058897685, 1099.3498273568903),
         ),
     ]
 )
@@ -527,5 +534,8 @@ def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, ex
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
     )
     assert (target.id, position) == (expected_target, expected_position)
+    assert not Circle(Point(minions[0].x, minions[0].y), minions[0].radius).has_intersection_with_moving_circle(
+        Circle(position, MAGIC_MISSILE_RADIUS), Point(minions[1].x, minions[1].y))
