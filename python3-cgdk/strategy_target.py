@@ -17,7 +17,7 @@ BONUS_WEIGHT = 1
 DIRECTION_WEIGHT = 1
 PROJECTILE_WEIGHT = 0.5
 TARGET_DISTANCE_WEIGHT = 1
-UNIT_WEIGHT = 0.5
+UNIT_WEIGHT = 1
 
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, guardian_tower_attack_range,
@@ -79,7 +79,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
                 return 0
-            safe_distance = max(2 * me.radius + unit.radius, me.cast_range / 2,
+            safe_distance = max(me.cast_range - 1,
                                 (me.radius + get_attack_range(unit)) * min(1, get_damage(unit) / me.life))
             unit_position = Point(unit.x, unit.y)
             distance_to_unit = position.distance(unit_position)
