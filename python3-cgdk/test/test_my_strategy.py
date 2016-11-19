@@ -17,6 +17,7 @@ from test.common import (
     WIZARD_MAX_TURN_ANGLE,
     WIZARD_RADIUS,
     WIZARD_STRAFE_SPEED,
+    WIZARD_VISION_RANGE,
 )
 
 
@@ -38,7 +39,7 @@ def test_my_strategy_move():
         me=None,
         mana=None,
         max_mana=None,
-        vision_range=None,
+        vision_range=WIZARD_VISION_RANGE,
         cast_range=WIZARD_CAST_RANGE,
         xp=None,
         level=None,

@@ -164,27 +164,33 @@ class Strategy(LazyInit):
         for v in context.world.buildings:
             self.__cached_buildings[v.id] = v
             setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_buildings, context.world.tick_index - CACHE_TTL_BUILDINGS)
+        invalidate_cache(self.__cached_buildings, context.world.tick_index, CACHE_TTL_BUILDINGS, context.my_position,
+                         context.me.vision_range * 0.9)
         for v in context.world.minions:
             update_dynamic_unit(self.__cached_minions, v)
             setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_minions, context.world.tick_index - CACHE_TTL_MINIONS)
+        invalidate_cache(self.__cached_minions, context.world.tick_index, CACHE_TTL_MINIONS, context.my_position,
+                         context.me.vision_range * 0.9)
         for v in context.world.wizards:
             update_dynamic_unit(self.__cached_wizards, v)
             setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_wizards, context.world.tick_index - CACHE_TTL_WIZARDS)
+        invalidate_cache(self.__cached_wizards, context.world.tick_index, CACHE_TTL_WIZARDS, context.my_position,
+                         context.me.vision_range * 0.9)
         for v in context.world.trees:
             self.__cached_trees[v.id] = v
             setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_trees, context.world.tick_index - CACHE_TTL_BUILDINGS)
+        invalidate_cache(self.__cached_trees, context.world.tick_index, CACHE_TTL_BUILDINGS, context.my_position,
+                         context.me.vision_range * 0.9)
         for v in context.world.projectiles:
             update_dynamic_unit(self.__cached_projectiles, v)
             setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_projectiles, context.world.tick_index - CACHE_TTL_TREES)
+        invalidate_cache(self.__cached_projectiles, context.world.tick_index, CACHE_TTL_TREES, context.my_position,
+                         context.me.vision_range * 0.9)
         for v in context.world.bonuses:
             self.__cached_bonuses[v.id] = v
             setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_bonuses, context.world.tick_index - CACHE_TTL_BONUSES)
+        invalidate_cache(self.__cached_bonuses, context.world.tick_index, CACHE_TTL_BONUSES, context.my_position,
+                         context.me.vision_range * 0.9)
 
     def __update_target(self, context: Context):
 
@@ -296,7 +302,8 @@ def update_dynamic_unit(cache, new):
     cache[new.id] = new
 
 
-def invalidate_cache(cache, earliest_last_seen):
-    to_rm = [v.id for v in cache.values() if v.last_seen < earliest_last_seen]
+def invalidate_cache(cache, tick, ttl, my_position, min_range):
+    to_rm = [v.id for v in cache.values() if v.last_seen < tick - ttl
+             or (v.last_seen < tick and Point(v.x, v.y).distance(my_position) < min_range)]
     for v in to_rm:
         del cache[v]
