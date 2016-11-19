@@ -56,5 +56,5 @@ class MyStrategy:
                     self.__impl = self.__strategy()
         self.__duration += context.duration
         if self.__check_duration:
-            assert (self.__duration < (10 * world.tick_index + 10000) / 1000,
+            assert self.__duration < (10 * world.tick_index + 10000) / 1000, (
                     'Duration check failed on tick %s (%s s)' % (world.tick_index, self.__duration))
