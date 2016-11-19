@@ -3,6 +3,7 @@ from functools import reduce
 from time import time
 
 from model.ActionType import ActionType
+from model.Bonus import Bonus
 from model.Game import Game
 from model.Move import Move
 from model.Wizard import Wizard
@@ -119,7 +120,8 @@ class Strategy(LazyInit):
                 context.post_event(name='apply_target_turn')
                 context.move.turn = context.me.get_angle_to_unit(self.__target)
                 if (target_position.distance(context.my_position + direction * distance) <
-                        context.game.magic_missile_radius + self.__target.radius):
+                        context.game.magic_missile_radius + self.__target.radius
+                        and not isinstance(self.__target, Bonus)):
                     context.post_event(name='apply_target_action')
                     context.move.action = ActionType.MAGIC_MISSILE
 
