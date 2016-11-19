@@ -94,8 +94,8 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                     yield 0
                 else:
                     target_to_friend = friend_position - target_position
-                    tangent_angle = acos((friend.radius + magic_missile_radius)
-                                         / target_position.distance(friend_position))
+                    tangent_cos = (friend.radius + magic_missile_radius) / target_position.distance(friend_position)
+                    tangent_angle = acos(min(1, max(-1, tangent_cos)))
                     tangent1_direction = target_to_friend.rotate(tangent_angle)
                     tangent2_direction = target_to_friend.rotate(-tangent_angle)
                     tangent1 = target_position + tangent1_direction
