@@ -1,7 +1,7 @@
 from collections import namedtuple
 from heapq import heappop, heappush
 from itertools import chain
-from math import hypot
+from math import hypot, sin, cos, pi
 from time import time
 
 from model.CircularUnit import CircularUnit
@@ -92,11 +92,25 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
         _, depth, step_size, states, movements, dynamic_units_positions = heappop(branches)
         step = depth * step_size
         cur_state = states[-1]
-        visited.add((round(cur_state.position.x), round(cur_state.position.y)))
+        visited.add((round(cur_state.position.x / step_size), round(cur_state.position.y / step_size)))
         distance_to_target = target.distance(cur_state.position)
         angle_to_target = abs((look_target - cur_state.position).absolute_rotation() - cur_state.angle)
-        if distance_to_target < 1.5 * bounds.max_speed and angle_to_target < 1.5 * bounds.max_turn:
+        if distance_to_target < 1.5 * bounds.max_speed * step_size and angle_to_target < 1.5 * bounds.max_turn:
             result = (states, movements)
+            break
+        simple = simple_optimize_movement(
+            target=target,
+            look_target=look_target,
+            position=cur_state.position,
+            angle=cur_state.angle,
+            radius=circular_unit.radius,
+            static_barriers=tuple(chain(static_barriers, make_dynamic_units_barriers(dynamic_units_positions,
+                                                                                     dynamic_units))),
+            bounds=bounds,
+            map_size=map_size,
+        )
+        if simple is not None:
+            result = (states + simple[0], movements + simple[1])
             break
         if distance_to_target < 2 * bounds.max_speed:
             values = turn_values
@@ -107,43 +121,60 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
         for speed, strafe_speed, turn in values:
             new_movement = Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=step_size)
 
-            def update_dynamic_units_positions():
-                for k, v in dynamic_units_positions.items():
-                    dynamic_unit = dynamic_units[k]
+            def update_dynamic_units_positions(positions, units):
+                for k, v in positions.items():
+                    dynamic_unit = units[k]
                     yield k, v + dynamic_unit.mean_speed * (step + step_size)
 
-            new_dynamic_units = dict(update_dynamic_units_positions())
-
-            def make_dynamic_barriers():
-                for k, v in new_dynamic_units.items():
-                    dynamic_unit = dynamic_units[k]
-                    yield Circle(position=v, radius=dynamic_unit.radius)
+            new_dynamic_units = dict(update_dynamic_units_positions(dynamic_units_positions, dynamic_units))
 
             simulation = simulate_move(
                 movements=[new_movement],
                 state=cur_state,
                 radius=circular_unit.radius,
                 bounds=bounds,
-                barriers=tuple(chain(static_barriers, make_dynamic_barriers())),
+                barriers=tuple(chain(static_barriers, make_dynamic_units_barriers(new_dynamic_units, dynamic_units))),
                 map_size=map_size,
             )
             new_state = next(simulation, None)
-            if new_state is None:
-                continue
             if new_state.intersection:
                 continue
-            if (round(new_state.position.x), round(new_state.position.y)) in visited:
+            if (round(new_state.position.x / step_size), round(new_state.position.y / step_size)) in visited:
                 continue
             new_depth = depth + 1
             new_states = states + [new_state]
             new_movements = movements + [new_movement]
-            if new_state.position.distance(target) < 2 * bounds.max_speed * step_size:
-                new_step_size = max(1, step_size // 2)
-            else:
-                new_step_size = step_size
+            new_step_size = step_size
             priority = calculate_priority(state=new_state, target=target, look_target=look_target)
             heappush(branches, (priority, new_depth, new_step_size, new_states, new_movements, new_dynamic_units))
     return result if result else (tuple([initial_state]), tuple())
+
+
+def simple_optimize_movement(target, look_target, position, angle, radius, static_barriers, bounds, map_size):
+    if has_intersection_with_barriers(Circle(position, radius), target, static_barriers):
+        return None
+    state = State(position=position, angle=angle, path_length=0, intersection=False)
+    states = list()
+    movements = list()
+    while state.position.distance(target) > bounds.max_speed:
+        speed, strafe_speed, turn = get_speed_and_turn_to_point(state.position, state.angle, target, bounds)
+        if look_target:
+            turn = limit_turn(normalize_angle((look_target - state.position).absolute_rotation() - state.angle), bounds)
+        movement = Movement(speed, strafe_speed, turn, 1)
+        simulation = simulate_move(
+            movements=[movement],
+            state=state,
+            radius=radius,
+            bounds=bounds,
+            barriers=static_barriers,
+            map_size=map_size,
+        )
+        state = next(simulation, None)
+        if state is None or state.intersection:
+            return None
+        states.append(state)
+        movements.append(movement)
+    return states, movements
 
 
 def calculate_priority(state: State, target: Point, look_target: Point):
@@ -229,8 +260,6 @@ def simulate_move(movements, state: State, radius: float, bounds: Bounds, barrie
             has_intersection_with_borders(barrier, map_size) or
             has_intersection_with_barriers(barrier, new_position, barriers)
         )
-        if intersection:
-            break
         if not intersection:
             path_length += position.distance(new_position)
             position = new_position
@@ -254,7 +283,6 @@ def has_intersection_with_barriers(circle: Circle, next_position: Point, barrier
 
 
 def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float):
-    # TODO: use HASTENED
     speed, strafe_speed = limit_speed(speed, strafe_speed, bounds)
     turn = limit_turn(turn, bounds)
     speed_direction = Point(1, 0).rotate(angle)
@@ -276,3 +304,21 @@ def limit_turn(value: float, bounds: Bounds):
 def make_circles(values):
     for value in values:
         yield Circle(position=Point(value.x, value.y), radius=value.radius)
+
+
+def get_speed_and_turn_to_point(position: Point, angle, target: Point, bounds: Bounds):
+    direction = target - position
+    norm = direction.norm()
+    if norm == 0:
+        return 0, 0, 0
+    turn = normalize_angle(direction.absolute_rotation() - angle)
+    speed = bounds.max_speed * cos(turn) if abs(turn) <= pi / 2 else -bounds.min_speed * cos(turn)
+    strafe_speed = bounds.max_strafe_speed * sin(turn)
+    ratio = min(1, direction.norm() / hypot(speed, strafe_speed))
+    return speed * ratio, strafe_speed * ratio, limit_turn(turn, bounds)
+
+
+def make_dynamic_units_barriers(positions, units):
+    for k, v in positions.items():
+        dynamic_unit = units[k]
+        yield Circle(position=v, radius=dynamic_unit.radius)

@@ -45,13 +45,13 @@ def test_optimize_movement():
         max_barriers_range=1000,
     )
     assert states[-1] == State(
-        position=Point(196.16652224137027, 196.16652224137027),
+        position=Point(198.99494936611646, 198.99494936611646),
         angle=0.7853981633974483,
-        path_length=135.99999999999972,
+        path_length=139.99999999999966,
         intersection=False,
     )
-    assert len(states) == 15
-    assert len(movements) == 14
+    assert len(states) == 36
+    assert len(movements) == 35
 
 
 def test_optimize_movement_with_static_barriers():
@@ -97,13 +97,13 @@ def test_optimize_movement_with_static_barriers():
         max_barriers_range=1000,
     )
     assert states[-1] == State(
-        position=Point(195.558304287408, 199.47628200043968),
-        angle=0.15707963267948966,
-        path_length=298.54142544811884,
+        position=Point(199.83572053947486, 198.99523892373728),
+        angle=1.4087293105344507,
+        path_length=75.99997882392724,
         intersection=False,
     )
-    assert len(states) == 31
-    assert len(movements) == 30
+    assert len(states) == 37
+    assert len(movements) == 36
 
 
 @pytest.mark.parametrize(
@@ -112,25 +112,25 @@ def test_optimize_movement_with_static_barriers():
             Point(103 + WIZARD_RADIUS + MINION_RADIUS, 103 + WIZARD_RADIUS + MINION_RADIUS),
             Point(4, 4),
             State(
-                position=Point(196.16652224137027, 196.16652224137027),
+                position=Point(198.99494936611646, 198.99494936611646),
                 angle=0.7853981633974483,
-                path_length=135.99999999999972,
+                path_length=91.99999999999979,
                 intersection=False,
             ),
-            15,
-            14,
+            28,
+            27,
         ),
         (
             Point(300 + WIZARD_RADIUS + MINION_RADIUS, 300 + WIZARD_RADIUS + MINION_RADIUS),
             Point(-3, -3),
             State(
-                position=Point(195.59647446179798, 196.52131204033918),
-                angle=0.5759586531581287,
-                path_length=259.0482173158081,
+                position=Point(198.99494936611646, 198.99494936611646),
+                angle=0.7853981633974483,
+                path_length=139.99999999999966,
                 intersection=False,
             ),
-            30,
-            29,
+            36,
+            35,
         )
     ]
 )
