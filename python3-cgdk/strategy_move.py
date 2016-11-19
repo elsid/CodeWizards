@@ -5,8 +5,6 @@ from math import hypot
 from time import time
 
 from model.CircularUnit import CircularUnit
-from model.Game import Game
-from model.World import World
 
 from strategy_common import Point, Circle, normalize_angle
 
