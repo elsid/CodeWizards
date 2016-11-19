@@ -60,7 +60,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         position = Point(values[0], values[1])
 
         def unit_intersection_penalty(unit):
-            safe_distance = me.radius + unit.radius
+            safe_distance = 2 * me.radius + unit.radius
             unit_position = Point(unit.x, unit.y)
             distance_to_unit = position.distance(unit_position)
             return distance_penalty(distance_to_unit, safe_distance)
