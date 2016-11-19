@@ -35,13 +35,11 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         distance = Point(unit.x, unit.y).distance(my_position)
         distance_penalty = (distance if distance <= me.vision_range
                             else (distance - me.vision_range) ** 2 + me.vision_range)
-        if isinstance(unit, Bonus):
-            self_penalty = 0.5
-        else:
-            self_penalty = (me.life / get_damage(unit)) / (unit.life / magic_missile_direct_damage)
-        return distance_penalty / self_penalty
+        return distance_penalty / ((me.life / get_damage(unit)) / (unit.life / magic_missile_direct_damage))
 
-    if enemy_wizards or enemy_minions or enemy_buildings or bonuses:
+    if bonuses:
+        target = min(bonuses, key=lambda v: my_position.distance(Point(v.x, v.y)))
+    elif enemy_wizards or enemy_minions or enemy_buildings:
         target = min(chain(enemy_wizards, enemy_minions, enemy_buildings, bonuses), key=target_penalty)
     else:
         target = None
