@@ -1,12 +1,7 @@
 from collections import namedtuple
 from math import pi
 
-CircularUnit = namedtuple('CircularUnit', (
-    'angle',
-    'radius',
-    'x',
-    'y',
-))
+
 Wizard = namedtuple('Wizard', (
     'angle',
     'radius',

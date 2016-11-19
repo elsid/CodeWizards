@@ -45,6 +45,9 @@ class Point:
             return self.__x < other.__x
         return self.__y < other.__y
 
+    def __hash__(self):
+        return hash((self.__x, self.__y))
+
     @property
     def x(self):
         return self.__x

@@ -37,6 +37,7 @@ class Context:
         self.world = world
         self.game = game
         self.move = move
+        setattr(me, 'position', Point(me.x, me.y))
         self.__my_position = Point(me.x, me.y)
         self.__start = None
         self.__finish = None
