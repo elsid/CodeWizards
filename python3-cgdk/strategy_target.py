@@ -171,8 +171,11 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     return target if target else None, result
 
 
+NOT_ENEMIES = frozenset((Faction.NEUTRAL, Faction.OTHER))
+
+
 def is_enemy(unit, my_faction):
-    return unit.faction != my_faction and unit.faction not in {Faction.NEUTRAL, Faction.OTHER}
+    return unit.faction != my_faction and unit.faction not in NOT_ENEMIES
 
 
 def make_get_attack_range(guardian_tower_attack_range, faction_base_attack_range,
