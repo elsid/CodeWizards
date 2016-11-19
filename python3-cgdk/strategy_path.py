@@ -96,11 +96,10 @@ def make_graph(map_size):
 
 
 def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses):
-    my_position = Point(me.x, me.y)
     units = tuple(chain(buildings, minions, wizards))
     nodes = graph.nodes
     nodes_with_bonus = tuple(node for node in nodes if has_near_units(node.position, bonuses))
-    nearest_node = get_nearest_node(nodes, my_position)
+    nearest_node = get_nearest_node(nodes, me.position)
     if nodes_with_bonus:
         return get_nearest_node_by_path(nodes_with_bonus, nearest_node)
     nodes_with_enemy = tuple(node for node in nodes if has_near_enemy(node.position, units, me.faction))
@@ -118,7 +117,7 @@ def has_near_friend(position, units, my_faction):
 
 
 def filter_near_units(position, units):
-    return (v for v in units if position.distance(Point(v.x, v.y)) < ZONE_SIZE)
+    return (v for v in units if position.distance(v.position) < ZONE_SIZE)
 
 
 def has_near_units(position, units):

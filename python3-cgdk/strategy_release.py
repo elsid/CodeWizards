@@ -313,7 +313,7 @@ class Strategy(LazyInit):
         context.post_event(name='calculate_movements')
         self.__states, self.__movements = optimize_movement(
             target=self.__target_position,
-            look_target=Point(self.__target.x, self.__target.y) if self.__target else self.__target_position,
+            look_target=self.__target.position if self.__target else self.__target_position,
             circular_unit=context.me,
             buildings=tuple(self.__cached_buildings.values()),
             minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
@@ -361,7 +361,7 @@ class Strategy(LazyInit):
     def __apply_action(self, context: Context):
         if not self.__target:
             return
-        target_position = Point(self.__target.x, self.__target.y)
+        target_position = self.__target.position
         distance = target_position.distance(context.me.position)
         direction = Point(1, 0).rotate(context.me.angle)
         if distance <= context.me.cast_range + context.me.radius + self.__target.radius:
@@ -392,6 +392,6 @@ def update_dynamic_unit(cache, new):
 
 def invalidate_cache(cache, tick, ttl, my_position, min_range):
     to_rm = [v.id for v in cache.values() if v.last_seen < tick - ttl
-             or (v.last_seen < tick and Point(v.x, v.y).distance(my_position) < min_range)]
+             or (v.last_seen < tick and v.position.distance(my_position) < min_range)]
     for v in to_rm:
         del cache[v]

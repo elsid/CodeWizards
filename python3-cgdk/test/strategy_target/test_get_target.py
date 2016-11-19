@@ -1,5 +1,7 @@
 import pytest
 
+from itertools import chain
+
 from model.Bonus import Bonus
 from model.Faction import Faction
 from model.Minion import Minion
@@ -148,6 +150,8 @@ def test_get_target_with_only_me():
     ]
 )
 def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_position):
+    # setattr(minion, 'position', Point(minion.x, minion.y))
+    setattr(minion, 'position', Point(minion.x, minion.y))
     target, position = get_target(
         me=WIZARD,
         buildings=tuple(),
@@ -347,6 +351,8 @@ def test_get_target_with_me_and_neural_minion():
     ]
 )
 def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_target, expected_position):
+    for unit in chain(minions, wizards):
+        setattr(unit, 'position', Point(unit.x, unit.y))
     target, position = get_target(
         me=WIZARD,
         buildings=tuple(),
@@ -400,6 +406,18 @@ def test_get_target_with_me_and_tree():
 
 
 def test_get_target_with_me_and_bonus():
+    bonus = Bonus(
+        id=2,
+        x=1100,
+        y=1100,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=None,
+        radius=BONUS_RADIUS,
+        type=None,
+    )
+    setattr(bonus, 'position', Point(bonus.x, bonus.y))
     target, position = get_target(
         me=WIZARD,
         buildings=tuple(),
@@ -407,19 +425,7 @@ def test_get_target_with_me_and_bonus():
         wizards=[WIZARD],
         trees=tuple(),
         projectiles=tuple(),
-        bonuses=[
-            Bonus(
-                id=2,
-                x=1100,
-                y=1100,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=None,
-                radius=BONUS_RADIUS,
-                type=None,
-            )
-        ],
+        bonuses=[bonus],
         guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
         faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
@@ -520,6 +526,8 @@ def test_get_target_with_me_and_bonus():
     ]
 )
 def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, expected_position):
+    for unit in minions:
+        setattr(unit, 'position', Point(unit.x, unit.y))
     target, position = get_target(
         me=WIZARD,
         buildings=tuple(),

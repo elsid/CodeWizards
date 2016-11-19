@@ -287,7 +287,7 @@ def limit_turn(value: float, bounds: Bounds):
 
 def make_circles(values):
     for value in values:
-        yield Circle(position=Point(value.x, value.y), radius=value.radius)
+        yield Circle(position=value.position, radius=value.radius)
 
 
 def get_speed_and_turn_to_point(position: Point, angle, target: Point, bounds: Bounds):

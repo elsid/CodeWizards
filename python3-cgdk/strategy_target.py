@@ -36,7 +36,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         if max_distance is None:
             return units
         else:
-            return (v for v in units if my_position.distance(Point(v.x, v.y)) <= max_distance)
+            return (v for v in units if my_position.distance(v.position) <= max_distance)
 
     enemy_buildings = tuple(filter_max_distance(filter_enemies(buildings)))
     enemy_minions = tuple(filter_max_distance(filter_enemies(minions)))
@@ -47,7 +47,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     get_damage = make_get_damage(magic_missile_direct_damage)
 
     def target_penalty(unit):
-        distance = Point(unit.x, unit.y).distance(my_position)
+        distance = unit.position.distance(my_position)
         return distance * unit.life / unit.max_life if distance <= me.vision_range else distance
 
     if bonuses:
@@ -65,24 +65,20 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     other_wizards = tuple(v for v in wizards if v.id != me.id)
     units = tuple(chain(buildings, trees, minions, other_wizards))
     friends_units = tuple(filter_friends(chain(buildings, minions, other_wizards)))
-    target_position = Point(target.x, target.y) if target else None
+    target_position = target.position if target else None
 
     def position_penalty(values):
         position = Point(values[0], values[1])
 
         def unit_intersection_penalty(unit):
-            safe_distance = 2 * me.radius + unit.radius
-            unit_position = Point(unit.x, unit.y)
-            distance_to_unit = position.distance(unit_position)
-            return distance_penalty(distance_to_unit, safe_distance)
+            return distance_penalty(position.distance(unit.position), 2 * me.radius + unit.radius)
 
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
                 return 0
             safe_distance = max(me.cast_range - magic_missile_radius,
                                 (me.radius + get_attack_range(unit)) * min(1, get_damage(unit) / me.life))
-            unit_position = Point(unit.x, unit.y)
-            distance_to_unit = position.distance(unit_position)
+            distance_to_unit = position.distance(unit.position)
             return distance_penalty(distance_to_unit, safe_distance)
 
         def target_distance_penalty():
@@ -97,15 +93,14 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
         def friend_units_intersections_penalties():
             for friend in friends_units:
-                friend_position = Point(friend.x, friend.y)
-                circle = Circle(friend_position, friend.radius)
+                circle = Circle(friend.position, friend.radius)
                 intersection = circle.has_intersection_with_moving_circle(
                     Circle(position, magic_missile_radius), target_position)
                 if not intersection:
                     yield 0
                 else:
-                    target_to_friend = friend_position - target_position
-                    tangent_cos = (friend.radius + magic_missile_radius) / target_position.distance(friend_position)
+                    target_to_friend = friend.position - target_position
+                    tangent_cos = (friend.radius + magic_missile_radius) / target_position.distance(friend.position)
                     tangent_angle = acos(min(1, max(-1, tangent_cos)))
                     tangent1_direction = target_to_friend.rotate(tangent_angle)
                     tangent2_direction = target_to_friend.rotate(-tangent_angle)
@@ -121,8 +116,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
             return max(friend_units_intersections_penalties()) if target_position and friends_units else 0
 
         def bonus_penalty(bonus):
-            bonus_position = Point(bonus.x, bonus.y)
-            return 1 - distance_penalty(position.distance(bonus_position), my_position.distance(bonus_position))
+            return 1 - distance_penalty(position.distance(bonus.position), my_position.distance(bonus.position))
 
         def units_penalties():
             for unit in units:
@@ -133,10 +127,9 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                 yield bonus_penalty(bonus)
 
         def projectile_penalty(projectile):
-            projectile_position = Point(projectile.x, projectile.y)
             projectile_speed = projectile.mean_speed
             safe_distance = me.radius + projectile.radius
-            distance_to = Line(projectile_position, projectile_position + projectile_speed).distance(position)
+            distance_to = Line(projectile.position, projectile.position + projectile_speed).distance(position)
             return distance_penalty(distance_to, safe_distance)
 
         def projectiles_penalties():
