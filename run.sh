@@ -16,8 +16,8 @@ else
     python3 Runner.py 2>&1 | tee ../${LOG}
 fi
 
+echo "log: ${LOG}"
+
 kill ${PID}
 
 wait
-
-echo "log: ${LOG}"
