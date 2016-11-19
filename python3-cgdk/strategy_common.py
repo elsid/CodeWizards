@@ -4,84 +4,84 @@ from numpy import arctan2
 
 class Point:
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.__x = x
+        self.__y = y
 
     def __repr__(self):
-        return 'Point({x}, {y})'.format(x=repr(self.x), y=repr(self.y))
+        return 'Point({x}, {y})'.format(x=repr(self.__x), y=repr(self.__y))
 
     def __eq__(self, other):
-        return self.x == other.x and self.y == other.y
+        return self.__x == other.__x and self.__y == other.__y
 
     def __add__(self, other):
         if isinstance(other, Point):
-            return Point(self.x + other.x, self.y + other.y)
+            return Point(self.__x + other.__x, self.__y + other.__y)
         else:
-            return Point(self.x + other, self.y + other)
+            return Point(self.__x + other, self.__y + other)
 
     def __sub__(self, other):
         if isinstance(other, Point):
-            return Point(self.x - other.x, self.y - other.y)
+            return Point(self.__x - other.__x, self.__y - other.__y)
         else:
-            return Point(self.x - other, self.y - other)
+            return Point(self.__x - other, self.__y - other)
 
     def __mul__(self, other):
         if isinstance(other, Point):
-            return Point(self.x * other.x, self.y * other.y)
+            return Point(self.__x * other.__x, self.__y * other.__y)
         else:
-            return Point(self.x * other, self.y * other)
+            return Point(self.__x * other, self.__y * other)
 
     def __truediv__(self, other):
         if isinstance(other, Point):
-            return Point(self.x / other.x, self.y / other.x)
+            return Point(self.__x / other.__x, self.__y / other.__x)
         else:
-            return Point(self.x / other, self.y / other)
+            return Point(self.__x / other, self.__y / other)
 
     def __neg__(self):
-        return Point(-self.x, -self.y)
+        return Point(-self.__x, -self.__y)
 
     def __lt__(self, other):
-        if self.x != other.x:
-            return self.x < other.x
-        return self.y < other.y
+        if self.__x != other.__x:
+            return self.__x < other.__x
+        return self.__y < other.__y
+
+    @property
+    def x(self):
+        return self.__x
+
+    @property
+    def y(self):
+        return self.__y
 
     @property
     def radius(self):
-        return self.x
-
-    @radius.setter
-    def radius(self, value):
-        self.x = value
+        return self.__x
 
     @property
     def angle(self):
-        return self.y
-
-    @angle.setter
-    def angle(self, value):
-        self.y = value
+        return self.__y
 
     def dot(self, other):
-        return self.x * other.x + self.y * other.y
+        return self.__x * other.__x + self.__y * other.__y
 
     def norm(self):
-        return hypot(self.x, self.y)
+        return hypot(self.__x, self.__y)
 
     def cos(self, other):
         return self.dot(other) / (self.norm() * other.norm())
 
     def distance(self, other):
-        return hypot(other.x - self.x, other.y - self.y)
+        return hypot(other.__x - self.__x, other.__y - self.__y)
 
     def map(self, function):
-        return Point(function(self.x), function(self.y))
+        return Point(function(self.__x), function(self.__y))
 
     def polar(self, cartesian_origin=None):
         if cartesian_origin:
             return (self - cartesian_origin).polar()
         else:
             radius = self.norm()
-            angle = arctan2(self.y, self.x)
+            angle = arctan2(self.__y, self.__x)
             return Point(radius, angle)
 
     def cartesian(self, cartesian_origin=None):
@@ -92,17 +92,17 @@ class Point:
                          y=self.radius * sin(self.angle))
 
     def left_orthogonal(self):
-        return Point(-self.y, self.x)
+        return Point(-self.__y, self.__x)
 
     def absolute_rotation(self):
-        return atan2(self.y, self.x)
+        return atan2(self.__y, self.__x)
 
     def rotation(self, other):
         return other.absolute_rotation() - self.absolute_rotation()
 
     def rotate(self, angle):
-        return Point(self.x * cos(angle) - self.y * sin(angle),
-                     self.y * cos(angle) + self.x * sin(angle))
+        return Point(self.__x * cos(angle) - self.__y * sin(angle),
+                     self.__y * cos(angle) + self.__x * sin(angle))
 
     def normalized(self):
         return self / self.norm()
@@ -111,7 +111,7 @@ class Point:
         return other * self.dot(other) / other.norm()
 
     def manhattan(self, other):
-        return abs(self.x - other.x) + abs(self.y - other.y)
+        return abs(self.__x - other.__x) + abs(self.__y - other.__y)
 
 
 def normalize_angle(value):

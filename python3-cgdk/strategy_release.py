@@ -36,6 +36,7 @@ class Context:
         self.world = world
         self.game = game
         self.move = move
+        self.__my_position = Point(me.x, me.y)
         self.__start = None
         self.__finish = None
         self.__events = list()
@@ -60,7 +61,7 @@ class Context:
 
     @property
     def my_position(self):
-        return Point(self.me.x, self.me.y)
+        return self.__my_position
 
     def time_left(self):
         return (self.__start + MAX_TIME) - time()
