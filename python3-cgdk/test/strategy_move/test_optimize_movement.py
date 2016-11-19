@@ -7,8 +7,6 @@ from strategy_move import optimize_movement, Point, State
 
 from test.common import (
     CircularUnit,
-    Game,
-    World,
     MAP_SIZE,
     MINION_RADIUS,
     TREE_RADIUS,

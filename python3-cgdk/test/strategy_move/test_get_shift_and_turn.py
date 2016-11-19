@@ -3,9 +3,6 @@ import pytest
 from strategy_move import get_shift_and_turn, Bounds, Point
 
 from test.common import (
-    World,
-    Game,
-    MAP_SIZE,
     WIZARD_BACKWARD_SPEED,
     WIZARD_FORWARD_SPEED,
     WIZARD_MAX_TURN_ANGLE,
