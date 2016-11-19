@@ -22,13 +22,28 @@ UNIT_WEIGHT = 0.5
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, guardian_tower_attack_range,
                faction_base_attack_range, orc_woodcutter_attack_range, fetish_blowdart_attack_range,
-               magic_missile_direct_damage, magic_missile_radius, map_size, max_iterations=None, penalties=None):
-    enemy_buildings = tuple(filter_enemies(buildings, me.faction))
-    enemy_minions = tuple(filter_enemies(minions, me.faction))
-    enemy_wizards = tuple(filter_enemies(wizards, me.faction))
+               magic_missile_direct_damage, magic_missile_radius, map_size, max_distance=None, max_iterations=None,
+               penalties=None):
+    my_position = Point(me.x, me.y)
+
+    def filter_friends(units):
+        return (v for v in units if v.faction == me.faction)
+
+    def filter_enemies(units):
+        return (v for v in units if is_enemy(v, me.faction))
+
+    def filter_max_distance(units):
+        if max_distance is None:
+            return units
+        else:
+            return (v for v in units if my_position.distance(Point(v.x, v.y)) <= max_distance)
+
+    enemy_buildings = tuple(filter_max_distance(filter_enemies(buildings)))
+    enemy_minions = tuple(filter_max_distance(filter_enemies(minions)))
+    enemy_wizards = tuple(filter_max_distance(filter_enemies(wizards)))
+    bonuses = tuple(filter_max_distance(bonuses))
     if not enemy_buildings and not enemy_minions and not enemy_wizards and not bonuses:
         return None, None
-    my_position = Point(me.x, me.y)
     get_damage = make_get_damage(magic_missile_direct_damage)
 
     def target_penalty(unit):
@@ -49,7 +64,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     )
     other_wizards = tuple(v for v in wizards if v.id != me.id)
     units = tuple(chain(buildings, trees, minions, other_wizards))
-    friends_units = tuple(filter_friends(chain(buildings, minions, other_wizards), me.faction))
+    friends_units = tuple(filter_friends(chain(buildings, minions, other_wizards)))
     target_position = Point(target.x, target.y) if target else None
 
     def position_penalty(values):
@@ -154,14 +169,6 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                                 method='Nelder-Mead', options=dict(maxiter=max_iterations))
     result = Point(from_my_position.x[0], from_my_position.x[1])
     return target if target else None, result
-
-
-def filter_friends(units, my_faction):
-    return (v for v in units if v.faction == my_faction)
-
-
-def filter_enemies(units, my_faction):
-    return (v for v in units if is_enemy(v, my_faction))
 
 
 def is_enemy(unit, my_faction):
