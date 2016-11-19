@@ -11,6 +11,7 @@ from model.World import World
 
 from strategy_common import LazyInit, lazy_init, Point
 from strategy_move import optimize_movement
+from strategy_path import make_graph, select_destination, get_shortest_path, get_nearest_node, ZONE_SIZE
 from strategy_target import get_target
 
 
@@ -26,6 +27,7 @@ CACHE_TTL_MINIONS = 30
 CACHE_TTL_PROJECTILES = 10
 LOST_TARGET_TICKS = 5
 GET_TARGET_MAX_ITERATIONS = 10
+UPDATE_DESTINATION_TICKS = 50
 
 
 class Context:
@@ -99,34 +101,22 @@ class Strategy(LazyInit):
         self.__cached_projectiles = dict()
         self.__cached_bonuses = dict()
         self.__target_positions_penalties = list()
+        self.__last_update_destination = None
+        self.__graph = None
+        self.__destination = None
+        self.__path = list()
+        self.__next_node = 0
+        self.__apply_mode = self.__apply_move_mode
 
     @lazy_init
     def move(self, context: Context):
         context.post_event(name='strategy_release_move')
         self.__actual_path.append(Point(context.me.x, context.me.y))
         self.__update_cache(context)
-        self.__update_target(context)
+        self.__apply_mode(context)
         self.__update_movements(context)
-        if self.__cur_movement < len(self.__movements):
-            context.post_event(name='apply_movement')
-            movement = self.__movements[self.__cur_movement]
-            context.move.speed = movement.speed
-            context.move.strafe_speed = movement.strafe_speed
-            context.move.turn = movement.turn
-        if self.__target:
-            target_position = Point(self.__target.x, self.__target.y)
-            distance = target_position.distance(context.my_position)
-            direction = Point(1, 0).rotate(context.me.angle)
-            if distance <= context.me.cast_range + context.me.radius + self.__target.radius:
-                context.post_event(name='apply_target_turn')
-                turn = context.me.get_angle_to_unit(self.__target)
-                context.move.turn = turn
-                if (target_position.distance(context.my_position + direction * distance) <
-                        context.game.magic_missile_radius + self.__target.radius
-                        and not isinstance(self.__target, Bonus)):
-                    context.post_event(name='apply_target_action')
-                    context.move.cast_angle = turn
-                    context.move.action = ActionType.MAGIC_MISSILE
+        self.__apply_move(context)
+        self.__apply_action(context)
 
     @property
     def movements(self):
@@ -156,8 +146,16 @@ class Strategy(LazyInit):
     def target_positions_penalties(self):
         return self.__target_positions_penalties
 
+    @property
+    def graph(self):
+        return self.__graph
+
+    @property
+    def path(self):
+        return self.__path
+
     def _init_impl(self, context: Context):
-        self.__target_position = Point(context.world.width / 2, context.world.height / 2 + 300)
+        self.__graph = make_graph(context.game.map_size)
 
     def __update_cache(self, context: Context):
         context.post_event(name='update_cache')
@@ -192,6 +190,60 @@ class Strategy(LazyInit):
         invalidate_cache(self.__cached_bonuses, context.world.tick_index, CACHE_TTL_BONUSES, context.my_position,
                          context.me.vision_range * 0.9)
 
+    def __apply_battle_mode(self, context: Context):
+        context.post_event(name='apply_battle_mode')
+        self.__update_target(context)
+
+    def __apply_move_mode(self, context: Context):
+        context.post_event(name='apply_move_mode')
+        self.__update_path(context)
+        self.__next_path_node(context)
+
+    def __update_path(self, context: Context):
+        if (self.__last_update_destination is not None and
+                context.world.tick_index - self.__last_update_destination < UPDATE_DESTINATION_TICKS):
+            return
+        destination = select_destination(
+            graph=self.__graph,
+            me=context.me,
+            buildings=tuple(self.__cached_buildings.values()),
+            minions=tuple(v for v in self.__cached_minions.values()),
+            wizards=tuple(v for v in self.__cached_wizards.values()),
+            bonuses=tuple(v for v in self.__cached_bonuses.values()),
+        )
+        if id(destination) == id(self.__destination):
+            return
+        path, _ = get_shortest_path(get_nearest_node(self.__graph.nodes, context.my_position), destination)
+        context.post_event(name='update_destination', destination=str(destination.position),
+                           path=[str(v.position) for v in path])
+        context.post_event(name='update_target_position',
+                           old=str(self.__target_position) if self.__target_position else self.__target_position,
+                           new=str(path[0].position))
+        self.__destination = destination
+        self.__path = path
+        self.__next_node = 0
+        self.__target_position = path[0].position
+        self.__last_update_destination = context.world.tick_index
+
+    def __next_path_node(self, context: Context):
+        if self.__next_node >= len(self.__path):
+            return
+        if context.my_position.distance(self.__path[self.__next_node].position) > ZONE_SIZE:
+            return
+        self.__next_node += 1
+        if self.__next_node < len(self.__path):
+            context.post_event(name='next_path_node')
+            context.post_event(name='update_target_position',
+                               old=str(self.__target_position) if self.__target_position else self.__target_position,
+                               new=str(self.__path[self.__next_node].position))
+            self.__target_position = self.__path[self.__next_node].position
+        else:
+            context.post_event(name='change_mode', old='move', new='battle')
+            self.__apply_mode = self.__apply_battle_mode
+            self.__next_node = 0
+            self.__path = list()
+            self.__destination = None
+
     def __update_target(self, context: Context):
 
         def is_recently_seen(unit):
@@ -202,49 +254,52 @@ class Strategy(LazyInit):
             context.post_event(name='reset_target', last_seen=self.__target.last_seen,
                                life=self.__target.life if hasattr(self.__target, 'life') else None)
             self.__target = None
-        if (self.__last_update_target is None or self.__target is None or
-                context.world.tick_index - self.__last_update_target >= UPDATE_TARGET_TICKS):
-            context.post_event(name='get_target', last_update_target=self.__last_update_target,
-                               target=str(self.__target))
-            self.__target_positions_penalties.clear()
-            self.__target, position = get_target(
-                me=context.me,
-                buildings=tuple(self.__cached_buildings.values()),
-                minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
-                wizards=tuple(v for v in self.__cached_wizards.values() if is_recently_seen(v)),
-                trees=tuple(self.__cached_trees.values()),
-                projectiles=tuple(v for v in self.__cached_projectiles.values() if is_recently_seen(v)),
-                bonuses=tuple(self.__cached_bonuses.values()),
-                guardian_tower_attack_range=context.game.guardian_tower_attack_range,
-                faction_base_attack_range=context.game.faction_base_attack_range,
-                orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
-                fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
-                magic_missile_direct_damage=context.game.magic_missile_direct_damage,
-                magic_missile_radius=context.game.magic_missile_radius,
-                map_size=context.game.map_size,
-                penalties=self.__target_positions_penalties,
-                max_iterations=GET_TARGET_MAX_ITERATIONS,
-            )
-            if self.__target:
-                context.post_event(name='target_updated', target_type=str(type(self.__target)),
-                                   target_id=self.__target.id)
-            else:
-                context.post_event(name='target_updated')
-            if self.__target_position is None or position is not None and position != self.__target_position:
-                context.post_event(name='reset_target_position', old=str(position), new=str(position))
-                self.__target_position = position
-                self.__last_update_target = context.world.tick_index
+        if (self.__last_update_target is not None and self.__target is not None and
+                context.world.tick_index - self.__last_update_target < UPDATE_TARGET_TICKS):
+            return
+        context.post_event(name='get_target', last_update_target=self.__last_update_target,
+                           target=str(self.__target) if self.__target else self.__target)
+        self.__target_positions_penalties.clear()
+        self.__target, position = get_target(
+            me=context.me,
+            buildings=tuple(self.__cached_buildings.values()),
+            minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
+            wizards=tuple(v for v in self.__cached_wizards.values() if is_recently_seen(v)),
+            trees=tuple(self.__cached_trees.values()),
+            projectiles=tuple(v for v in self.__cached_projectiles.values() if is_recently_seen(v)),
+            bonuses=tuple(self.__cached_bonuses.values()),
+            guardian_tower_attack_range=context.game.guardian_tower_attack_range,
+            faction_base_attack_range=context.game.faction_base_attack_range,
+            orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
+            fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
+            magic_missile_direct_damage=context.game.magic_missile_direct_damage,
+            magic_missile_radius=context.game.magic_missile_radius,
+            map_size=context.game.map_size,
+            penalties=self.__target_positions_penalties,
+            max_distance=ZONE_SIZE,
+            max_iterations=GET_TARGET_MAX_ITERATIONS,
+        )
+        if self.__target:
+            context.post_event(name='target_updated', target_type=str(type(self.__target)),
+                               target_id=self.__target.id)
+            context.post_event(name='update_target_position',
+                               old=str(self.__target_position) if self.__target_position else self.__target_position,
+                               new=str(position))
+            self.__target_position = position
+            self.__last_update_target = context.world.tick_index
+        else:
+            context.post_event(name='change_mode', old='move', new='battle')
+            self.__apply_mode = self.__apply_move_mode
+            self.__target = None
 
     def __update_movements(self, context: Context):
-        context.post_event(name='update_movements')
         if not self.__target_position:
             return
+        context.post_event(name='update_movements')
         if (self.__last_update_movements_tick_index is None or
                 context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS):
             self.__calculate_movements(context)
-        elif (self.__cur_movement < len(self.__movements) and
-              context.world.tick_index - self.__last_next_movement_tick_index >=
-              self.__movements[self.__cur_movement].step_size):
+        else:
             self.__next_movement(context)
 
     def __calculate_movements(self, context: Context):
@@ -278,6 +333,10 @@ class Strategy(LazyInit):
             self.__expected_path.append(self.__states[self.__cur_movement].position)
 
     def __next_movement(self, context: Context):
+        if (self.__cur_movement >= len(self.__movements) or
+                context.world.tick_index - self.__last_next_movement_tick_index <
+                self.__movements[self.__cur_movement].step_size):
+            return
         context.post_event(name='next_movement')
         self.__cur_movement += 1
         self.__expected_path.append(self.__states[self.__cur_movement].position)
@@ -286,6 +345,32 @@ class Strategy(LazyInit):
             self.__calculate_movements(context)
         else:
             self.__last_next_movement_tick_index = context.world.tick_index
+
+    def __apply_move(self, context: Context):
+        if self.__cur_movement >= len(self.__movements):
+            return
+        context.post_event(name='apply_movement')
+        movement = self.__movements[self.__cur_movement]
+        context.move.speed = movement.speed
+        context.move.strafe_speed = movement.strafe_speed
+        context.move.turn = movement.turn
+
+    def __apply_action(self, context: Context):
+        if not self.__target:
+            return
+        target_position = Point(self.__target.x, self.__target.y)
+        distance = target_position.distance(context.my_position)
+        direction = Point(1, 0).rotate(context.me.angle)
+        if distance <= context.me.cast_range + context.me.radius + self.__target.radius:
+            context.post_event(name='apply_target_turn')
+            turn = context.me.get_angle_to_unit(self.__target)
+            context.move.turn = turn
+            if (target_position.distance(context.my_position + direction * distance) <
+                    context.game.magic_missile_radius + self.__target.radius
+                    and not isinstance(self.__target, Bonus)):
+                context.post_event(name='apply_target_action')
+                context.move.cast_angle = turn
+                context.move.action = ActionType.MAGIC_MISSILE
 
 
 def update_dynamic_unit(cache, new):
