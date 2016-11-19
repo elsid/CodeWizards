@@ -33,9 +33,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
     def target_penalty(unit):
         distance = Point(unit.x, unit.y).distance(my_position)
-        distance_penalty = (distance if distance <= me.vision_range
-                            else (distance - me.vision_range) ** 2 + me.vision_range)
-        return distance_penalty / ((me.life / get_damage(unit)) / (unit.life / magic_missile_direct_damage))
+        return distance * unit.life / unit.max_life if distance <= me.vision_range else distance
 
     if bonuses:
         target = min(bonuses, key=lambda v: my_position.distance(Point(v.x, v.y)))
