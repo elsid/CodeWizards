@@ -124,7 +124,7 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
                 state=cur_state,
                 radius=circular_unit.radius,
                 bounds=bounds,
-                barriers=chain(static_barriers, make_dynamic_barriers()),
+                barriers=tuple(chain(static_barriers, make_dynamic_barriers())),
                 map_size=map_size,
             )
             new_state = next(simulation, None)
