@@ -79,7 +79,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
                 return 0
-            safe_distance = max(me.cast_range - 1,
+            safe_distance = max(me.cast_range - magic_missile_radius,
                                 (me.radius + get_attack_range(unit)) * min(1, get_damage(unit) / me.life))
             unit_position = Point(unit.x, unit.y)
             distance_to_unit = position.distance(unit_position)
