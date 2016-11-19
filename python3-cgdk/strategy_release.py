@@ -38,7 +38,6 @@ class Context:
         self.game = game
         self.move = move
         setattr(me, 'position', Point(me.x, me.y))
-        self.__my_position = Point(me.x, me.y)
         self.__start = None
         self.__finish = None
         self.__events = list()
@@ -60,10 +59,6 @@ class Context:
         for event in self.__events:
             self.__write_log(event)
         self.__finish = time()
-
-    @property
-    def my_position(self):
-        return self.__my_position
 
     def time_left(self):
         return (self.__start + MAX_TIME) - time()
@@ -185,17 +180,17 @@ class Strategy(LazyInit):
         for unit in units:
             setattr(unit, 'last_seen', context.world.tick_index)
             setattr(unit, 'position', Point(unit.x, unit.y))
-        invalidate_cache(self.__cached_buildings, context.world.tick_index, CACHE_TTL_BUILDINGS, context.my_position,
+        invalidate_cache(self.__cached_buildings, context.world.tick_index, CACHE_TTL_BUILDINGS, context.me.position,
                          context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_minions, context.world.tick_index, CACHE_TTL_MINIONS, context.my_position,
+        invalidate_cache(self.__cached_minions, context.world.tick_index, CACHE_TTL_MINIONS, context.me.position,
                          context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_wizards, context.world.tick_index, CACHE_TTL_WIZARDS, context.my_position,
+        invalidate_cache(self.__cached_wizards, context.world.tick_index, CACHE_TTL_WIZARDS, context.me.position,
                          context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_trees, context.world.tick_index, CACHE_TTL_BUILDINGS, context.my_position,
+        invalidate_cache(self.__cached_trees, context.world.tick_index, CACHE_TTL_BUILDINGS, context.me.position,
                          context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_projectiles, context.world.tick_index, CACHE_TTL_TREES, context.my_position,
+        invalidate_cache(self.__cached_projectiles, context.world.tick_index, CACHE_TTL_TREES, context.me.position,
                          context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_bonuses, context.world.tick_index, CACHE_TTL_BONUSES, context.my_position,
+        invalidate_cache(self.__cached_bonuses, context.world.tick_index, CACHE_TTL_BONUSES, context.me.position,
                          context.me.vision_range * 0.9)
 
     def __apply_battle_mode(self, context: Context):
@@ -221,7 +216,7 @@ class Strategy(LazyInit):
         )
         if id(destination) == id(self.__destination):
             return
-        path, _ = get_shortest_path(get_nearest_node(self.__graph.nodes, context.my_position), destination)
+        path, _ = get_shortest_path(get_nearest_node(self.__graph.nodes, context.me.position), destination)
         context.post_event(name='update_destination', destination=str(destination.position),
                            path=[str(v.position) for v in path])
         context.post_event(name='update_target_position',
@@ -236,7 +231,7 @@ class Strategy(LazyInit):
     def __next_path_node(self, context: Context):
         if self.__next_node >= len(self.__path):
             return
-        if context.my_position.distance(self.__path[self.__next_node].position) > ZONE_SIZE:
+        if context.me.position.distance(self.__path[self.__next_node].position) > ZONE_SIZE:
             return
         self.__next_node += 1
         if self.__next_node < len(self.__path):
@@ -367,13 +362,13 @@ class Strategy(LazyInit):
         if not self.__target:
             return
         target_position = Point(self.__target.x, self.__target.y)
-        distance = target_position.distance(context.my_position)
+        distance = target_position.distance(context.me.position)
         direction = Point(1, 0).rotate(context.me.angle)
         if distance <= context.me.cast_range + context.me.radius + self.__target.radius:
             context.post_event(name='apply_target_turn')
             turn = context.me.get_angle_to_unit(self.__target)
             context.move.turn = turn
-            if (target_position.distance(context.my_position + direction * distance) <
+            if (target_position.distance(context.me.position + direction * distance) <
                     context.game.magic_missile_radius + self.__target.radius
                     and not isinstance(self.__target, Bonus)):
                 context.post_event(name='apply_target_action')
