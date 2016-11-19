@@ -56,7 +56,7 @@ class Strategy:
             min_penalty = min(self.__impl.target_positions_penalties, key=itemgetter(1))[1]
             max_penalty = max(self.__impl.target_positions_penalties, key=itemgetter(1))[1]
             for point, penalty in self.__impl.target_positions_penalties:
-                normalized = (penalty - min_penalty) / abs(max_penalty - min_penalty)
+                normalized = (penalty - min_penalty) / (abs(max_penalty - min_penalty) or 1)
                 if normalized < 1 / 4:
                     color = (0, 4 * normalized, 1)
                 elif normalized < 1 / 2:
