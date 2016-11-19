@@ -1,5 +1,6 @@
 from collections import OrderedDict, deque
 from functools import reduce
+from itertools import chain
 from time import time
 
 from model.ActionType import ActionType
@@ -162,32 +163,37 @@ class Strategy(LazyInit):
         context.post_event(name='update_cache')
         for v in context.world.buildings:
             self.__cached_buildings[v.id] = v
-            setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_buildings, context.world.tick_index, CACHE_TTL_BUILDINGS, context.my_position,
-                         context.me.vision_range * 0.9)
         for v in context.world.minions:
             update_dynamic_unit(self.__cached_minions, v)
-            setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_minions, context.world.tick_index, CACHE_TTL_MINIONS, context.my_position,
-                         context.me.vision_range * 0.9)
         for v in context.world.wizards:
             update_dynamic_unit(self.__cached_wizards, v)
-            setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_wizards, context.world.tick_index, CACHE_TTL_WIZARDS, context.my_position,
-                         context.me.vision_range * 0.9)
         for v in context.world.trees:
             self.__cached_trees[v.id] = v
-            setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_trees, context.world.tick_index, CACHE_TTL_BUILDINGS, context.my_position,
-                         context.me.vision_range * 0.9)
         for v in context.world.projectiles:
             update_dynamic_unit(self.__cached_projectiles, v)
-            setattr(v, 'last_seen', context.world.tick_index)
-        invalidate_cache(self.__cached_projectiles, context.world.tick_index, CACHE_TTL_TREES, context.my_position,
-                         context.me.vision_range * 0.9)
         for v in context.world.bonuses:
             self.__cached_bonuses[v.id] = v
-            setattr(v, 'last_seen', context.world.tick_index)
+        units = chain(
+            context.world.buildings,
+            context.world.minions,
+            context.world.wizards,
+            context.world.trees,
+            context.world.projectiles,
+            context.world.bonuses,
+        )
+        for unit in units:
+            setattr(unit, 'last_seen', context.world.tick_index)
+            setattr(unit, 'position', Point(unit.x, unit.y))
+        invalidate_cache(self.__cached_buildings, context.world.tick_index, CACHE_TTL_BUILDINGS, context.my_position,
+                         context.me.vision_range * 0.9)
+        invalidate_cache(self.__cached_minions, context.world.tick_index, CACHE_TTL_MINIONS, context.my_position,
+                         context.me.vision_range * 0.9)
+        invalidate_cache(self.__cached_wizards, context.world.tick_index, CACHE_TTL_WIZARDS, context.my_position,
+                         context.me.vision_range * 0.9)
+        invalidate_cache(self.__cached_trees, context.world.tick_index, CACHE_TTL_BUILDINGS, context.my_position,
+                         context.me.vision_range * 0.9)
+        invalidate_cache(self.__cached_projectiles, context.world.tick_index, CACHE_TTL_TREES, context.my_position,
+                         context.me.vision_range * 0.9)
         invalidate_cache(self.__cached_bonuses, context.world.tick_index, CACHE_TTL_BONUSES, context.my_position,
                          context.me.vision_range * 0.9)
 
