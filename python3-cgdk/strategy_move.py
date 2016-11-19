@@ -92,7 +92,7 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
         _, depth, step_size, states, movements, dynamic_units_positions = heappop(branches)
         step = depth * step_size
         cur_state = states[-1]
-        visited.add((int(cur_state.position.x), int(cur_state.position.y)))
+        visited.add((round(cur_state.position.x), round(cur_state.position.y)))
         distance_to_target = target.distance(cur_state.position)
         angle_to_target = abs((look_target - cur_state.position).absolute_rotation() - cur_state.angle)
         if distance_to_target < 1.5 * bounds.max_speed and angle_to_target < 1.5 * bounds.max_turn:
@@ -132,7 +132,7 @@ def optimize_movement(target: Point, look_target: Point, circular_unit: Circular
                 continue
             if new_state.intersection:
                 continue
-            if (int(new_state.position.x), int(new_state.position.y)) in visited:
+            if (round(new_state.position.x), round(new_state.position.y)) in visited:
                 continue
             new_depth = depth + 1
             new_states = states + [new_state]
