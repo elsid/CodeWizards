@@ -14,28 +14,16 @@ class Point:
         return self.__x == other.__x and self.__y == other.__y
 
     def __add__(self, other):
-        if isinstance(other, Point):
-            return Point(self.__x + other.__x, self.__y + other.__y)
-        else:
-            return Point(self.__x + other, self.__y + other)
+        return Point(self.__x + other.__x, self.__y + other.__y)
 
     def __sub__(self, other):
-        if isinstance(other, Point):
-            return Point(self.__x - other.__x, self.__y - other.__y)
-        else:
-            return Point(self.__x - other, self.__y - other)
+        return Point(self.__x - other.__x, self.__y - other.__y)
 
     def __mul__(self, other):
-        if isinstance(other, Point):
-            return Point(self.__x * other.__x, self.__y * other.__y)
-        else:
-            return Point(self.__x * other, self.__y * other)
+        return Point(self.__x * other, self.__y * other)
 
     def __truediv__(self, other):
-        if isinstance(other, Point):
-            return Point(self.__x / other.__x, self.__y / other.__x)
-        else:
-            return Point(self.__x / other, self.__y / other)
+        return Point(self.__x / other, self.__y / other)
 
     def __neg__(self):
         return Point(-self.__x, -self.__y)
