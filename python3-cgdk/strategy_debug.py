@@ -23,8 +23,6 @@ class Strategy:
             self.__visualize_target(context, post)
             self.__visualize_target_position(context, post)
             self.__visualize_target_positions_penalties(post)
-            post.circle(1200, 1200, 50, (0, 0, 0))
-            post.circle(context.game.map_size - 1200, context.game.map_size - 1200, 50, (0, 0, 0))
 
     def __visualize_target(self, context: Context, post):
         target = self.__impl.target
