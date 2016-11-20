@@ -329,8 +329,6 @@ class Strategy(LazyInit):
             trees=tuple(self.__cached_trees.values()),
             projectiles=tuple(v for v in self.__cached_projectiles.values() if is_recently_seen(v)),
             bonuses=tuple(self.__cached_bonuses.values()),
-            guardian_tower_attack_range=context.game.guardian_tower_attack_range,
-            faction_base_attack_range=context.game.faction_base_attack_range,
             orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
             fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
             magic_missile_direct_damage=context.game.magic_missile_direct_damage,

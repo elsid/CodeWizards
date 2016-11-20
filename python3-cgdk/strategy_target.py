@@ -5,7 +5,6 @@ from scipy.optimize import minimize
 
 from model.Bonus import Bonus
 from model.Building import Building
-from model.BuildingType import BuildingType
 from model.Faction import Faction
 from model.Minion import Minion
 from model.MinionType import MinionType
@@ -21,10 +20,9 @@ TARGET_DISTANCE_WEIGHT = 1
 UNIT_WEIGHT = 1
 
 
-def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, guardian_tower_attack_range,
-               faction_base_attack_range, orc_woodcutter_attack_range, fetish_blowdart_attack_range,
-               magic_missile_direct_damage, magic_missile_radius, map_size, max_distance=None, max_iterations=None,
-               penalties=None):
+def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, orc_woodcutter_attack_range,
+               fetish_blowdart_attack_range, magic_missile_direct_damage, magic_missile_radius, map_size,
+               max_distance=None, max_iterations=None, penalties=None):
     my_position = Point(me.x, me.y)
 
     def filter_friends(units):
@@ -44,7 +42,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     enemy_wizards = tuple(filter_max_distance(filter_enemies(wizards)))
     bonuses = tuple(filter_max_distance(bonuses))
     if not enemy_buildings and not enemy_minions and not enemy_wizards and not bonuses:
-        trees = tuple(v for v in trees if my_position.distance(v.position) < 1.2 * me.radius + v.radius)
+        trees = tuple(v for v in trees if my_position.distance(v.position) < 1.3 * me.radius + v.radius)
         if not trees:
             return None, None
         target = min(trees, key=lambda v: v.life)
@@ -67,30 +65,35 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     else:
         target = None
     get_attack_range = make_get_attack_range(
-        guardian_tower_attack_range=guardian_tower_attack_range,
-        faction_base_attack_range=faction_base_attack_range,
         orc_woodcutter_attack_range=orc_woodcutter_attack_range,
         fetish_blowdart_attack_range=fetish_blowdart_attack_range,
+        magic_missile_radius=magic_missile_radius,
+        my_radius=me.radius,
     )
     other_wizards = tuple(v for v in wizards if v.id != me.id)
     units = tuple(v for v in chain(buildings, trees, minions, other_wizards) if id(v) != id(target))
     friends_units = tuple(filter_friends(chain(buildings, minions, other_wizards)))
+    enemies_units = tuple(filter_enemies(chain(buildings, minions, other_wizards)))
     target_position = target.position if target else None
 
     def position_penalty(values):
         position = Point(values[0], values[1])
+        enemies_in_attack_range = sum(get_attack_range(v) >= position.distance(v.position) for v in enemies_units)
 
         def unit_intersection_penalty(unit):
             if isinstance(unit, (Building, Tree)):
-                return distance_penalty(position.distance(unit.position), me.radius + 3 * unit.radius)
+                return distance_penalty(position.distance(unit.position), 2 * me.radius + 3 * unit.radius)
             else:
                 return distance_penalty(position.distance(unit.position), me.radius + 2 * unit.radius)
+
+        def get_unit_damage(unit):
+            return get_damage(unit) if get_attack_range(unit) + 2 * me.radius >= position.distance(unit.position) else 0
 
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
                 return 0
-            safe_distance = max(me.cast_range,
-                                (me.radius + get_attack_range(unit)) * min(1, 2 * get_damage(unit) / me.life))
+            safe_distance = max(me.cast_range, (get_attack_range(unit) + 2 * me.radius)
+                                * min(1, 2 * enemies_in_attack_range * get_unit_damage(unit) / me.life))
             distance_to_unit = position.distance(unit.position)
             return distance_penalty(distance_to_unit, safe_distance)
 
@@ -100,9 +103,13 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
             if isinstance(target, Bonus):
                 return bonus_penalty(target)
             else:
-                return max(unit_danger_penalty(target),
-                           1 - distance_penalty(position.distance(target_position),
-                                                my_position.distance(target_position) + me.radius))
+                distance = position.distance(target_position)
+                if distance <= me.cast_range:
+                    d_penalty = distance_penalty(distance, me.cast_range)
+                else:
+                    safe_distance = max(me.cast_range, my_position.distance(target.position) + me.radius)
+                    d_penalty = 1 - distance_penalty(distance - me.cast_range, safe_distance)
+                return max(unit_danger_penalty(target), d_penalty)
 
         def friend_units_intersections_penalties():
             for friend in friends_units:
@@ -137,8 +144,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                 yield max(unit_intersection_penalty(unit), unit_danger_penalty(unit))
 
         def bonuses_penalties():
-            for bonus in bonuses:
-                yield bonus_penalty(bonus)
+            return (bonus_penalty(v) for v in bonuses)
 
         def projectile_penalty(projectile):
             projectile_speed = projectile.mean_speed
@@ -147,8 +153,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
             return distance_penalty(distance_to, safe_distance)
 
         def projectiles_penalties():
-            for projectile in projectiles:
-                yield projectile_penalty(projectile)
+            return (projectile_penalty(v) for v in projectiles)
 
         def borders_penalty():
             return (0 if me.radius < position.x < map_size - me.radius
@@ -185,12 +190,8 @@ def is_enemy(unit, my_faction):
     return unit.faction != my_faction and unit.faction not in NOT_ENEMIES
 
 
-def make_get_attack_range(guardian_tower_attack_range, faction_base_attack_range,
-                          orc_woodcutter_attack_range, fetish_blowdart_attack_range):
-    buildings = {
-        BuildingType.GUARDIAN_TOWER: guardian_tower_attack_range,
-        BuildingType.FACTION_BASE: faction_base_attack_range,
-    }
+def make_get_attack_range(orc_woodcutter_attack_range, fetish_blowdart_attack_range, magic_missile_radius,
+                          my_radius):
     minions = {
         MinionType.ORC_WOODCUTTER: orc_woodcutter_attack_range,
         MinionType.FETISH_BLOWDART: fetish_blowdart_attack_range,
@@ -198,11 +199,11 @@ def make_get_attack_range(guardian_tower_attack_range, faction_base_attack_range
 
     def impl(unit):
         if isinstance(unit, Building):
-            return buildings[unit.type]
+            return unit.attack_range + my_radius
         if isinstance(unit, Minion):
-            return minions[unit.type]
+            return minions[unit.type] + my_radius
         if isinstance(unit, Wizard):
-            return unit.cast_range
+            return unit.cast_range + magic_missile_radius + my_radius
 
     return impl
 

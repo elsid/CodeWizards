@@ -1,8 +1,10 @@
 import pytest
 
+from hamcrest import assert_that, close_to
 from itertools import chain
 
 from model.Bonus import Bonus
+from model.Building import Building
 from model.Faction import Faction
 from model.Minion import Minion
 from model.MinionType import MinionType
@@ -14,11 +16,13 @@ from strategy_target import get_target
 
 from test.common import (
     BONUS_RADIUS,
-    FACTION_BASE_ATTACK_RANGE,
     FETISH_BLOWDART_ATTACK_RANGE,
     FETISH_BLOWDART_DAMAGE,
     FETISH_BLOWDART_MAX_LIFE,
     GUARDIAN_TOWER_ATTACK_RANGE,
+    GUARDIAN_TOWER_DAMAGE,
+    GUARDIAN_TOWER_LIFE,
+    GUARDIAN_TOWER_RADIUS,
     MAGIC_MISSILE_DIRECT_DAMAGE,
     MAGIC_MISSILE_RADIUS,
     MAP_SIZE,
@@ -70,8 +74,6 @@ def test_get_target_with_only_me():
         trees=tuple(),
         projectiles=tuple(),
         bonuses=tuple(),
-        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
@@ -102,7 +104,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1008.7003105766321, 998.75084650994177),
+            Point(1051.0169782086896, 502.00278965851896),
         ),
         (
             Minion(
@@ -124,7 +126,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1008.7003105766321, 998.75084650994177),
+            Point(1051.0169782086896, 502.00278965851896),
         ),
         (
             Minion(
@@ -146,7 +148,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1690.1666804835595, 1710.0807104067385),
+            Point(1570.1437465840938, 1581.4028172583573),
         ),
     ]
 )
@@ -160,15 +162,13 @@ def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_p
         trees=tuple(),
         projectiles=tuple(),
         bonuses=tuple(),
-        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         map_size=MAP_SIZE,
     )
-    assert target.position.distance(position) <= WIZARD_CAST_RANGE
+    assert_that(target.position.distance(position), close_to(WIZARD_CAST_RANGE, 1e-8))
     assert (target.id, position) == (expected_target, expected_position)
 
 
@@ -200,8 +200,6 @@ def test_get_target_with_me_and_neural_minion():
         trees=tuple(),
         projectiles=tuple(),
         bonuses=tuple(),
-        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
@@ -243,7 +241,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(1008.7003105766321, 998.75084650994177),
+            Point(1051.0169782086896, 502.00278965851896),
         ),
         (
             [
@@ -295,7 +293,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1404.6875, 531.25),
+            Point(1096.6005102708036, 400.0096305192742),
         ),
         (
             [
@@ -347,7 +345,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1404.6875, 531.25),
+            Point(1096.6005102708036, 400.0096305192742),
         ),
     ]
 )
@@ -362,15 +360,13 @@ def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_ta
         trees=tuple(),
         projectiles=tuple(),
         bonuses=tuple(),
-        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         map_size=MAP_SIZE,
     )
-    assert target.position.distance(position) <= WIZARD_CAST_RANGE
+    assert_that(target.position.distance(position), close_to(WIZARD_CAST_RANGE, 1e-8))
     assert (target.id, position) == (expected_target, expected_position)
 
 
@@ -397,8 +393,6 @@ def test_get_target_with_me_and_tree():
         trees=[tree],
         projectiles=tuple(),
         bonuses=tuple(),
-        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
@@ -430,8 +424,6 @@ def test_get_target_with_me_and_nearby_tree():
         trees=[tree],
         projectiles=tuple(),
         bonuses=tuple(),
-        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
@@ -462,8 +454,6 @@ def test_get_target_with_me_and_bonus():
         trees=tuple(),
         projectiles=tuple(),
         bonuses=[bonus],
-        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
@@ -516,7 +506,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1050.1523807348231, 1056.0676199122199),
+            Point(1027.7215712920374, 625.26515417810242),
         ),
         (
             [
@@ -558,7 +548,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1253.1420997988896, 1203.2235106844803),
+            Point(851.12286436774616, 1424.6506492259955)
         ),
     ]
 )
@@ -573,15 +563,87 @@ def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, ex
         trees=tuple(),
         projectiles=tuple(),
         bonuses=tuple(),
-        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
         orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         map_size=MAP_SIZE,
     )
-    assert target.position.distance(position) <= WIZARD_CAST_RANGE
+    assert_that(target.position.distance(position), close_to(WIZARD_CAST_RANGE, 1e-8))
     assert (target.id, position) == (expected_target, expected_position)
     assert not Circle(Point(minions[0].x, minions[0].y), minions[0].radius).has_intersection_with_moving_circle(
         Circle(position, MAGIC_MISSILE_RADIUS), Point(minions[1].x, minions[1].y))
+
+
+@pytest.mark.parametrize(
+    ('wizard_life', 'expected_distance'), [
+        (WIZARD_MAX_LIFE, GUARDIAN_TOWER_ATTACK_RANGE),
+        (3 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE),
+        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + WIZARD_RADIUS),
+        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + WIZARD_RADIUS),
+        (1, GUARDIAN_TOWER_ATTACK_RANGE + WIZARD_RADIUS),
+    ]
+)
+def test_get_target_with_me_and_tower(wizard_life, expected_distance):
+    wizard = Wizard(
+        id=1,
+        x=1000,
+        y=1000,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.ACADEMY,
+        radius=WIZARD_RADIUS,
+        life=wizard_life,
+        max_life=WIZARD_MAX_LIFE,
+        statuses=None,
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=WIZARD_VISION_RANGE,
+        cast_range=WIZARD_CAST_RANGE,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
+    tower = Building(
+        id=2,
+        x=wizard.x + WIZARD_RADIUS + GUARDIAN_TOWER_RADIUS,
+        y=wizard.y + WIZARD_RADIUS + GUARDIAN_TOWER_RADIUS,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=GUARDIAN_TOWER_RADIUS,
+        life=GUARDIAN_TOWER_LIFE,
+        max_life=GUARDIAN_TOWER_LIFE,
+        statuses=None,
+        type=None,
+        vision_range=None,
+        attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
+        damage=GUARDIAN_TOWER_DAMAGE,
+        cooldown_ticks=None,
+        remaining_action_cooldown_ticks=None,
+    )
+    setattr(tower, 'position', Point(tower.x, tower.y))
+    target, position = get_target(
+        me=wizard,
+        buildings=[tower],
+        minions=tuple(),
+        wizards=[wizard],
+        trees=tuple(),
+        projectiles=tuple(),
+        bonuses=tuple(),
+        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
+        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
+        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
+        magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
+    )
+    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
+    assert target.id == 2
