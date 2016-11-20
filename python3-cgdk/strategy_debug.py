@@ -63,12 +63,14 @@ class Strategy:
 
     def __visualize_graph(self, post):
         graph = self.__impl.graph
+        drawn_arcs = set()
         for node in graph.nodes:
             post.fill_circle(node.position.x, node.position.y, 10, (0.8, 0.8, 0.8))
             for arc in node.arcs:
-                post.line(node.position.x, node.position.y, arc.dst.position.x, arc.dst.position.y, (0.8, 0.8, 0.8))
-                post.circle(node.position.x, node.position.y, ZONE_SIZE, (0.8, 0.8, 0.8))
-        post.fill_circle(graph.center.position.x, graph.center.position.y, 20, (0.8, 0.8, 0.8))
+                if ((node.position.x, node.position.y, arc.dst.position.x, arc.dst.position.y) not in drawn_arcs
+                        and (arc.dst.position.x, arc.dst.position.y, node.position.x, node.position.y) not in drawn_arcs):
+                    drawn_arcs.add((node.position.x, node.position.y, arc.dst.position.x, arc.dst.position.y))
+                    post.line(node.position.x, node.position.y, arc.dst.position.x, arc.dst.position.y, (0.8, 0.8, 0.8))
 
     def __visualize_graph_path(self, post):
         self.__visualize_path(post, (v.position for v in self.__impl.path), (0.2, 0.2, 0.2), 10)
