@@ -5,6 +5,7 @@ from time import time
 
 from model.ActionType import ActionType
 from model.Bonus import Bonus
+from model.Faction import Faction
 from model.Game import Game
 from model.Move import Move
 from model.Wizard import Wizard
@@ -411,10 +412,11 @@ class Strategy(LazyInit):
                     context.game.magic_missile_radius + self.__target.radius):
                 return False
             missile = Circle(context.me.position, context.game.magic_missile_radius)
+            factions = frozenset((context.me.faction, Faction.NEUTRAL))
             barriers = tuple(chain(
                 make_circles(v for v in context.world.wizards if v.id != context.me.id
                              and v.faction == context.me.faction),
-                make_circles(v for v in context.world.minions if v.faction == context.me.faction),
+                make_circles(v for v in context.world.minions if v.faction in factions),
                 make_circles(v for v in context.world.buildings if v.faction == context.me.faction),
             ))
             return not has_intersection_with_barriers(missile, missile.position + direction * context.me.cast_range,
