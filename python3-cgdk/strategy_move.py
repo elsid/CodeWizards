@@ -119,12 +119,12 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
         opened.remove(position)
         closed.add(position)
         barrier.position = position
-        for shift in shifts:
+        for shift in chain((target - position,), shifts):
             new_position = position + shift
             if new_position in closed:
                 continue
             new_distance = target.distance(new_position)
-            length = position.distance(new_position)
+            length = shift.norm()
             new_length = lengths[position] + length
             if new_position not in opened:
                 if depth >= len(dynamic_barriers):
