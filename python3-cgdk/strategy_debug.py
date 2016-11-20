@@ -22,13 +22,9 @@ class Strategy:
             self.__visualize_graph_path(post)
             self.__visualize_target(context, post)
             self.__visualize_target_position(context, post)
-            self.__visualize_states(post)
-            self.__visualize_path(post, self.__impl.actual_path, (0, 0, 1), False)
-            self.__visualize_path(post, self.__impl.expected_path, (0, 1, 0), False)
             self.__visualize_target_positions_penalties(post)
-
-    def __visualize_states(self, post):
-        self.__visualize_path(post, [v.position for v in self.__impl.states], (1, 0, 0), True)
+            post.circle(1200, 1200, 50, (0, 0, 0))
+            post.circle(context.game.map_size - 1200, context.game.map_size - 1200, 50, (0, 0, 0))
 
     def __visualize_target(self, context: Context, post):
         target = self.__impl.target
@@ -41,12 +37,12 @@ class Strategy:
             post.line(context.me.x, context.me.y, target.x, target.y, (0, 0, 0))
 
     @staticmethod
-    def __visualize_path(post, path, color, draw_points):
+    def __visualize_path(post, path, color, radius):
         if path:
             last_position = None
             for position in path:
-                if draw_points:
-                    post.fill_circle(position.x, position.y, 10, color)
+                if radius:
+                    post.fill_circle(position.x, position.y, radius, color)
                 if last_position:
                     post.line(last_position.x, last_position.y, position.x, position.y, color)
                 last_position = position
@@ -77,4 +73,4 @@ class Strategy:
         post.fill_circle(graph.center.position.x, graph.center.position.y, 20, (0.8, 0.8, 0.8))
 
     def __visualize_graph_path(self, post):
-        self.__visualize_path(post, (v.position for v in self.__impl.path), (0.2, 0.2, 0.2), True)
+        self.__visualize_path(post, (v.position for v in self.__impl.path), (0.2, 0.2, 0.2), 10)
