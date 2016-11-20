@@ -372,10 +372,14 @@ class Strategy(LazyInit):
             context.post_event(name='apply_target_turn')
             turn = context.me.get_angle_to_unit(self.__target)
             context.move.turn = turn
-            if (target_position.distance(context.me.position + direction * distance) <
-                    context.game.magic_missile_radius + self.__target.radius
-                    and not isinstance(self.__target, Bonus)):
-                context.post_event(name='apply_target_action')
+            if isinstance(self.__target, Bonus):
+                return
+            if distance <= self.__target.radius + context.game.staff_range:
+                context.post_event(name='apply_target_action', type='STAFF')
+                context.move.action = ActionType.STAFF
+            elif (target_position.distance(context.me.position + direction * distance) <
+                    context.game.magic_missile_radius + self.__target.radius):
+                context.post_event(name='apply_target_action', type='MAGIC_MISSILE')
                 context.move.cast_angle = turn
                 context.move.action = ActionType.MAGIC_MISSILE
 
