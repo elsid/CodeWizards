@@ -96,7 +96,7 @@ class Point:
                      self.__y * cos(angle) + self.__x * sin(angle))
 
     def normalized(self):
-        return self / self.norm()
+        return self / (self.norm() or 1)
 
     def projection(self, other):
         return other * self.dot(other) / other.norm()
