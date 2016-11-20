@@ -229,17 +229,29 @@ class Strategy(LazyInit):
 
     def __apply_battle_mode(self, context: Context):
         context.post_event(name='apply_battle_mode')
-        self.__update_target(context)
-        if (self.__apply_move_mode == self.__apply_battle_mode
-                and context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS):
+        if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
             context.post_event(name='change_mode', old='battle', new='move')
+            self.__target = None
             self.__apply_mode = self.__apply_move_mode
             self.__last_change_mode = context.world.tick_index
+            self.__apply_mode(context)
+        else:
+            self.__update_target(context)
 
     def __apply_move_mode(self, context: Context):
         context.post_event(name='apply_move_mode')
-        self.__update_path(context)
-        self.__next_path_node(context)
+        if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
+            context.post_event(name='change_mode', old='move', new='battle')
+            self.__next_node = 0
+            self.__path = list()
+            self.__destination = None
+            self.__departure = None
+            self.__apply_mode = self.__apply_battle_mode
+            self.__last_change_mode = context.world.tick_index
+            self.__apply_mode(context)
+        else:
+            self.__update_path(context)
+            self.__next_path_node(context)
 
     def __update_path(self, context: Context):
         if (self.__last_update_destination is not None and
@@ -290,6 +302,8 @@ class Strategy(LazyInit):
             self.__path = list()
             self.__destination = None
             self.__departure = None
+            self.__last_change_mode = context.world.tick_index
+            self.__apply_mode(context)
 
     def __update_target(self, context: Context):
 
@@ -335,9 +349,11 @@ class Strategy(LazyInit):
             self.__target_position = position
             self.__last_update_target = context.world.tick_index
         else:
-            context.post_event(name='change_mode', old='move', new='battle')
-            self.__apply_mode = self.__apply_move_mode
+            context.post_event(name='change_mode', old='battle', new='move')
             self.__target = None
+            self.__apply_mode = self.__apply_move_mode
+            self.__last_change_mode = context.world.tick_index
+            self.__apply_mode(context)
 
     def __update_movements(self, context: Context):
         if not self.__target_position:
