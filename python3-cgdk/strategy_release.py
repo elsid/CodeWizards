@@ -16,10 +16,10 @@ from strategy_path import make_graph, select_destination, get_shortest_path, get
 from strategy_target import get_target
 
 
-OPTIMIZE_MOVEMENT_STEP_SIZE = 10
-OPTIMIZE_MOVEMENT_TICKS = 20
+OPTIMIZE_MOVEMENT_STEP_SIZE = 20
+OPTIMIZE_MOVEMENT_TICKS = 10
 UPDATE_TARGET_TICKS = 10
-MAX_TIME = 1
+MAX_TIME = 0.3
 CACHE_TTL_BONUSES = 100
 CACHE_TTL_BUILDINGS = 200
 CACHE_TTL_TREES = 200
