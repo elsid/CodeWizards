@@ -11,5 +11,5 @@ if __name__ == '__main__':
     runner = ['java', '-Xms512m', '-Xmx2G', '-server', '-jar',
               'local-runner-ru/local-runner.jar', 'local-runner.properties']
     with AutoKillProcess(runner):
-        sleep(1)
+        sleep(3)
         strategy.run()
