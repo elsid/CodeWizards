@@ -405,7 +405,7 @@ class Strategy(LazyInit):
         if not self.__target:
             return
 
-        def need_apply_missle():
+        def need_apply_missile():
             direction = Point(1, 0).rotate(context.me.angle)
             if (target_position.distance(context.me.position + direction * distance) >
                     context.game.magic_missile_radius + self.__target.radius):
@@ -422,8 +422,7 @@ class Strategy(LazyInit):
 
         target_position = self.__target.position
         distance = target_position.distance(context.me.position)
-        if (distance <= context.me.cast_range - context.me.radius
-                + context.game.magic_missile_radius + self.__target.radius):
+        if distance <= context.me.cast_range + self.__target.radius + context.game.magic_missile_radius:
             context.post_event(name='apply_target_turn')
             turn = context.me.get_angle_to_unit(self.__target)
             context.move.turn = turn
@@ -433,9 +432,11 @@ class Strategy(LazyInit):
             if distance < self.__target.radius + context.game.staff_range:
                 context.post_event(name='apply_target_action', type='STAFF')
                 context.move.action = ActionType.STAFF
-            elif need_apply_missle():
+            elif need_apply_missile():
                 context.post_event(name='apply_target_action', type='MAGIC_MISSILE')
                 context.move.action = ActionType.MAGIC_MISSILE
+        else:
+            context.post_event(name='pass_apply_target_turn', distance=distance)
 
 
 def update_dynamic_unit(cache, new):
