@@ -98,9 +98,14 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
     max_range = max(max_range, target.distance(position) / 2 + step_size)
     barrier = Circle(position, radius + 1)
     initial_dynamic_barriers = {v.id: Circle(v.position, v.radius) for v in dynamic_units}
-    occupier = next((v for v in chain(static_barriers, initial_dynamic_barriers.values())
-                     if target.distance(v.position) < v.radius + barrier.radius), None)
-    max_distance = occupier.radius + barrier.radius + step_size if occupier else step_size
+    static_occupier = next((v for v in chain(static_barriers)
+                           if target.distance(v.position) < v.radius + barrier.radius), None)
+    if static_occupier:
+        occupier = static_occupier
+    else:
+        occupier = next((v for v in chain(initial_dynamic_barriers.values())
+                         if target.distance(v.position) < v.radius + barrier.radius), None)
+    max_distance_errors = [occupier.radius + barrier.radius + step_size if occupier else step_size]
     dynamic_barriers = [initial_dynamic_barriers]
     closed = set()
     opened = {position}
@@ -113,7 +118,7 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
         if max_time is not None and time() - start > max_time:
             result = None
             break
-        if distance <= max_distance:
+        if distance <= max_distance_errors[depth]:
             result = position
             break
         opened.remove(position)
@@ -137,6 +142,14 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
                     dynamic_barriers.append(barriers)
                 else:
                     barriers = dynamic_barriers[depth]
+                if depth + 1 >= len(max_distance_errors):
+                    if static_occupier:
+                        max_distance_errors.append(max_distance_errors[-1])
+                    else:
+                        occupier = next((v for v in barriers.values()
+                                         if target.distance(v.position) < v.radius + barrier.radius), None)
+                        max_distance_errors.append(occupier.radius + barrier.radius + step_size
+                                                   if occupier else step_size)
                 intersection = (
                     (position.distance(initial_position) > max_range and
                      position.distance(target) > max_range) or
