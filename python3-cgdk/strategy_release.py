@@ -335,7 +335,7 @@ class Strategy(LazyInit):
             magic_missile_radius=context.game.magic_missile_radius,
             map_size=context.game.map_size,
             penalties=self.__target_positions_penalties,
-            max_distance=ZONE_SIZE,
+            max_distance=1.1 * context.me.vision_range,
             max_iterations=GET_TARGET_MAX_ITERATIONS,
         )
         if self.__target:
