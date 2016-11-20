@@ -101,7 +101,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1035.3163045042475, 1006.9684827427119),
+            Point(1051.5829558505075, 997.55668151585792),
         ),
         (
             Minion(
@@ -123,7 +123,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1035.3163045042475, 1006.9684827427119),
+            Point(1051.5829558505075, 997.55668151585792)
         ),
         (
             Minion(
@@ -145,12 +145,11 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1644.6521098834892, 1554.323124910286),
+            Point(1653.6754608821461, 1547.2756759298193),
         ),
     ]
 )
 def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_position):
-    # setattr(minion, 'position', Point(minion.x, minion.y))
     setattr(minion, 'position', Point(minion.x, minion.y))
     target, position = get_target(
         me=WIZARD,
@@ -168,6 +167,7 @@ def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_p
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         map_size=MAP_SIZE,
     )
+    assert target.position.distance(position) <= WIZARD_CAST_RANGE
     assert (target.id, position) == (expected_target, expected_position)
 
 
@@ -242,7 +242,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(1022.2357946998941, 1017.0540337371613),
+            Point(1047.5164604416959, 999.13978474794214),
         ),
         (
             [
@@ -294,7 +294,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1571.875, 412.5),
+            Point(1159.1590698060247, 938.55640833425775),
         ),
         (
             [
@@ -346,7 +346,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1571.875, 412.5),
+            Point(1159.1590698060247, 938.55640833425775),
         ),
     ]
 )
@@ -369,6 +369,7 @@ def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_ta
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         map_size=MAP_SIZE,
     )
+    assert target.position.distance(position) <= WIZARD_CAST_RANGE
     assert (target.id, position) == (expected_target, expected_position)
 
 
@@ -479,7 +480,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1050.4672840757185, 1084.3469528876353),
+            Point(1050.996433138911, 1083.6660088334518),
         ),
         (
             [
@@ -521,7 +522,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1142.4587312649312, 1129.7850520057427),
+            Point(1172.8072125203357, 1154.8159611571925),
         ),
     ]
 )
@@ -544,6 +545,7 @@ def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, ex
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         map_size=MAP_SIZE,
     )
+    assert target.position.distance(position) <= WIZARD_CAST_RANGE
     assert (target.id, position) == (expected_target, expected_position)
     assert not Circle(Point(minions[0].x, minions[0].y), minions[0].radius).has_intersection_with_moving_circle(
         Circle(position, MAGIC_MISSILE_RADIUS), Point(minions[1].x, minions[1].y))

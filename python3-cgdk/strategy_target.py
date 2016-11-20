@@ -17,7 +17,7 @@ BONUS_WEIGHT = 1
 DIRECTION_WEIGHT = 1
 PROJECTILE_WEIGHT = 1
 TARGET_DISTANCE_WEIGHT = 1
-UNIT_WEIGHT = 1
+UNIT_WEIGHT = 0.5
 
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, guardian_tower_attack_range,
