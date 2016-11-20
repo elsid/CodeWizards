@@ -324,7 +324,7 @@ class Strategy(LazyInit):
         )
         if self.__target:
             context.post_event(name='target_updated', target_type=str(type(self.__target)),
-                               target_id=self.__target.id)
+                               target_id=self.__target.id, position=str(self.__target.position))
             context.post_event(name='update_target_position',
                                old=str(self.__target_position) if self.__target_position else self.__target_position,
                                new=str(position))
