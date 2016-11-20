@@ -12,7 +12,7 @@ from model.World import World
 
 from strategy_common import LazyInit, lazy_init, Point, Circle
 from strategy_move import optimize_movement, has_intersection_with_barriers, make_circles
-from strategy_path import make_graph, select_destination, get_shortest_path, get_nearest_node, ZONE_SIZE
+from strategy_path import make_graph, select_destination, get_shortest_path, get_nearest_node, ZONE_SIZE, has_near_enemy
 from strategy_target import get_target
 
 
@@ -274,7 +274,9 @@ class Strategy(LazyInit):
         if context.me.position.distance(self.__path[self.__next_node].position) > ZONE_SIZE:
             return
         self.__next_node += 1
-        if self.__next_node < len(self.__path):
+        units = chain(context.world.buildings, context.world.minions, context.world.wizards)
+        if (self.__next_node < len(self.__path)
+                and not has_near_enemy(self.__path[self.__next_node].position, tuple(units), context.me.faction)):
             context.post_event(name='next_path_node')
             context.post_event(name='update_target_position',
                                old=str(self.__target_position) if self.__target_position else self.__target_position,
