@@ -10,8 +10,8 @@ from model.Move import Move
 from model.Wizard import Wizard
 from model.World import World
 
-from strategy_common import LazyInit, lazy_init, Point
-from strategy_move import optimize_movement
+from strategy_common import LazyInit, lazy_init, Point, Circle
+from strategy_move import optimize_movement, has_intersection_with_barriers, make_circles
 from strategy_path import make_graph, select_destination, get_shortest_path, get_nearest_node, ZONE_SIZE
 from strategy_target import get_target
 
@@ -365,10 +365,26 @@ class Strategy(LazyInit):
     def __apply_action(self, context: Context):
         if not self.__target:
             return
+
+        def need_apply_missle():
+            direction = Point(1, 0).rotate(context.me.angle)
+            if (target_position.distance(context.me.position + direction * distance) >
+                    context.game.magic_missile_radius + self.__target.radius):
+                return False
+            missile = Circle(context.me.position, context.game.magic_missile_radius)
+            barriers = tuple(chain(
+                make_circles(v for v in context.world.wizards if v.id != context.me.id
+                             and v.faction == context.me.faction),
+                make_circles(v for v in context.world.minions if v.faction == context.me.faction),
+                make_circles(v for v in context.world.buildings if v.faction == context.me.faction),
+            ))
+            return not has_intersection_with_barriers(missile, missile.position + direction * context.me.cast_range,
+                                                      barriers)
+
         target_position = self.__target.position
         distance = target_position.distance(context.me.position)
-        direction = Point(1, 0).rotate(context.me.angle)
-        if distance <= context.me.cast_range + context.me.radius + self.__target.radius:
+        if (distance <= context.me.cast_range - context.me.radius
+                + context.game.magic_missile_radius + self.__target.radius):
             context.post_event(name='apply_target_turn')
             turn = context.me.get_angle_to_unit(self.__target)
             context.move.turn = turn
@@ -377,8 +393,7 @@ class Strategy(LazyInit):
             if distance <= self.__target.radius + context.game.staff_range:
                 context.post_event(name='apply_target_action', type='STAFF')
                 context.move.action = ActionType.STAFF
-            elif (target_position.distance(context.me.position + direction * distance) <
-                    context.game.magic_missile_radius + self.__target.radius):
+            elif need_apply_missle():
                 context.post_event(name='apply_target_action', type='MAGIC_MISSILE')
                 context.move.cast_angle = turn
                 context.move.action = ActionType.MAGIC_MISSILE
