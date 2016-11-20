@@ -92,7 +92,7 @@ def make_graph(map_size):
             for w in v.values():
                 yield w
 
-    return Graph(list(generate()), nodes[count // 2 * RESOLUTION + half][count // 2 * RESOLUTION + half])
+    return Graph(list(generate()), nodes[count // 2 * RESOLUTION - half][count // 2 * RESOLUTION + half])
 
 
 def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses):
