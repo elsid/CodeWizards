@@ -102,6 +102,7 @@ class Strategy(LazyInit):
         self.__last_update_destination = None
         self.__graph = None
         self.__destination = None
+        self.__departure = None
         self.__path = list()
         self.__next_node = 0
         self.__apply_mode = self.__apply_move_mode
@@ -214,14 +215,16 @@ class Strategy(LazyInit):
             wizards=tuple(v for v in self.__cached_wizards.values()),
             bonuses=tuple(v for v in self.__cached_bonuses.values()),
         )
-        if id(destination) == id(self.__destination):
+        nearest_node = get_nearest_node(self.__graph.nodes, context.me.position)
+        if self.__destination is not None and id(nearest_node) == id(self.__departure):
             return
-        path, _ = get_shortest_path(get_nearest_node(self.__graph.nodes, context.me.position), destination)
+        path, _ = get_shortest_path(nearest_node, destination)
         context.post_event(name='update_destination', destination=str(destination.position),
                            path=[str(v.position) for v in path])
         context.post_event(name='update_target_position',
                            old=str(self.__target_position) if self.__target_position else self.__target_position,
                            new=str(path[0].position))
+        self.__departure = nearest_node
         self.__destination = destination
         self.__path = path
         self.__next_node = 0
@@ -246,6 +249,7 @@ class Strategy(LazyInit):
             self.__next_node = 0
             self.__path = list()
             self.__destination = None
+            self.__departure = None
 
     def __update_target(self, context: Context):
 
