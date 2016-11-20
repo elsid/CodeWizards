@@ -137,7 +137,7 @@ def get_nearest_node_by_path(nodes, my_node):
 
 
 def get_shortest_path(src: Node, dst: Node):
-    queue = [(0, src, [src])]
+    queue = [(0, src, list())]
     visited = set()
     result = None
     while queue:
