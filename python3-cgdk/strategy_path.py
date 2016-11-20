@@ -99,10 +99,14 @@ def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses):
     units = tuple(chain(buildings, minions, wizards))
     nodes = graph.nodes
     nodes_with_bonus = tuple(node for node in nodes if has_near_units(node.position, bonuses))
+    nodes_with_enemy = tuple(node for node in nodes if has_near_enemy(node.position, units, me.faction))
     nearest_node = get_nearest_node(nodes, me.position)
+    if nodes_with_bonus and nodes_with_enemy:
+        enemy = get_nearest_node_by_path(nodes_with_bonus, nearest_node)
+        if id(enemy) == id(nearest_node):
+            return enemy
     if nodes_with_bonus:
         return get_nearest_node_by_path(nodes_with_bonus, nearest_node)
-    nodes_with_enemy = tuple(node for node in nodes if has_near_enemy(node.position, units, me.faction))
     if nodes_with_enemy:
         return get_nearest_node_by_path(nodes_with_enemy, nearest_node)
     return graph.center
