@@ -128,7 +128,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
         def projectile_penalty(projectile):
             projectile_speed = projectile.mean_speed
-            safe_distance = me.radius + projectile.radius
+            safe_distance = 2 * me.radius + projectile.radius
             distance_to = Line(projectile.position, projectile.position + projectile_speed).distance(position)
             return distance_penalty(distance_to, safe_distance)
 
