@@ -101,7 +101,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1022.2357946998941, 1017.0540337371613),
+            Point(1035.3163045042475, 1006.9684827427119),
         ),
         (
             Minion(
@@ -123,7 +123,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1022.2357946998941, 1017.0540337371613),
+            Point(1035.3163045042475, 1006.9684827427119),
         ),
         (
             Minion(
@@ -145,7 +145,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1623.8273451772268, 1558.5318428656142),
+            Point(1644.6521098834892, 1554.323124910286),
         ),
     ]
 )
@@ -293,8 +293,8 @@ def test_get_target_with_me_and_neural_minion():
                     messages=None,
                 ),
             ],
-            2,
-            Point(412.5, 1571.875),
+            3,
+            Point(1571.875, 412.5),
         ),
         (
             [
@@ -479,7 +479,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1060.9165219702859, 1070.3710856567632),
+            Point(1050.4672840757185, 1084.3469528876353),
         ),
         (
             [
@@ -521,7 +521,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1145.9367021337821, 1134.6976560687594),
+            Point(1142.4587312649312, 1129.7850520057427),
         ),
     ]
 )

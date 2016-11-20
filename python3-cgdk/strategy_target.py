@@ -52,8 +52,12 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
     if bonuses:
         target = min(bonuses, key=lambda v: my_position.distance(Point(v.x, v.y)))
-    elif enemy_wizards or enemy_minions or enemy_buildings:
-        target = min(chain(enemy_wizards, enemy_minions, enemy_buildings, bonuses), key=target_penalty)
+    elif enemy_wizards:
+        target = min(enemy_wizards, key=target_penalty)
+    elif enemy_minions:
+        target = min(enemy_minions, key=target_penalty)
+    elif enemy_buildings:
+        target = min(enemy_buildings, key=target_penalty)
     else:
         target = None
     get_attack_range = make_get_attack_range(
@@ -76,7 +80,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
                 return 0
-            safe_distance = max(me.cast_range - magic_missile_radius,
+            safe_distance = max(me.cast_range - me.radius - magic_missile_radius + unit.radius,
                                 (me.radius + get_attack_range(unit)) * min(1, get_damage(unit) / me.life))
             distance_to_unit = position.distance(unit.position)
             return distance_penalty(distance_to_unit, safe_distance)
