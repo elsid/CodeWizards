@@ -286,11 +286,11 @@ class Strategy(LazyInit):
             return
         if context.me.position.distance(self.__path[self.__next_node].position) > ZONE_SIZE:
             return
+        context.post_event(name='next_path_node', old=self.__next_node, new=self.__next_node + 1)
         self.__next_node += 1
         units = chain(context.world.buildings, context.world.minions, context.world.wizards)
         if (self.__next_node < len(self.__path)
-                and not has_near_enemy(self.__path[self.__next_node].position, tuple(units), context.me.faction)):
-            context.post_event(name='next_path_node')
+                and not has_near_enemy(context.me.position, tuple(units), context.me.faction)):
             context.post_event(name='update_target_position',
                                old=str(self.__target_position) if self.__target_position else self.__target_position,
                                new=str(self.__path[self.__next_node].position))
