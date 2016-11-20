@@ -228,7 +228,9 @@ class Strategy(LazyInit):
     def __apply_battle_mode(self, context: Context):
         context.post_event(name='apply_battle_mode')
         self.__update_target(context)
-        if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
+        if (self.__apply_move_mode == self.__apply_battle_mode
+                and context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS):
+            context.post_event(name='change_mode', old='battle', new='move')
             self.__apply_mode = self.__apply_move_mode
             self.__last_change_mode = context.world.tick_index
 
