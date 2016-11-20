@@ -121,7 +121,7 @@ def has_near_friend(position, units, my_faction):
 
 
 def filter_near_units(position, units):
-    return (v for v in units if position.distance(v.position) < ZONE_SIZE)
+    return (v for v in units if position.distance(v.position) <= ZONE_SIZE)
 
 
 def has_near_units(position, units):
