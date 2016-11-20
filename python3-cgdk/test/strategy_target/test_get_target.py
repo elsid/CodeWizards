@@ -101,7 +101,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1051.5829558505075, 997.55668151585792),
+            Point(1008.7003105766321, 998.75084650994177),
         ),
         (
             Minion(
@@ -123,7 +123,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1051.5829558505075, 997.55668151585792)
+            Point(1008.7003105766321, 998.75084650994177),
         ),
         (
             Minion(
@@ -145,7 +145,7 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1653.6754608821461, 1547.2756759298193),
+            Point(1690.1666804835595, 1710.0807104067385),
         ),
     ]
 )
@@ -242,7 +242,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(1047.5164604416959, 999.13978474794214),
+            Point(1008.7003105766321, 998.75084650994177),
         ),
         (
             [
@@ -294,7 +294,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1159.1590698060247, 938.55640833425775),
+            Point(1404.6875, 531.25),
         ),
         (
             [
@@ -346,7 +346,7 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1159.1590698060247, 938.55640833425775),
+            Point(1404.6875, 531.25),
         ),
     ]
 )
@@ -480,7 +480,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1050.996433138911, 1083.6660088334518),
+            Point(1050.1523807348231, 1056.0676199122199),
         ),
         (
             [
@@ -522,7 +522,7 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1172.8072125203357, 1154.8159611571925),
+            Point(1253.1420997988896, 1203.2235106844803),
         ),
     ]
 )
