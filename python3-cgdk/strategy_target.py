@@ -44,7 +44,11 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     enemy_wizards = tuple(filter_max_distance(filter_enemies(wizards)))
     bonuses = tuple(filter_max_distance(bonuses))
     if not enemy_buildings and not enemy_minions and not enemy_wizards and not bonuses:
-        return None, None
+        trees = tuple(v for v in trees if my_position.distance(v.position) < 1.2 * me.radius + v.radius)
+        if not trees:
+            return None, None
+        target = min(trees, key=lambda v: v.life)
+        return target, target.position
     get_damage = make_get_damage(magic_missile_direct_damage)
 
     def target_penalty(unit):

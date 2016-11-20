@@ -26,6 +26,7 @@ from test.common import (
     ORC_WOODCUTTER_ATTACK_RANGE,
     ORC_WOODCUTTER_DAMAGE,
     ORC_WOODCUTTER_MAX_LIFE,
+    TREE_RADIUS,
     WIZARD_CAST_RANGE,
     WIZARD_MAX_LIFE,
     WIZARD_RADIUS,
@@ -374,26 +375,26 @@ def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_ta
 
 
 def test_get_target_with_me_and_tree():
+    tree = Tree(
+        id=None,
+        x=1100,
+        y=1100,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.OTHER,
+        radius=TREE_RADIUS,
+        life=None,
+        max_life=None,
+        statuses=None,
+    )
+    setattr(tree, 'position', Point(tree.x, tree.y))
     assert (None, None) == get_target(
         me=WIZARD,
         buildings=tuple(),
         minions=tuple(),
         wizards=[WIZARD],
-        trees=[
-            Tree(
-                id=None,
-                x=1100,
-                y=1100,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.OTHER,
-                radius=None,
-                life=None,
-                max_life=None,
-                statuses=None,
-            ),
-        ],
+        trees=[tree],
         projectiles=tuple(),
         bonuses=tuple(),
         guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
@@ -404,6 +405,40 @@ def test_get_target_with_me_and_tree():
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         map_size=MAP_SIZE,
     )
+
+
+def test_get_target_with_me_and_nearby_tree():
+    tree = Tree(
+        id=2,
+        x=WIZARD.x + WIZARD_RADIUS + TREE_RADIUS + 1,
+        y=WIZARD.y,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.OTHER,
+        radius=TREE_RADIUS,
+        life=100,
+        max_life=None,
+        statuses=None,
+    )
+    setattr(tree, 'position', Point(tree.x, tree.y))
+    target, position = get_target(
+        me=WIZARD,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=[WIZARD],
+        trees=[tree],
+        projectiles=tuple(),
+        bonuses=tuple(),
+        guardian_tower_attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
+        faction_base_attack_range=FACTION_BASE_ATTACK_RANGE,
+        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
+        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
+        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
+        magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        map_size=MAP_SIZE,
+    )
+    assert (target.id, position) == (2, tree.position)
 
 
 def test_get_target_with_me_and_bonus():
@@ -435,6 +470,7 @@ def test_get_target_with_me_and_bonus():
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         map_size=MAP_SIZE,
     )
+    assert target.position.distance(position) <= bonus.radius + WIZARD_RADIUS
     assert (target.id, position) == (2, Point(1099.9999654385429, 1100.0000372327122))
 
 
