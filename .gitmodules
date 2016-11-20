@@ -4,3 +4,6 @@
 [submodule "local-runner-ru"]
 	path = local-runner-ru
 	url = git@github.com:Russian-AI-Cup-2016/local-runner-ru.git
+[submodule "python3-cgdk-origin"]
+	path = python3-cgdk-origin
+	url = git@github.com:Russian-AI-Cup-2016/python3-cgdk.git
