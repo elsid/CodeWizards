@@ -52,7 +52,7 @@ class Context:
         self.__start = time()
         self.post_event(name='start', x=self.me.x, y=self.me.y, angle=self.me.angle,
                         speed_x=self.me.speed_x, speed_y=self.me.speed_y, life=self.me.life,
-                        owner_player_id=self.me.owner_player_id)
+                        owner_player_id=self.me.owner_player_id, random_seed=self.game.random_seed)
         return self
 
     def __exit__(self, *_):
