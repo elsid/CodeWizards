@@ -20,15 +20,16 @@ OPTIMIZE_MOVEMENT_STEP_SIZE = 20
 OPTIMIZE_MOVEMENT_TICKS = 10
 UPDATE_TARGET_TICKS = 10
 MAX_TIME = 0.3
-CACHE_TTL_BONUSES = 100
-CACHE_TTL_BUILDINGS = 200
-CACHE_TTL_TREES = 200
+CACHE_TTL_BONUSES = 2500
+CACHE_TTL_BUILDINGS = 2500
+CACHE_TTL_TREES = 2500
 CACHE_TTL_WIZARDS = 30
 CACHE_TTL_MINIONS = 30
 CACHE_TTL_PROJECTILES = 10
 LOST_TARGET_TICKS = 5
 GET_TARGET_MAX_ITERATIONS = 10
 UPDATE_DESTINATION_TICKS = 50
+CHANGE_MODE_TICKS = 500
 
 
 class Context:
@@ -106,6 +107,7 @@ class Strategy(LazyInit):
         self.__path = list()
         self.__next_node = 0
         self.__apply_mode = self.__apply_move_mode
+        self.__last_change_mode = 0
 
     @lazy_init
     def move(self, context: Context):
@@ -158,6 +160,35 @@ class Strategy(LazyInit):
 
     def __update_cache(self, context: Context):
         context.post_event(name='update_cache')
+        if context.world.tick_index and context.world.tick_index % 2500 == 0:
+            bonus1 = Bonus(
+                id=-1,
+                x=1200,
+                y=1200,
+                speed_x=None,
+                speed_y=None,
+                angle=None,
+                faction=None,
+                radius=context.game.bonus_radius,
+                type=None,
+            )
+            setattr(bonus1, 'last_seen', context.world.tick_index)
+            setattr(bonus1, 'position', Point(bonus1.x, bonus1.y))
+            self.__cached_bonuses[-1] = bonus1
+            bonus2 = Bonus(
+                id=-2,
+                x=context.game.map_size - 1200,
+                y=context.game.map_size - 1200,
+                speed_x=None,
+                speed_y=None,
+                angle=None,
+                faction=None,
+                radius=context.game.bonus_radius,
+                type=None,
+            )
+            setattr(bonus2, 'last_seen', context.world.tick_index)
+            setattr(bonus2, 'position', Point(bonus2.x, bonus2.y))
+            self.__cached_bonuses[-2] = bonus2
         for v in context.world.buildings:
             self.__cached_buildings[v.id] = v
         for v in context.world.minions:
@@ -197,6 +228,9 @@ class Strategy(LazyInit):
     def __apply_battle_mode(self, context: Context):
         context.post_event(name='apply_battle_mode')
         self.__update_target(context)
+        if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
+            self.__apply_mode = self.__apply_move_mode
+            self.__last_change_mode = context.world.tick_index
 
     def __apply_move_mode(self, context: Context):
         context.post_event(name='apply_move_mode')
