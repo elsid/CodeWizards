@@ -174,26 +174,6 @@ def reconstruct_path(came_from, position):
         yield position
 
 
-def calculate_priority(state: State, target: Point, look_target: Point):
-    direction = Point(1, 0).rotate(state.angle)
-    target_direction = ((look_target - state.position).normalized()
-                        if look_target != state.position else direction)
-    return (
-        target.distance(state.position)
-        * (1 + direction.distance(target_direction))
-    )
-
-
-def iter_movements(values, step_sizes):
-    for v, step_size in zip(chunks(values, PARAMETERS_COUNT), step_sizes):
-        yield Movement(speed=v[0], strafe_speed=v[1], turn=v[2], step_size=step_size)
-
-
-def chunks(values, size: int):
-    for i in range(0, len(values), size):
-        yield values[i:i + size]
-
-
 class Bounds:
     def __init__(self, wizard_forward_speed, wizard_backward_speed, wizard_strafe_speed, wizard_max_turn_angle):
         self.wizard_forward_speed = wizard_forward_speed
