@@ -8,6 +8,8 @@ from model.Bonus import Bonus
 from model.Faction import Faction
 from model.Game import Game
 from model.Move import Move
+from model.SkillType import SkillType
+from model.StatusType import StatusType
 from model.Wizard import Wizard
 from model.World import World
 
@@ -31,6 +33,49 @@ LOST_TARGET_TICKS = 5
 GET_TARGET_MAX_ITERATIONS = 10
 UPDATE_DESTINATION_TICKS = 50
 CHANGE_MODE_TICKS = 100
+ACTION_TYPES_NAMES = {
+    ActionType.NONE: 'NONE',
+    ActionType.STAFF: 'STAFF',
+    ActionType.MAGIC_MISSILE: 'MAGIC_MISSILE',
+    ActionType.FROST_BOLT: 'FROST_BOLT',
+    ActionType.FIREBALL: 'FIREBALL',
+    ActionType.HASTE: 'HASTE',
+    ActionType.SHIELD: 'SHIELD',
+}
+SKILL_TYPES_NAMES = {
+    SkillType.RANGE_BONUS_PASSIVE_1: 'RANGE_BONUS_PASSIVE_1',
+    SkillType.RANGE_BONUS_AURA_1: 'RANGE_BONUS_AURA_1',
+    SkillType.RANGE_BONUS_PASSIVE_2: 'RANGE_BONUS_PASSIVE_2',
+    SkillType.RANGE_BONUS_AURA_2: 'RANGE_BONUS_AURA_2',
+    SkillType.ADVANCED_MAGIC_MISSILE: 'ADVANCED_MAGIC_MISSILE',
+    SkillType.MAGICAL_DAMAGE_BONUS_PASSIVE_1: 'MAGICAL_DAMAGE_BONUS_PASSIVE_1',
+    SkillType.MAGICAL_DAMAGE_BONUS_AURA_1: 'MAGICAL_DAMAGE_BONUS_AURA_1',
+    SkillType.MAGICAL_DAMAGE_BONUS_PASSIVE_2: 'MAGICAL_DAMAGE_BONUS_PASSIVE_2',
+    SkillType.MAGICAL_DAMAGE_BONUS_AURA_2: 'MAGICAL_DAMAGE_BONUS_AURA_2',
+    SkillType.FROST_BOLT: 'FROST_BOLT',
+    SkillType.STAFF_DAMAGE_BONUS_PASSIVE_1: 'STAFF_DAMAGE_BONUS_PASSIVE_1',
+    SkillType.STAFF_DAMAGE_BONUS_AURA_1: 'STAFF_DAMAGE_BONUS_AURA_1',
+    SkillType.STAFF_DAMAGE_BONUS_PASSIVE_2: 'STAFF_DAMAGE_BONUS_PASSIVE_2',
+    SkillType.STAFF_DAMAGE_BONUS_AURA_2: 'STAFF_DAMAGE_BONUS_AURA_2',
+    SkillType.FIREBALL: 'FIREBALL',
+    SkillType.MOVEMENT_BONUS_FACTOR_PASSIVE_1: 'MOVEMENT_BONUS_FACTOR_PASSIVE_1',
+    SkillType.MOVEMENT_BONUS_FACTOR_AURA_1: 'MOVEMENT_BONUS_FACTOR_AURA_1',
+    SkillType.MOVEMENT_BONUS_FACTOR_PASSIVE_2: 'MOVEMENT_BONUS_FACTOR_PASSIVE_2',
+    SkillType.MOVEMENT_BONUS_FACTOR_AURA_2: 'MOVEMENT_BONUS_FACTOR_AURA_2',
+    SkillType.HASTE: 'HASTE',
+    SkillType.MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1: 'MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1',
+    SkillType.MAGICAL_DAMAGE_ABSORPTION_AURA_1: 'MAGICAL_DAMAGE_ABSORPTION_AURA_1',
+    SkillType.MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2: 'MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2',
+    SkillType.MAGICAL_DAMAGE_ABSORPTION_AURA_2: 'MAGICAL_DAMAGE_ABSORPTION_AURA_2',
+    SkillType.SHIELD: 'SHIELD',
+}
+STATUS_TYPES_NAMES = {
+    StatusType.BURNING: 'BURNING',
+    StatusType.EMPOWERED: 'EMPOWERED',
+    StatusType.FROZEN: 'FROZEN',
+    StatusType.HASTENED: 'HASTENED',
+    StatusType.SHIELDED: 'SHIELDED',
+}
 
 
 class Context:
@@ -51,9 +96,32 @@ class Context:
 
     def __enter__(self):
         self.__start = time()
-        self.post_event(name='start', x=self.me.x, y=self.me.y, angle=self.me.angle,
-                        speed_x=self.me.speed_x, speed_y=self.me.speed_y, life=self.me.life,
-                        owner_player_id=self.me.owner_player_id, random_seed=self.game.random_seed)
+        self.post_event(
+            name='start',
+            x=self.me.x,
+            y=self.me.y,
+            angle=self.me.angle,
+            speed_x=self.me.speed_x,
+            speed_y=self.me.speed_y,
+            life=self.me.life,
+            owner_player_id=self.me.owner_player_id,
+            random_seed=self.game.random_seed,
+            remaining_action_cooldown_ticks=self.me.remaining_action_cooldown_ticks,
+            remaining_cooldown_ticks_by_action={ACTION_TYPES_NAMES.get(i, str(i)): v for i, v in
+                                                enumerate(self.me.remaining_cooldown_ticks_by_action)},
+            mana=self.me.mana,
+            max_mana=self.me.max_mana,
+            vision_range=self.me.vision_range,
+            cast_range=self.me.cast_range,
+            xp=self.me.xp,
+            level=self.me.level,
+            skills=sorted(SKILL_TYPES_NAMES.get(v, str(v)) for v in self.me.skills),
+            master=self.me.master,
+            messages=self.me.messages,
+            max_life=self.me.max_life,
+            statuses={STATUS_TYPES_NAMES.get(v.type, str(v.type)): v.remaining_duration_ticks
+                      for v in self.me.statuses},
+        )
         return self
 
     def __exit__(self, *_):
