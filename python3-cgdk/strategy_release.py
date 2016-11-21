@@ -446,7 +446,7 @@ class Strategy(LazyInit):
         self.__states, self.__movements = optimize_movement(
             target=self.__target_position,
             look_target=self.__target.position if self.__target else self.__target_position,
-            circular_unit=context.me,
+            me=context.me,
             buildings=tuple(self.__cached_buildings.values()),
             minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
             wizards=tuple(v for v in self.__cached_wizards.values() if is_recently_seen(v)),
@@ -458,6 +458,8 @@ class Strategy(LazyInit):
             map_size=context.game.map_size,
             step_size=OPTIMIZE_MOVEMENT_STEP_SIZE,
             max_barriers_range=context.me.vision_range,
+            hastened_movement_bonus_factor=context.game.hastened_movement_bonus_factor,
+            hastened_rotation_bonus_factor=context.game.hastened_rotation_bonus_factor,
             max_time=context.time_left(),
         )
         self.__last_update_movements_tick_index = context.world.tick_index

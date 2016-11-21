@@ -1,12 +1,17 @@
 import pytest
 
-from model.CircularUnit import CircularUnit
-from model.Tree import Tree
 from model.Minion import Minion
+from model.Status import Status
+from model.StatusType import StatusType
+from model.Tree import Tree
+from model.Wizard import Wizard
 
 from strategy_move import optimize_movement, Point, State
 
 from test.common import (
+    HASTENED_MOVEMENT_BONUS_FACTOR,
+    HASTENED_ROTATION_BONUS_FACTOR,
+    HASTENED_DURATION_TICKS,
     MAP_SIZE,
     MINION_RADIUS,
     TREE_RADIUS,
@@ -17,26 +22,43 @@ from test.common import (
     WIZARD_STRAFE_SPEED,
 )
 
+POSITION = Point(100, 100)
+TARGET = Point(300, 300)
+WIZARD = Wizard(
+    id=1,
+    x=POSITION.x,
+    y=POSITION.y,
+    speed_x=None,
+    speed_y=None,
+    angle=(TARGET - POSITION).absolute_rotation(),
+    faction=None,
+    radius=WIZARD_RADIUS,
+    life=None,
+    max_life=None,
+    statuses=tuple(),
+    owner_player_id=None,
+    me=None,
+    mana=None,
+    max_mana=None,
+    vision_range=None,
+    cast_range=None,
+    xp=None,
+    level=None,
+    skills=None,
+    remaining_action_cooldown_ticks=None,
+    remaining_cooldown_ticks_by_action=None,
+    master=None,
+    messages=None,
+)
+setattr(WIZARD, 'position', Point(WIZARD.x, WIZARD.y))
+
 
 def test_optimize_movement():
-    position = Point(100, 100)
-    target = Point(300, 300)
-    angle = (target - position).absolute_rotation()
-    circular_unit = CircularUnit(
-        id=None,
-        x=position.x,
-        y=position.y,
-        speed_x=None,
-        speed_y=None,
-        angle=angle,
-        faction=None,
-        radius=1,
-    )
-    set_position(circular_unit)
+    set_position(WIZARD)
     states, movements = optimize_movement(
-        target=target,
-        look_target=target,
-        circular_unit=circular_unit,
+        target=TARGET,
+        look_target=TARGET,
+        me=WIZARD,
         buildings=tuple(),
         minions=tuple(),
         wizards=tuple(),
@@ -48,6 +70,8 @@ def test_optimize_movement():
         map_size=MAP_SIZE,
         step_size=3,
         max_barriers_range=1000,
+        hastened_movement_bonus_factor=HASTENED_MOVEMENT_BONUS_FACTOR,
+        hastened_rotation_bonus_factor=HASTENED_ROTATION_BONUS_FACTOR,
     )
     assert states[-1] == State(
         position=Point(297.9898987322333, 297.9898987322333),
@@ -59,22 +83,104 @@ def test_optimize_movement():
     assert len(movements) == 70
 
 
-def test_optimize_movement_with_static_barriers():
-    position = Point(100, 100)
-    target = Point(300, 300)
-    angle = (target - position).absolute_rotation()
-    circular_unit = CircularUnit(
-        id=None,
-        x=position.x,
-        y=position.y,
+@pytest.mark.parametrize(
+    ('remaining_duration_ticks', 'final_state', 'states_count', 'movements_count'), [
+        (
+            0,
+            State(
+                position=Point(297.9467179507658, 297.95151131235906),
+                angle=0.7842295560522802,
+                path_length=279.94940459077685,
+                intersection=False,
+            ),
+            71,
+            70,
+        ),
+        (
+            10,
+            State(
+                position=Point(297.94239244847984, 297.94754578276445),
+                angle=0.7841443302742515,
+                path_length=279.9442650377665,
+                intersection=False,
+            ),
+            68,
+            67,
+        ),
+        (
+            HASTENED_DURATION_TICKS,
+            State(
+                position=Point(298.50878670370963, 298.51252148811966),
+                angle=0.7841443302742576,
+                path_length=280.7442650377662,
+                intersection=False,
+            ),
+            55,
+            54,
+        ),
+    ]
+)
+def test_optimize_movement_with_hastened(remaining_duration_ticks, final_state, states_count, movements_count):
+    wizard = Wizard(
+        id=1,
+        x=POSITION.x,
+        y=POSITION.y,
         speed_x=None,
         speed_y=None,
-        angle=angle,
+        angle=1,
         faction=None,
         radius=WIZARD_RADIUS,
+        life=None,
+        max_life=None,
+        statuses=[
+            Status(
+                id=None,
+                type=StatusType.HASTENED,
+                wizard_id=None,
+                player_id=None,
+                remaining_duration_ticks=remaining_duration_ticks,
+            ),
+        ],
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=None,
+        cast_range=None,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
     )
-    set_position(circular_unit)
-    tree_position = position + Point(WIZARD_RADIUS + TREE_RADIUS + 10, WIZARD_RADIUS + TREE_RADIUS + 10)
+    setattr(wizard, 'position', Point(wizard.x, wizard.y))
+    states, movements = optimize_movement(
+        target=TARGET,
+        look_target=TARGET,
+        me=wizard,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=tuple(),
+        trees=tuple(),
+        wizard_forward_speed=WIZARD_FORWARD_SPEED,
+        wizard_backward_speed=WIZARD_BACKWARD_SPEED,
+        wizard_strafe_speed=WIZARD_STRAFE_SPEED,
+        wizard_max_turn_angle=WIZARD_MAX_TURN_ANGLE,
+        map_size=MAP_SIZE,
+        step_size=3,
+        max_barriers_range=1000,
+        hastened_movement_bonus_factor=HASTENED_MOVEMENT_BONUS_FACTOR,
+        hastened_rotation_bonus_factor=HASTENED_ROTATION_BONUS_FACTOR,
+    )
+    assert states[-1] == final_state
+    assert len(states) == states_count
+    assert len(movements) == movements_count
+
+
+def test_optimize_movement_with_static_barriers():
+    tree_position = POSITION + Point(WIZARD_RADIUS + TREE_RADIUS + 10, WIZARD_RADIUS + TREE_RADIUS + 10)
     trees = [
         Tree(
             id=None,
@@ -93,9 +199,9 @@ def test_optimize_movement_with_static_barriers():
     for tree in trees:
         set_position(tree)
     states, movements = optimize_movement(
-        target=target,
-        look_target=target,
-        circular_unit=circular_unit,
+        target=TARGET,
+        look_target=TARGET,
+        me=WIZARD,
         buildings=tuple(),
         minions=tuple(),
         wizards=tuple(),
@@ -107,6 +213,8 @@ def test_optimize_movement_with_static_barriers():
         map_size=MAP_SIZE,
         step_size=3,
         max_barriers_range=1000,
+        hastened_movement_bonus_factor=HASTENED_MOVEMENT_BONUS_FACTOR,
+        hastened_rotation_bonus_factor=HASTENED_ROTATION_BONUS_FACTOR,
     )
     assert states[-1] == State(
         position=Point(294.3365054368041, 300.90120747414716),
@@ -148,20 +256,7 @@ def test_optimize_movement_with_static_barriers():
 )
 def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed,
                                                  expected_final_state, expected_states, expected_movements):
-    position = Point(100, 100)
-    target = Point(300, 300)
-    angle = (target - position).absolute_rotation()
-    circular_unit = CircularUnit(
-        id=None,
-        x=position.x,
-        y=position.y,
-        speed_x=None,
-        speed_y=None,
-        angle=angle,
-        faction=None,
-        radius=WIZARD_RADIUS,
-    )
-    set_position(circular_unit)
+    set_position(WIZARD)
     minion = Minion(
         id=1,
         x=minion_position.x,
@@ -183,9 +278,9 @@ def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed,
     set_position(minion)
     setattr(minion, 'mean_speed', minion_speed)
     states, movements = list(optimize_movement(
-        target=target,
-        look_target=target,
-        circular_unit=circular_unit,
+        target=TARGET,
+        look_target=TARGET,
+        me=WIZARD,
         buildings=tuple(),
         minions=[minion],
         wizards=tuple(),
@@ -197,6 +292,8 @@ def test_optimize_movement_with_dynamic_barriers(minion_position, minion_speed,
         map_size=MAP_SIZE,
         step_size=3,
         max_barriers_range=1000,
+        hastened_movement_bonus_factor=HASTENED_MOVEMENT_BONUS_FACTOR,
+        hastened_rotation_bonus_factor=HASTENED_ROTATION_BONUS_FACTOR,
     ))
     assert states[-1] == expected_final_state
     assert len(states) == expected_states

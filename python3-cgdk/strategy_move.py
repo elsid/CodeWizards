@@ -4,6 +4,8 @@ from itertools import chain
 from math import hypot, sin, cos, pi
 from time import time
 
+from model.StatusType import StatusType
+
 from strategy_common import Point, Circle, normalize_angle
 
 Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn', 'step_size'))
@@ -12,32 +14,36 @@ State = namedtuple('State', ('position', 'angle', 'path_length', 'intersection')
 PARAMETERS_COUNT = 3
 
 
-def optimize_movement(target, look_target, circular_unit, buildings, minions, wizards, trees,
+def optimize_movement(target, look_target, me, buildings, minions, wizards, trees,
                       wizard_forward_speed, wizard_backward_speed, wizard_strafe_speed, wizard_max_turn_angle,
-                      map_size, step_size, max_barriers_range, max_time=None):
+                      map_size, step_size, max_barriers_range, hastened_movement_bonus_factor,
+                      hastened_rotation_bonus_factor, max_time=None):
 
     def is_unit_in_range(unit):
-        return circular_unit.position.distance(unit.position) <= max_barriers_range
+        return me.position.distance(unit.position) <= max_barriers_range
 
     bounds = Bounds(
         wizard_forward_speed=wizard_forward_speed,
         wizard_backward_speed=wizard_backward_speed,
         wizard_strafe_speed=wizard_strafe_speed,
         wizard_max_turn_angle=wizard_max_turn_angle,
+        hastened_ticks=next((v.remaining_duration_ticks for v in me.statuses if v.type == StatusType.HASTENED), 0),
+        hastened_movement_bonus_factor=hastened_movement_bonus_factor,
+        hastened_rotation_bonus_factor=hastened_rotation_bonus_factor,
     )
-    wizards = (v for v in wizards if v.id != circular_unit.id)
+    wizards = (v for v in wizards if v.id != me.id)
     dynamic_units = tuple(chain(wizards, minions))
     static_barriers = list(chain(
         make_circles(v for v in buildings if is_unit_in_range(v)),
         make_circles(v for v in trees if is_unit_in_range(v)),
     ))
-    position = circular_unit.position
-    angle = normalize_angle(circular_unit.angle)
+    position = me.position
+    angle = normalize_angle(me.angle)
     states = [State(position=position, angle=angle, path_length=0, intersection=False)]
     path = get_shortest_path(
         target=target,
         position=position,
-        radius=circular_unit.radius,
+        radius=me.radius,
         step_size=step_size,
         map_size=map_size,
         static_barriers=static_barriers,
@@ -51,22 +57,25 @@ def optimize_movement(target, look_target, circular_unit, buildings, minions, wi
     movements = list()
     path_length = 0
     path = tuple(path)
+    tick = 0
     for path_position in reversed(path):
-        while position.distance(path_position) > bounds.max_speed:
+        while position.distance(path_position) > bounds.max_speed(tick):
             speed, strafe_speed, turn = get_speed_and_turn_to_point(
                 position=position,
                 angle=angle,
                 target=path_position,
                 bounds=bounds,
+                tick=tick,
             )
             if look_target:
-                turn = limit_turn(normalize_angle((look_target - position).absolute_rotation() - angle), bounds)
+                turn = limit_turn(normalize_angle((look_target - position).absolute_rotation() - angle), bounds, tick)
             shift, turn = get_shift_and_turn(
                 angle=angle,
                 bounds=bounds,
                 speed=speed,
                 strafe_speed=strafe_speed,
                 turn=turn,
+                tick=tick,
             )
             position += shift
             angle = normalize_angle(angle + turn)
@@ -78,6 +87,7 @@ def optimize_movement(target, look_target, circular_unit, buildings, minions, wi
                 intersection=False,
             ))
             movements.append(Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=1))
+            tick += 1
     return states, movements
 
 
@@ -175,73 +185,39 @@ def reconstruct_path(came_from, position):
 
 
 class Bounds:
-    def __init__(self, wizard_forward_speed, wizard_backward_speed, wizard_strafe_speed, wizard_max_turn_angle):
+    def __init__(self, wizard_forward_speed, wizard_backward_speed, wizard_strafe_speed, wizard_max_turn_angle,
+                 hastened_ticks, hastened_movement_bonus_factor, hastened_rotation_bonus_factor):
         self.wizard_forward_speed = wizard_forward_speed
         self.wizard_backward_speed = wizard_backward_speed
         self.wizard_strafe_speed = wizard_strafe_speed
         self.wizard_max_turn_angle = wizard_max_turn_angle
+        self.hastened_ticks = hastened_ticks
+        self.hastened_movement_bonus_factor = hastened_movement_bonus_factor
+        self.hastened_rotation_bonus_factor = hastened_rotation_bonus_factor
 
-    @property
-    def max_speed(self):
-        # TODO: use skills
-        return self.wizard_forward_speed
+    def max_speed(self, tick):
+        return self.wizard_forward_speed * self.movement_bonus_factor(tick)
 
-    @property
-    def min_speed(self):
-        # TODO: use skills
-        return -self.wizard_backward_speed
+    def min_speed(self, tick):
+        return -self.wizard_backward_speed * self.movement_bonus_factor(tick)
 
-    @property
-    def max_strafe_speed(self):
-        # TODO: use skills
-        return self.wizard_strafe_speed
+    def max_strafe_speed(self, tick):
+        return self.wizard_strafe_speed * self.movement_bonus_factor(tick)
 
-    @property
-    def min_strafe_speed(self):
-        # TODO: use skills
-        return -self.wizard_strafe_speed
+    def min_strafe_speed(self, tick):
+        return -self.wizard_strafe_speed * self.movement_bonus_factor(tick)
 
-    @property
-    def max_turn(self):
-        # TODO: use skills
-        return self.wizard_max_turn_angle
+    def max_turn(self, tick):
+        return self.wizard_max_turn_angle * self.rotation_bonus_factor(tick)
 
-    @property
-    def min_turn(self):
-        # TODO: use skills
-        return -self.wizard_max_turn_angle
+    def min_turn(self, tick):
+        return -self.wizard_max_turn_angle * self.rotation_bonus_factor(tick)
 
+    def movement_bonus_factor(self, tick):
+        return 1 + (self.hastened_movement_bonus_factor if tick < self.hastened_ticks else 0)
 
-def simulate_move(movements, state: State, radius: float, bounds: Bounds, barriers, map_size: float):
-    if state.intersection:
-        return
-    barrier = Circle(state.position, radius)
-    position = state.position
-    angle = state.angle
-    path_length = state.path_length
-    for movement in movements:
-        new_position = position
-        new_angle = angle
-        barrier.position = new_position
-        for _ in range(movement.step_size):
-            shift, turn = get_shift_and_turn(
-                angle=new_angle,
-                bounds=bounds,
-                speed=movement.speed,
-                strafe_speed=movement.strafe_speed,
-                turn=movement.turn,
-            )
-            new_position += shift
-            new_angle = normalize_angle(new_angle + turn)
-        intersection = (
-            has_intersection_with_borders(barrier, map_size) or
-            has_intersection_with_barriers(barrier, new_position, barriers)
-        )
-        if not intersection:
-            path_length += position.distance(new_position)
-            position = new_position
-            angle = new_angle
-        yield State(position=position, angle=angle, path_length=path_length, intersection=intersection)
+    def rotation_bonus_factor(self, tick):
+        return 1 + (self.hastened_rotation_bonus_factor if tick < self.hastened_ticks else 0)
 
 
 def has_intersection_with_borders(circle: Circle, map_size):
@@ -259,23 +235,23 @@ def has_intersection_with_barriers(circle: Circle, next_position: Point, barrier
                  if barrier.has_intersection_with_moving_circle(circle, next_position)), False)
 
 
-def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float):
-    speed, strafe_speed = limit_speed(speed, strafe_speed, bounds)
-    turn = limit_turn(turn, bounds)
+def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed: float, turn: float, tick: int):
+    speed, strafe_speed = limit_speed(speed, strafe_speed, bounds, tick)
+    turn = limit_turn(turn, bounds, tick)
     speed_direction = Point(1, 0).rotate(angle)
     strafe_speed_direction = speed_direction.left_orthogonal()
     return speed_direction * speed + strafe_speed_direction * strafe_speed, turn
 
 
-def limit_speed(speed: float, strafe_speed: float, bounds: Bounds):
-    speed = min(bounds.max_speed, max(bounds.min_speed, speed))
-    strafe_speed = min(bounds.max_strafe_speed, max(bounds.min_strafe_speed, strafe_speed))
-    both = hypot(speed / bounds.max_speed, strafe_speed / bounds.max_strafe_speed)
+def limit_speed(speed: float, strafe_speed: float, bounds: Bounds, tick: int):
+    speed = min(bounds.max_speed(tick), max(bounds.min_speed(tick), speed))
+    strafe_speed = min(bounds.max_strafe_speed(tick), max(bounds.min_strafe_speed(tick), strafe_speed))
+    both = hypot(speed / bounds.max_speed(tick), strafe_speed / bounds.max_strafe_speed(tick))
     return (speed / both, strafe_speed / both) if both > 1.0 else (speed, strafe_speed)
 
 
-def limit_turn(value: float, bounds: Bounds):
-    return min(bounds.max_turn, max(bounds.min_turn, value))
+def limit_turn(value: float, bounds: Bounds, tick: int):
+    return min(bounds.max_turn(tick), max(bounds.min_turn(tick), value))
 
 
 def make_circles(values):
@@ -283,16 +259,16 @@ def make_circles(values):
         yield Circle(position=value.position, radius=value.radius)
 
 
-def get_speed_and_turn_to_point(position: Point, angle, target: Point, bounds: Bounds):
+def get_speed_and_turn_to_point(position: Point, angle, target: Point, bounds: Bounds, tick: int):
     direction = target - position
     norm = direction.norm()
     if norm == 0:
         return 0, 0, 0
     turn = normalize_angle(direction.absolute_rotation() - angle)
-    speed = bounds.max_speed * cos(turn) if abs(turn) <= pi / 2 else -bounds.min_speed * cos(turn)
-    strafe_speed = bounds.max_strafe_speed * sin(turn)
+    speed = bounds.max_speed(tick) * cos(turn) if abs(turn) <= pi / 2 else -bounds.min_speed(tick) * cos(turn)
+    strafe_speed = bounds.max_strafe_speed(tick) * sin(turn)
     ratio = min(1, direction.norm() / hypot(speed, strafe_speed))
-    return speed * ratio, strafe_speed * ratio, limit_turn(turn, bounds)
+    return speed * ratio, strafe_speed * ratio, limit_turn(turn, bounds, tick)
 
 
 def make_dynamic_units_barriers(positions, units):
