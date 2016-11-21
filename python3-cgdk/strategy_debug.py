@@ -1,6 +1,5 @@
 from operator import itemgetter
 
-from strategy_path import ZONE_SIZE
 from strategy_release import Strategy as ReleaseStrategy, Context
 from debug.client import DebugClient
 

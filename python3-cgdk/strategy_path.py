@@ -6,12 +6,9 @@ from heapq import heappop, heappush
 from strategy_common import Point
 from strategy_target import is_enemy
 
-RESOLUTION = 400
-ZONE_SIZE = 1.5 * RESOLUTION
-
 Node = namedtuple('Node', ('position', 'arcs'))
 Arc = namedtuple('Arc', ('dst', 'weight'))
-Graph = namedtuple('Graph', ('nodes', 'center'))
+Graph = namedtuple('Graph', ('nodes', 'center', 'zone_size'))
 
 
 def make_graph(map_size):
@@ -21,10 +18,11 @@ def make_graph(map_size):
     def add_node(x, y):
         nodes[x][y] = Node(Point(x, y), list())
 
-    half = RESOLUTION // 2
-    count = map_size // RESOLUTION
+    resolution = map_size // 10
+    half = resolution // 2
+    count = map_size // resolution
 
-    for shift in range(half, map_size, RESOLUTION):
+    for shift in range(half, map_size, resolution):
         add_node(half, map_size - shift)
         add_node(shift, map_size - half)
         add_node(shift, map_size - shift)
@@ -42,64 +40,70 @@ def make_graph(map_size):
         add_arc(src_x, src_y, dst_x, dst_y, weight)
         add_arc(dst_x, dst_y, src_x, src_y, weight)
 
-    for shift in range(half + RESOLUTION, map_size - 2 * RESOLUTION, RESOLUTION):
-        next_shift = shift + RESOLUTION
+    for shift in range(half + resolution, map_size - 2 * resolution, resolution):
+        next_shift = shift + resolution
         add_edge(shift, map_size - shift, next_shift, map_size - next_shift)
 
-    for shift in range(half, map_size - RESOLUTION, RESOLUTION):
-        next_shift = shift + RESOLUTION
+    for shift in range(half, map_size - resolution, resolution):
+        next_shift = shift + resolution
         add_edge(half, map_size - shift, half, map_size - next_shift)
         add_edge(shift, map_size - half, next_shift, map_size - half)
         add_edge(map_size - shift, map_size - shift, map_size - next_shift, map_size - next_shift)
         add_edge(map_size - half, shift, map_size - half, next_shift)
         add_edge(map_size - shift, half, map_size - next_shift, half)
 
-    add_edge(half + RESOLUTION, half + RESOLUTION, half + RESOLUTION, half)
-    add_edge(half + RESOLUTION, half + RESOLUTION, half, half + RESOLUTION)
-    add_edge(half + RESOLUTION, half + RESOLUTION, half + 2 * RESOLUTION, half)
-    add_edge(half + RESOLUTION, half + RESOLUTION, half, half + 2 * RESOLUTION)
+    add_edge(half + resolution, half + resolution, half + resolution, half)
+    add_edge(half + resolution, half + resolution, half, half + resolution)
+    add_edge(half + resolution, half + resolution, half + 2 * resolution, half)
+    add_edge(half + resolution, half + resolution, half, half + 2 * resolution)
 
-    add_edge(map_size - half - RESOLUTION, half + RESOLUTION, map_size - half - RESOLUTION, half)
-    add_edge(map_size - half - RESOLUTION, half + RESOLUTION, map_size - half, half + RESOLUTION)
-    add_edge(map_size - half - RESOLUTION, half + RESOLUTION, map_size - half - 2 * RESOLUTION, half)
-    add_edge(map_size - half - RESOLUTION, half + RESOLUTION, map_size - half, half + 2 * RESOLUTION)
+    add_edge(map_size - half - resolution, half + resolution, map_size - half - resolution, half)
+    add_edge(map_size - half - resolution, half + resolution, map_size - half, half + resolution)
+    add_edge(map_size - half - resolution, half + resolution, map_size - half - 2 * resolution, half)
+    add_edge(map_size - half - resolution, half + resolution, map_size - half, half + 2 * resolution)
 
-    add_edge(map_size - half - RESOLUTION, map_size - half - RESOLUTION,
-             map_size - half - RESOLUTION, map_size - half)
-    add_edge(map_size - half - RESOLUTION, map_size - half - RESOLUTION,
-             map_size - half, map_size - half - RESOLUTION)
-    add_edge(map_size - half - RESOLUTION, map_size - half - RESOLUTION,
-             map_size - half - 2 * RESOLUTION, map_size - half)
-    add_edge(map_size - half - RESOLUTION, map_size - half - RESOLUTION,
-             map_size - half, map_size - half - 2 * RESOLUTION)
+    add_edge(map_size - half - resolution, map_size - half - resolution,
+             map_size - half - resolution, map_size - half)
+    add_edge(map_size - half - resolution, map_size - half - resolution,
+             map_size - half, map_size - half - resolution)
+    add_edge(map_size - half - resolution, map_size - half - resolution,
+             map_size - half - 2 * resolution, map_size - half)
+    add_edge(map_size - half - resolution, map_size - half - resolution,
+             map_size - half, map_size - half - 2 * resolution)
 
-    add_edge(half + RESOLUTION, map_size - half - RESOLUTION, half, map_size - half - RESOLUTION)
-    add_edge(half + RESOLUTION, map_size - half - RESOLUTION, half + RESOLUTION, map_size - half)
-    add_edge(half + RESOLUTION, map_size - half - RESOLUTION, half, map_size - half - 2 * RESOLUTION)
-    add_edge(half + RESOLUTION, map_size - half - RESOLUTION, half + 2 * RESOLUTION, map_size - half)
+    add_edge(half + resolution, map_size - half - resolution, half, map_size - half - resolution)
+    add_edge(half + resolution, map_size - half - resolution, half + resolution, map_size - half)
+    add_edge(half + resolution, map_size - half - resolution, half, map_size - half - 2 * resolution)
+    add_edge(half + resolution, map_size - half - resolution, half + 2 * resolution, map_size - half)
 
-    add_edge(count // 2 * RESOLUTION + half, count // 2 * RESOLUTION + half,
-             count // 2 * RESOLUTION + half, count // 2 * RESOLUTION - half)
-    add_edge(count // 2 * RESOLUTION + half, count // 2 * RESOLUTION - half,
-             count // 2 * RESOLUTION - half, count // 2 * RESOLUTION - half)
-    add_edge(count // 2 * RESOLUTION - half, count // 2 * RESOLUTION - half,
-             count // 2 * RESOLUTION - half, count // 2 * RESOLUTION + half)
-    add_edge(count // 2 * RESOLUTION - half, count // 2 * RESOLUTION + half,
-             count // 2 * RESOLUTION + half, count // 2 * RESOLUTION + half)
+    add_edge(count // 2 * resolution + half, count // 2 * resolution + half,
+             count // 2 * resolution + half, count // 2 * resolution - half)
+    add_edge(count // 2 * resolution + half, count // 2 * resolution - half,
+             count // 2 * resolution - half, count // 2 * resolution - half)
+    add_edge(count // 2 * resolution - half, count // 2 * resolution - half,
+             count // 2 * resolution - half, count // 2 * resolution + half)
+    add_edge(count // 2 * resolution - half, count // 2 * resolution + half,
+             count // 2 * resolution + half, count // 2 * resolution + half)
 
     def generate():
         for v in nodes.values():
             for w in v.values():
                 yield w
 
-    return Graph(list(generate()), nodes[count // 2 * RESOLUTION - half][count // 2 * RESOLUTION + half])
+    return Graph(
+        nodes=list(generate()),
+        center=nodes[count // 2 * resolution - half][count // 2 * resolution + half],
+        zone_size=1.5 * resolution,
+    )
 
 
 def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses):
     units = tuple(chain(buildings, minions, wizards))
     nodes = graph.nodes
-    nodes_with_bonus = tuple(node for node in nodes if has_near_units(node.position, bonuses))
-    nodes_with_enemy = tuple(node for node in nodes if has_near_enemy(node.position, units, me.faction))
+    nodes_with_bonus = tuple(node for node in nodes
+                             if has_near_units(node.position, bonuses, graph.zone_size))
+    nodes_with_enemy = tuple(node for node in nodes
+                             if has_near_enemy(node.position, units, me.faction, graph.zone_size))
     nearest_node = get_nearest_node(nodes, me.position)
     if nodes_with_bonus and nodes_with_enemy:
         enemy = get_nearest_node_by_path(nodes_with_bonus, nearest_node)
@@ -112,20 +116,22 @@ def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses):
     return graph.center
 
 
-def has_near_enemy(position, units, my_faction):
-    return next((True for _ in filter_near_units(position, (v for v in units if is_enemy(v, my_faction)))), False)
+def has_near_enemy(position, units, my_faction, distance):
+    return next((True for _ in filter_near_units(position, (v for v in units if is_enemy(v, my_faction)), distance)),
+                False)
 
 
-def has_near_friend(position, units, my_faction):
-    return next((True for _ in filter_near_units(position, (v for v in units if v.faction == my_faction))), False)
+def has_near_friend(position, units, my_faction, distance):
+    return next((True for _ in filter_near_units(position, (v for v in units if v.faction == my_faction), distance)),
+                False)
 
 
-def filter_near_units(position, units):
-    return (v for v in units if position.distance(v.position) <= ZONE_SIZE)
+def filter_near_units(position, units, distance):
+    return (v for v in units if position.distance(v.position) <= distance)
 
 
-def has_near_units(position, units):
-    return next((True for _ in filter_near_units(position, units)), False)
+def has_near_units(position, units, distance):
+    return next((True for _ in filter_near_units(position, units, distance)), False)
 
 
 def get_nearest_node(nodes, my_position):
