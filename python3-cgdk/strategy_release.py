@@ -157,6 +157,10 @@ class Strategy(LazyInit):
     def path(self):
         return self.__path
 
+    @property
+    def next_node(self):
+        return self.__path[self.__next_node] if self.__next_node < len(self.__path) else None
+
     def _init_impl(self, context: Context):
         self.__graph = make_graph(context.game.map_size)
 

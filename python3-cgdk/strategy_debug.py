@@ -20,19 +20,20 @@ class Strategy:
         with self.__client.post() as post:
             self.__visualize_graph(post)
             self.__visualize_graph_path(post)
-            self.__visualize_target(context, post)
-            self.__visualize_target_position(context, post)
             self.__visualize_target_positions_penalties(post)
+            self.__visualize_states(context.world.tick_index, post)
+            self.__visualize_target(post)
+            self.__visualize_target_position(context, post)
 
-    def __visualize_target(self, context: Context, post):
+    def __visualize_target(self, post):
         target = self.__impl.target
         if target:
-            post.line(context.me.x, context.me.y, target.x, target.y, (1, 0, 1))
+            post.circle(target.x, target.y, target.radius + 10, (1, 0, 0))
 
     def __visualize_target_position(self, context: Context, post):
         target = self.__impl.target_position
         if target:
-            post.line(context.me.x, context.me.y, target.x, target.y, (0, 0, 0))
+            post.circle(context.me.x, context.me.y, 5, (0.2, 0.2, 0.2))
 
     @staticmethod
     def __visualize_path(post, path, color, radius):
@@ -59,7 +60,7 @@ class Strategy:
                     color = (4 * (normalized - 1 / 2), 1, 0)
                 else:
                     color = (1, 1 - 4 * (normalized - 3 / 4), 0)
-                post.fill_circle(point.x, point.y, 10, color)
+                post.fill_circle(point.x, point.y, 5, color)
 
     def __visualize_graph(self, post):
         graph = self.__impl.graph
@@ -74,3 +75,11 @@ class Strategy:
 
     def __visualize_graph_path(self, post):
         self.__visualize_path(post, (v.position for v in self.__impl.path), (0.2, 0.2, 0.2), 10)
+        next_node = self.__impl.next_node
+        if next_node:
+            post.circle(next_node.position.x, next_node.position.y, 20, (0.2, 0.2, 0.2))
+
+    def __visualize_states(self, tick, post):
+        shift = tick % 10
+        self.__visualize_path(post, (v.position for i, v in enumerate(self.__impl.states)
+                                     if (i + shift) % 10 == 0), (0.2, 0.75, 0), 5)
