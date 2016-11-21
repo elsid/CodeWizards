@@ -494,7 +494,13 @@ class Strategy(LazyInit):
         if not self.__target:
             return
 
+        def need_apply_staff():
+            return (context.me.remaining_cooldown_ticks_by_action[ActionType.STAFF] == 0
+                    and distance < self.__target.radius + context.game.staff_range)
+
         def need_apply_missile():
+            if context.me.remaining_cooldown_ticks_by_action[ActionType.MAGIC_MISSILE] != 0:
+                return False
             direction = Point(1, 0).rotate(context.me.angle)
             if (target_position.distance(context.me.position + direction * distance) >
                     context.game.magic_missile_radius + self.__target.radius):
@@ -519,7 +525,9 @@ class Strategy(LazyInit):
             if isinstance(self.__target, Bonus):
                 return
             context.move.cast_angle = turn
-            if distance < self.__target.radius + context.game.staff_range:
+            if context.me.remaining_action_cooldown_ticks != 0:
+                return
+            if need_apply_staff():
                 context.post_event(name='apply_target_action', type='STAFF')
                 context.move.action = ActionType.STAFF
             elif need_apply_missile():
