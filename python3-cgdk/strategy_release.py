@@ -218,6 +218,8 @@ class Strategy(LazyInit):
         for unit in units:
             setattr(unit, 'last_seen', context.world.tick_index)
             setattr(unit, 'position', Point(unit.x, unit.y))
+            if isinstance(unit, type(self.__target)) and unit.id == self.__target.id:
+                self.__target = unit
         invalidate_cache(self.__cached_buildings, context.world.tick_index, CACHE_TTL_BUILDINGS, context.me.position,
                          context.me.vision_range * 0.9)
         invalidate_cache(self.__cached_minions, context.world.tick_index, CACHE_TTL_MINIONS, context.me.position,
