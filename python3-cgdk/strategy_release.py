@@ -91,8 +91,8 @@ class Strategy(LazyInit):
         self.__last_next_movement_tick_index = None
         self.__target = None
         self.__target_position = None
-        self.__actual_path = deque(maxlen=20 * OPTIMIZE_MOVEMENT_STEP_SIZE)
-        self.__expected_path = deque(maxlen=20)
+        self.__actual_path = deque(maxlen=50)
+        self.__expected_path = deque(maxlen=50)
         self.__get_attack_range = None
         self.__last_update_target = None
         self.__cached_buildings = dict()
