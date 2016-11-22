@@ -16,6 +16,7 @@ from strategy_target import get_target
 
 from test.common import (
     BONUS_RADIUS,
+    DART_RADIUS,
     FETISH_BLOWDART_ATTACK_RANGE,
     FETISH_BLOWDART_DAMAGE,
     FETISH_BLOWDART_MAX_LIFE,
@@ -78,12 +79,13 @@ def test_get_target_with_only_me():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
 
 
 @pytest.mark.parametrize(
-    ('minion', 'expected_target', 'expected_position'), [
+    ('minion', 'expected_target', 'expected_position', 'expected_distance'), [
         (
             Minion(
                 id=2,
@@ -104,7 +106,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1051.0169782086896, 502.00278965851896),
+            Point(1111.749473479857, 455.60749548663307),
+            644.4996121023376,
         ),
         (
             Minion(
@@ -126,7 +129,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1051.0169782086896, 502.00278965851896),
+            Point(1111.749473479857, 455.60749548663307),
+            644.4996121023376,
         ),
         (
             Minion(
@@ -148,11 +152,12 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1570.1437465840938, 1581.4028172583573),
+            Point(1523.0765688062579, 1566.212233243466),
+            644.6920084887304,
         ),
     ]
 )
-def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_position):
+def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_position, expected_distance):
     setattr(minion, 'position', Point(minion.x, minion.y))
     target, position = get_target(
         me=WIZARD,
@@ -166,9 +171,11 @@ def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_p
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
-    assert_that(target.position.distance(position), close_to(WIZARD_CAST_RANGE, 1e-8))
+    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
+    assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
     assert (target.id, position) == (expected_target, expected_position)
 
 
@@ -204,12 +211,13 @@ def test_get_target_with_me_and_neural_minion():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
 
 
 @pytest.mark.parametrize(
-    ('minions', 'wizards', 'expected_target', 'expected_position'), [
+    ('minions', 'wizards', 'expected_target', 'expected_position', 'expected_distance'), [
         (
             tuple(),
             [
@@ -241,7 +249,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(1051.0169782086896, 502.00278965851896),
+            Point(1078.0377389618359, 445.86896642168051),
+            654.4996180290321,
         ),
         (
             [
@@ -293,7 +302,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1096.6005102708036, 400.0096305192742),
+            Point(1067.5062349948043, 346.30748418240591),
+            654.4996180290317,
         ),
         (
             [
@@ -345,11 +355,13 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1096.6005102708036, 400.0096305192742),
+            Point(1067.5062349948043, 346.30748418240591),
+            654.4996180290317,
         ),
     ]
 )
-def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_target, expected_position):
+def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_target, expected_position,
+                                                   expected_distance):
     for unit in chain(minions, wizards):
         setattr(unit, 'position', Point(unit.x, unit.y))
     target, position = get_target(
@@ -364,9 +376,11 @@ def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_ta
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
-    assert_that(target.position.distance(position), close_to(WIZARD_CAST_RANGE, 1e-8))
+    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
+    assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
     assert (target.id, position) == (expected_target, expected_position)
 
 
@@ -397,6 +411,7 @@ def test_get_target_with_me_and_tree():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
 
@@ -428,6 +443,7 @@ def test_get_target_with_me_and_nearby_tree():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
     assert (target.id, position) == (2, tree.position)
@@ -458,6 +474,7 @@ def test_get_target_with_me_and_bonus():
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
     assert target.position.distance(position) <= bonus.radius + WIZARD_RADIUS
@@ -465,7 +482,7 @@ def test_get_target_with_me_and_bonus():
 
 
 @pytest.mark.parametrize(
-    ('minions', 'expected_target', 'expected_position'), [
+    ('minions', 'expected_target', 'expected_position', 'expected_distance'), [
         (
             [
                 Minion(
@@ -506,7 +523,8 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(1027.7215712920374, 625.26515417810242),
+            Point(960.67102899179849, 601.58426354556082),
+            644.4996121024117,
         ),
         (
             [
@@ -548,11 +566,12 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(851.12286436774616, 1424.6506492259955)
+            Point(842.26934257687799, 1477.6232072735911),
+            644.4996121024117,
         ),
     ]
 )
-def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, expected_position):
+def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, expected_position, expected_distance):
     for unit in minions:
         setattr(unit, 'position', Point(unit.x, unit.y))
     target, position = get_target(
@@ -567,9 +586,11 @@ def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, ex
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
-    assert_that(target.position.distance(position), close_to(WIZARD_CAST_RANGE, 1e-8))
+    assert_that(target.position.distance(position), close_to(expected_distance, 1e-3))
+    assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
     assert (target.id, position) == (expected_target, expected_position)
     assert not Circle(Point(minions[0].x, minions[0].y), minions[0].radius).has_intersection_with_moving_circle(
         Circle(position, MAGIC_MISSILE_RADIUS), Point(minions[1].x, minions[1].y))
@@ -577,11 +598,11 @@ def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, ex
 
 @pytest.mark.parametrize(
     ('wizard_life', 'expected_distance'), [
-        (WIZARD_MAX_LIFE, GUARDIAN_TOWER_ATTACK_RANGE),
-        (3 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE),
-        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + WIZARD_RADIUS),
-        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + WIZARD_RADIUS),
-        (1, GUARDIAN_TOWER_ATTACK_RANGE + WIZARD_RADIUS),
+        (WIZARD_MAX_LIFE, GUARDIAN_TOWER_ATTACK_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
+        (3 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
+        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS),
+        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS),
+        (1, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS),
     ]
 )
 def test_get_target_with_me_and_tower(wizard_life, expected_distance):
@@ -643,7 +664,8 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
         fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
     )
-    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
+    assert_that(target.position.distance(position), close_to(expected_distance, 0.51))
     assert target.id == 2
