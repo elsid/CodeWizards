@@ -420,7 +420,7 @@ class Strategy(LazyInit):
                                old=str(self.__target_position) if self.__target_position else self.__target_position,
                                new=str(position))
             if self.__target_position.distance(position) > context.game.wizard_forward_speed:
-                self.__movements.clear()
+                self.__movements = tuple()
             self.__target_position = position
             self.__last_update_target = context.world.tick_index
         else:
