@@ -479,7 +479,7 @@ class Strategy(LazyInit):
         self.__cur_movement += 1
         self.__expected_path.append(self.__states[self.__cur_movement].position)
         error = abs(self.__expected_path[-1].distance(self.__actual_path[-1]))
-        if error > context.game.wizard_radius * 2:
+        if error > context.game.wizard_radius:
             context.post_event(name='movement_error_overflow', value=error)
             self.__calculate_movements(context)
         else:
