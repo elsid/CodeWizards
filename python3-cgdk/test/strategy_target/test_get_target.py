@@ -8,6 +8,8 @@ from model.Building import Building
 from model.Faction import Faction
 from model.Minion import Minion
 from model.MinionType import MinionType
+from model.Status import Status
+from model.StatusType import StatusType
 from model.Tree import Tree
 from model.Wizard import Wizard
 
@@ -31,6 +33,7 @@ from test.common import (
     ORC_WOODCUTTER_ATTACK_RANGE,
     ORC_WOODCUTTER_DAMAGE,
     ORC_WOODCUTTER_MAX_LIFE,
+    SHIELDED_DIRECT_DAMAGE_ABSORPTION_FACTOR,
     TREE_RADIUS,
     WIZARD_CAST_RANGE,
     WIZARD_MAX_LIFE,
@@ -49,7 +52,7 @@ WIZARD = Wizard(
     radius=WIZARD_RADIUS,
     life=WIZARD_MAX_LIFE,
     max_life=WIZARD_MAX_LIFE,
-    statuses=None,
+    statuses=tuple(),
     owner_player_id=None,
     me=None,
     mana=None,
@@ -81,6 +84,7 @@ def test_get_target_with_only_me():
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
     )
 
 
@@ -173,6 +177,7 @@ def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_p
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
     assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
@@ -213,6 +218,7 @@ def test_get_target_with_me_and_neural_minion():
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
     )
 
 
@@ -378,6 +384,7 @@ def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_ta
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
     assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
@@ -413,6 +420,7 @@ def test_get_target_with_me_and_tree():
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
     )
 
 
@@ -445,6 +453,7 @@ def test_get_target_with_me_and_nearby_tree():
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
     )
     assert (target.id, position) == (2, tree.position)
 
@@ -476,6 +485,7 @@ def test_get_target_with_me_and_bonus():
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
     )
     assert target.position.distance(position) <= bonus.radius + WIZARD_RADIUS
     assert (target.id, position) == (2, Point(1099.9999654385429, 1100.0000372327122))
@@ -588,6 +598,7 @@ def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, ex
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-3))
     assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
@@ -617,7 +628,81 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
         radius=WIZARD_RADIUS,
         life=wizard_life,
         max_life=WIZARD_MAX_LIFE,
-        statuses=None,
+        statuses=tuple(),
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=WIZARD_VISION_RANGE,
+        cast_range=WIZARD_CAST_RANGE,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
+    tower = Building(
+        id=2,
+        x=wizard.x + WIZARD_RADIUS + GUARDIAN_TOWER_RADIUS,
+        y=wizard.y + WIZARD_RADIUS + GUARDIAN_TOWER_RADIUS,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=GUARDIAN_TOWER_RADIUS,
+        life=GUARDIAN_TOWER_LIFE,
+        max_life=GUARDIAN_TOWER_LIFE,
+        statuses=tuple(),
+        type=None,
+        vision_range=None,
+        attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
+        damage=GUARDIAN_TOWER_DAMAGE,
+        cooldown_ticks=None,
+        remaining_action_cooldown_ticks=None,
+    )
+    setattr(tower, 'position', Point(tower.x, tower.y))
+    target, position = get_target(
+        me=wizard,
+        buildings=[tower],
+        minions=tuple(),
+        wizards=[wizard],
+        trees=tuple(),
+        projectiles=tuple(),
+        bonuses=tuple(),
+        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
+        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
+        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
+        magic_missile_radius=MAGIC_MISSILE_RADIUS,
+        dart_radius=DART_RADIUS,
+        map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=None,
+    )
+    assert_that(target.position.distance(position), close_to(expected_distance, 0.51))
+    assert target.id == 2
+
+
+@pytest.mark.parametrize(
+    ('shielded', 'expected_distance'), [
+        (False, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 11.224340175952648),
+        (True, GUARDIAN_TOWER_ATTACK_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
+    ]
+)
+def test_get_target_with_me_and_tower_use_shielded(shielded, expected_distance):
+    wizard = Wizard(
+        id=1,
+        x=1000,
+        y=1000,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.ACADEMY,
+        radius=WIZARD_RADIUS,
+        life=2 * GUARDIAN_TOWER_DAMAGE,
+        max_life=WIZARD_MAX_LIFE,
+        statuses=[Status(id=None, type=StatusType.SHIELDED, wizard_id=None, player_id=None,
+                         remaining_duration_ticks=shielded)],
         owner_player_id=None,
         me=None,
         mana=None,
@@ -666,6 +751,7 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
         magic_missile_radius=MAGIC_MISSILE_RADIUS,
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
+        shielded_direct_damage_absorption_factor=SHIELDED_DIRECT_DAMAGE_ABSORPTION_FACTOR,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 0.51))
     assert target.id == 2

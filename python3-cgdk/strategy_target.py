@@ -8,8 +8,9 @@ from model.Building import Building
 from model.Faction import Faction
 from model.Minion import Minion
 from model.MinionType import MinionType
-from model.Wizard import Wizard
+from model.StatusType import StatusType
 from model.Tree import Tree
+from model.Wizard import Wizard
 
 from strategy_common import Point, Line, Circle
 
@@ -22,7 +23,7 @@ UNIT_WEIGHT = 1
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, orc_woodcutter_attack_range,
                fetish_blowdart_attack_range, magic_missile_direct_damage, magic_missile_radius, dart_radius, map_size,
-               max_distance=None, max_iterations=None, penalties=None):
+               shielded_direct_damage_absorption_factor, max_distance=None, max_iterations=None, penalties=None):
     my_position = Point(me.x, me.y)
 
     def filter_friends(units):
@@ -76,6 +77,8 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     friends_units = tuple(filter_friends(chain(buildings, minions, other_wizards)))
     enemies_units = tuple(filter_enemies(chain(buildings, minions, other_wizards)))
     target_position = target.position if target else None
+    damage_factor = 1 - next((shielded_direct_damage_absorption_factor * bool(v.remaining_duration_ticks)
+                              for v in me.statuses if v.type == StatusType.SHIELDED), 0)
 
     def position_penalty(values):
         position = Point(values[0], values[1])
@@ -83,7 +86,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         def get_unit_damage(unit):
             return get_damage(unit) if get_attack_range(unit) >= position.distance(unit.position) else 0
 
-        sum_damage = sum(get_unit_damage(v) for v in enemies_units)
+        sum_damage = sum(damage_factor * get_unit_damage(v) for v in enemies_units)
 
         def unit_intersection_penalty(unit):
             if isinstance(unit, (Building, Tree)):
@@ -94,7 +97,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
                 return 0
-            add_damage = get_damage(unit) - get_unit_damage(unit)
+            add_damage = damage_factor * (get_damage(unit) - get_unit_damage(unit))
             safe_distance = max(me.cast_range + magic_missile_radius + unit.radius,
                                 (get_attack_range(unit) + 2 * me.radius) *
                                 min(1, 2 * (sum_damage + add_damage) / me.life))
