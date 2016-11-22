@@ -74,7 +74,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     )
     other_wizards = tuple(v for v in wizards if v.id != me.id)
     units = tuple(v for v in chain(buildings, trees, minions, other_wizards) if id(v) != id(target))
-    friends_units = tuple(filter_friends(chain(buildings, minions, other_wizards)))
+    friends_units = tuple(filter_friends(chain(other_wizards)))
     enemies_units = tuple(filter_enemies(chain(buildings, minions, other_wizards)))
     target_position = target.position if target else None
     damage_factor = 1 - next((shielded_direct_damage_absorption_factor * bool(v.remaining_duration_ticks)
