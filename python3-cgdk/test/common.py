@@ -1,26 +1,4 @@
-from collections import namedtuple
 from math import pi
-
-
-Wizard = namedtuple('Wizard', (
-    'angle',
-    'radius',
-    'x',
-    'y',
-))
-World = namedtuple('World', (
-    'buildings',
-    'minions',
-    'trees',
-    'wizards',
-))
-Game = namedtuple('Game', (
-    'map_size',
-    'wizard_backward_speed',
-    'wizard_forward_speed',
-    'wizard_max_turn_angle',
-    'wizard_strafe_speed',
-))
 
 BONUS_RADIUS = 20
 DART_RADIUS = 5
