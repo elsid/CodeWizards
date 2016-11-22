@@ -106,8 +106,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1111.749473479857, 455.60749548663307),
-            644.4996121023376,
+            Point(1084.0770037489024, 465.70022214212509),
+            634.4996059889729,
         ),
         (
             Minion(
@@ -129,8 +129,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1111.749473479857, 455.60749548663307),
-            644.4996121023376,
+            Point(1084.0770037489024, 465.70022214212509),
+            634.4996059889729,
         ),
         (
             Minion(
@@ -152,8 +152,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1523.0765688062579, 1566.212233243466),
-            644.6920084887304,
+            Point(1531.8462157825002, 1571.4323919960013),
+            634.6953287266533,
         ),
     ]
 )
@@ -249,8 +249,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(1078.0377389618359, 445.86896642168051),
-            654.4996180290321,
+            Point(1111.749473479857, 455.60749548663307),
+            644.4996121023989,
         ),
         (
             [
@@ -302,8 +302,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1067.5062349948043, 346.30748418240591),
-            654.4996180290317,
+            Point(1066.3763534657346, 356.37806097532575),
+            644.4996121023989,
         ),
         (
             [
@@ -355,8 +355,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1067.5062349948043, 346.30748418240591),
-            654.4996180290317,
+            Point(1066.3763534657346, 356.37806097532575),
+            644.4996121023989,
         ),
     ]
 )
@@ -523,8 +523,8 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(960.67102899179849, 601.58426354556082),
-            644.4996121024117,
+            Point(1020.3649171638174, 591.45995446922882),
+            634.4996059889696,
         ),
         (
             [
@@ -566,8 +566,8 @@ def test_get_target_with_me_and_bonus():
                 ),
             ],
             3,
-            Point(842.26934257687799, 1477.6232072735911),
-            644.4996121024117,
+            Point(752.36406685692009, 1359.7796984097627),
+            634.4996059889696,
         ),
     ]
 )
@@ -600,9 +600,9 @@ def test_get_target_with_me_friend_and_enemy_minion(minions, expected_target, ex
     ('wizard_life', 'expected_distance'), [
         (WIZARD_MAX_LIFE, GUARDIAN_TOWER_ATTACK_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
         (3 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
-        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS),
-        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS),
-        (1, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS),
+        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 11.224340175952648),
+        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 11.224340175952648),
+        (1, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 11.224340175952648),
     ]
 )
 def test_get_target_with_me_and_tower(wizard_life, expected_distance):
