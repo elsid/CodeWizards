@@ -9,7 +9,7 @@ from model.StatusType import StatusType
 from strategy_common import Point, Circle, normalize_angle
 
 Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn', 'step_size'))
-State = namedtuple('State', ('position', 'angle', 'path_length', 'intersection'))
+State = namedtuple('State', ('position', 'angle', 'path_length'))
 
 PARAMETERS_COUNT = 3
 
@@ -37,12 +37,12 @@ def optimize_movement(target, look_target, me, buildings, minions, wizards, tree
         make_circles(v for v in buildings if is_unit_in_range(v)),
         make_circles(v for v in trees if is_unit_in_range(v)),
     ))
-    position = me.position
-    angle = normalize_angle(me.angle)
-    states = [State(position=position, angle=angle, path_length=0, intersection=False)]
+    cur_position = me.position
+    cur_angle = normalize_angle(me.angle)
+    states = [State(position=cur_position, angle=cur_angle, path_length=0)]
     path = get_shortest_path(
         target=target,
-        position=position,
+        position=cur_position,
         radius=me.radius,
         step_size=step_size,
         map_size=map_size,
@@ -55,39 +55,41 @@ def optimize_movement(target, look_target, me, buildings, minions, wizards, tree
     if path is None:
         return tuple(states), tuple()
     movements = list()
-    path_length = 0
+    cur_path_length = 0
     path = tuple(path)
-    tick = 0
-    for path_position in reversed(path):
-        while position.distance(path_position) > bounds.max_speed(tick):
-            speed, strafe_speed, turn = get_speed_and_turn_to_point(
-                position=position,
-                angle=angle,
-                target=path_position,
-                bounds=bounds,
-                tick=tick,
-            )
-            if look_target:
-                turn = limit_turn(normalize_angle((look_target - position).absolute_rotation() - angle), bounds, tick)
-            shift, turn = get_shift_and_turn(
-                angle=angle,
-                bounds=bounds,
-                speed=speed,
-                strafe_speed=strafe_speed,
-                turn=turn,
-                tick=tick,
-            )
-            position += shift
-            angle = normalize_angle(angle + turn)
-            path_length += shift.norm()
-            states.append(State(
-                position=position,
-                angle=angle,
-                path_length=path_length,
-                intersection=False,
-            ))
-            movements.append(Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=1))
-            tick += 1
+    cur_tick = 0
+
+    def add_movement(position, angle, path_length, tick, path_position):
+        speed, strafe_speed, turn = get_speed_and_turn_to_point(
+            position=position,
+            angle=angle,
+            target=path_position,
+            bounds=bounds,
+            tick=tick,
+        )
+        if look_target:
+            turn = limit_turn(normalize_angle((look_target - position).absolute_rotation() - angle), bounds, tick)
+        shift, turn = get_shift_and_turn(
+            angle=angle,
+            bounds=bounds,
+            speed=speed,
+            strafe_speed=strafe_speed,
+            turn=turn,
+            tick=tick,
+        )
+        position += shift
+        angle = normalize_angle(angle + turn)
+        path_length += shift.norm()
+        states.append(State(position=position,angle=angle, path_length=path_length))
+        movements.append(Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=1))
+        tick += 1
+        return position, angle, path_length, tick
+
+    for cur_path_position in reversed(path):
+        while cur_position.distance(cur_path_position) > bounds.max_speed(cur_tick):
+            cur_position, cur_angle, cur_path_length, cur_tick = add_movement(cur_position, cur_angle, cur_path_length,
+                                                                              cur_tick, cur_path_position)
+    add_movement(cur_position, cur_angle, cur_path_length, cur_tick, path[0])
     return states, movements
 
 
@@ -116,6 +118,7 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
         occupier = next((v for v in chain(initial_dynamic_barriers.values())
                          if target.distance(v.position) < v.radius + barrier.radius), None)
     max_distance_errors = [occupier.radius + barrier.radius + step_size if occupier else step_size]
+    occupiers = [occupier]
     dynamic_barriers = [initial_dynamic_barriers]
     closed = set()
     opened = {position}
@@ -129,7 +132,11 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
             result = None
             break
         if distance <= max_distance_errors[depth]:
-            result = position
+            if occupiers[depth] is None and target != position and target not in came_from and position in came_from:
+                came_from[target] = came_from[position]
+                result = target
+            else:
+                result = position
             break
         opened.remove(position)
         closed.add(position)
@@ -155,11 +162,13 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
                 if depth + 1 >= len(max_distance_errors):
                     if static_occupier:
                         max_distance_errors.append(max_distance_errors[-1])
+                        occupiers.append(static_occupier)
                     else:
                         occupier = next((v for v in barriers.values()
                                          if target.distance(v.position) < v.radius + barrier.radius), None)
                         max_distance_errors.append(occupier.radius + barrier.radius + step_size
                                                    if occupier else step_size)
+                        occupiers.append(occupier)
                 intersection = (
                     (position.distance(initial_position) > max_range and
                      position.distance(target) > max_range) or

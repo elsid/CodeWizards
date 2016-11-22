@@ -73,50 +73,30 @@ def test_optimize_movement():
         hastened_movement_bonus_factor=HASTENED_MOVEMENT_BONUS_FACTOR,
         hastened_rotation_bonus_factor=HASTENED_ROTATION_BONUS_FACTOR,
     )
-    assert states[-1] == State(
-        position=Point(297.9898987322333, 297.9898987322333),
-        angle=0.7853981633974483,
-        path_length=280.0,
-        intersection=False,
-    )
-    assert len(states) == 71
-    assert len(movements) == 70
+    assert states[-1] == State(position=Point(300.0, 300.0), angle=0.7853981633974483, path_length=282.842712474619)
+    assert len(states) == 72
+    assert len(movements) == 71
 
 
 @pytest.mark.parametrize(
     ('remaining_duration_ticks', 'final_state', 'states_count', 'movements_count'), [
         (
             0,
-            State(
-                position=Point(297.9467179507658, 297.95151131235906),
-                angle=0.7842295560522802,
-                path_length=279.94940459077685,
-                intersection=False,
-            ),
+            State(position=Point(300.0, 300.0), angle=0.7842295560522907, path_length=282.8497964741437),
+            72,
             71,
-            70,
         ),
         (
             10,
-            State(
-                position=Point(297.94239244847984, 297.94754578276445),
-                angle=0.7841443302742515,
-                path_length=279.9442650377665,
-                intersection=False,
-            ),
+            State(position=Point(300.0, 300.0), angle=0.7841443302742397, path_length=282.8505198700069),
+            69,
             68,
-            67,
         ),
         (
             HASTENED_DURATION_TICKS,
-            State(
-                position=Point(298.50878670370963, 298.51252148811966),
-                angle=0.7841443302742576,
-                path_length=280.7442650377662,
-                intersection=False,
-            ),
+            State(position=Point(300.0, 300.0), angle=0.7841443302742515, path_length=282.85051987000725),
+            56,
             55,
-            54,
         ),
     ]
 )
@@ -216,14 +196,10 @@ def test_optimize_movement_with_static_barriers():
         hastened_movement_bonus_factor=HASTENED_MOVEMENT_BONUS_FACTOR,
         hastened_rotation_bonus_factor=HASTENED_ROTATION_BONUS_FACTOR,
     )
-    assert states[-1] == State(
-        position=Point(294.3365054368041, 300.90120747414716),
-        angle=-0.09412908325704437,
-        path_length=319.0143625923556,
-        intersection=False,
-    )
-    assert len(states) == 86
-    assert len(movements) == 85
+    assert states[-1] == State(position=Point(298.00131400276206, 300.88978151197176), angle=-0.15780265871152882,
+                               path_length=322.6791889699253)
+    assert len(states) == 87
+    assert len(movements) == 86
 
 
 @pytest.mark.parametrize(
@@ -231,26 +207,18 @@ def test_optimize_movement_with_static_barriers():
         (
             Point(103 + WIZARD_RADIUS + MINION_RADIUS, 103 + WIZARD_RADIUS + MINION_RADIUS),
             Point(4, 4),
-            State(
-                position=Point(295.0692506415855, 300.880607246771),
-                angle=-0.10210268782695242,
-                path_length=324.7493954393034,
-                intersection=False,
-            ),
+            State(position=Point(298.00238923744746, 300.89624082715443), angle=-0.176731711788651,
+                  path_length=327.68257569823237),
+            90,
             89,
-            88,
         ),
         (
             Point(103 + WIZARD_RADIUS + MINION_RADIUS, 103 + WIZARD_RADIUS + MINION_RADIUS),
             Point(-3, -3),
-            State(
-                position=Point(296.62224237933714, 300.8759213840577),
-                angle=-0.12191806204855929,
-                path_length=352.68614105414207,
-                intersection=False,
-            ),
+            State(position=Point(298.0045812394695, 300.9283698349094), angle=-0.22663781716821907,
+                  path_length=354.0694745512529),
+            98,
             97,
-            96,
         )
     ]
 )
