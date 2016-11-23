@@ -187,15 +187,6 @@ class Strategy(LazyInit):
         self.__apply_mode = self.__apply_move_mode
         self.__last_change_mode = 0
 
-    @lazy_init
-    def move(self, context: Context):
-        self.__actual_path.append(Point(context.me.x, context.me.y))
-        self.__update_cache(context)
-        self.__apply_mode(context)
-        self.__update_movements(context)
-        self.__apply_move(context)
-        self.__apply_action(context)
-
     @property
     def movements(self):
         return self.__movements[self.__cur_movement:]
@@ -235,6 +226,20 @@ class Strategy(LazyInit):
     @property
     def next_node(self):
         return self.__path[self.__next_node] if self.__next_node < len(self.__path) else None
+
+    @lazy_init
+    def move(self, context: Context):
+        self.__actual_path.append(Point(context.me.x, context.me.y))
+        self.__update_cache(context)
+        if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
+            if self.__apply_mode == self.__apply_battle_mode:
+                self.__use_move_mode(context)
+            elif self.__apply_mode == self.__apply_move_mode:
+                self.__use_battle_mode(context)
+        self.__apply_mode(context)
+        self.__update_movements(context)
+        self.__apply_move(context)
+        self.__apply_action(context)
 
     def _init_impl(self, context: Context):
         self.__graph = make_graph(context.game.map_size)
@@ -306,20 +311,12 @@ class Strategy(LazyInit):
 
     def __apply_battle_mode(self, context: Context):
         context.post_event(name='apply_battle_mode')
-        if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
-            self.__use_move_mode(context)
-            self.__apply_mode(context)
-        else:
-            self.__update_target(context)
+        self.__update_target(context)
 
     def __apply_move_mode(self, context: Context):
         context.post_event(name='apply_move_mode')
-        if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
-            self.__use_battle_mode(context)
-            self.__apply_mode(context)
-        else:
-            self.__update_path(context)
-            self.__next_path_node(context)
+        self.__update_path(context)
+        self.__next_path_node(context)
 
     def __update_path(self, context: Context):
         if (self.__last_update_destination is not None and
