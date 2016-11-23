@@ -1,7 +1,15 @@
 from operator import itemgetter
 
+from model.LaneType import LaneType
+
 from strategy_release import Strategy as ReleaseStrategy, Context
 from debug.client import DebugClient
+
+LANE_TYPES_COLORS = {
+    LaneType.TOP: (0.8, 0.2, 0.2),
+    LaneType.MIDDLE: (0.2, 0.8, 0.2),
+    LaneType.BOTTOM: (0.2, 0.2, 0.8),
+}
 
 
 class Strategy:
@@ -71,6 +79,9 @@ class Strategy:
                         and (arc.dst.position.x, arc.dst.position.y, node.position.x, node.position.y) not in drawn_arcs):
                     drawn_arcs.add((node.position.x, node.position.y, arc.dst.position.x, arc.dst.position.y))
                     post.line(node.position.x, node.position.y, arc.dst.position.x, arc.dst.position.y, (0.8, 0.8, 0.8))
+        for lane, nodes in graph.lanes_nodes.items():
+            for node in nodes:
+                post.circle(node.position.x, node.position.y, 20, LANE_TYPES_COLORS[lane])
 
     def __visualize_graph_path(self, post):
         self.__visualize_path(post, (v.position for v in self.__impl.path), (0.2, 0.2, 0.2), 10)

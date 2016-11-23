@@ -34,6 +34,7 @@ LOST_TARGET_TICKS = 5
 GET_TARGET_MAX_ITERATIONS = 10
 UPDATE_DESTINATION_TICKS = 50
 CHANGE_MODE_TICKS = 100
+MESSAGE_TICKS = 500
 ACTION_TYPES_NAMES = {
     ActionType.NONE: 'NONE',
     ActionType.STAFF: 'STAFF',
@@ -186,6 +187,10 @@ class Strategy(LazyInit):
         self.__next_node = 0
         self.__apply_mode = self.__apply_move_mode
         self.__last_change_mode = 0
+        self.__target_lane = LaneType.MIDDLE
+        self.__last_apply_battle_mode = None
+        self.__last_apply_move_mode = None
+        self.__last_message = 0
 
     @property
     def movements(self):
@@ -231,6 +236,7 @@ class Strategy(LazyInit):
     def move(self, context: Context):
         self.__actual_path.append(Point(context.me.x, context.me.y))
         self.__update_cache(context)
+        self.__handle_messages(context)
         if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
             if self.__apply_mode == self.__apply_battle_mode:
                 self.__use_move_mode(context)
@@ -243,6 +249,14 @@ class Strategy(LazyInit):
 
     def _init_impl(self, context: Context):
         self.__graph = make_graph(context.game.map_size)
+
+    def __handle_messages(self, context: Context):
+        if context.me.messages:
+            self.__target_lane = context.me.messages[-1].lane
+            self.__last_message = context.world.tick_index
+            self.__use_move_mode(context)
+        if context.world.tick_index - self.__last_message > MESSAGE_TICKS:
+            self.__target_lane = None
 
     def __update_cache(self, context: Context):
         context.post_event(name='update_cache')
@@ -310,16 +324,22 @@ class Strategy(LazyInit):
         invalidate_cache(self.__cached_bonuses, context.world.tick_index, CACHE_TTL_BONUSES, friends)
 
     def __apply_battle_mode(self, context: Context):
+        if self.__last_apply_battle_mode == context.world.tick_index:
+            return
         context.post_event(name='apply_battle_mode')
+        self.__last_apply_battle_mode = context.world.tick_index
         self.__update_target(context)
 
     def __apply_move_mode(self, context: Context):
+        if self.__last_apply_move_mode == context.world.tick_index:
+            return
         context.post_event(name='apply_move_mode')
+        self.__last_apply_move_mode = context.world.tick_index
         self.__update_path(context)
         self.__next_path_node(context)
 
     def __update_path(self, context: Context):
-        if (self.__last_update_destination is not None and
+        if (self.__destination is not None and
                 context.world.tick_index - self.__last_update_destination < UPDATE_DESTINATION_TICKS):
             return
         destination = select_destination(
@@ -329,9 +349,10 @@ class Strategy(LazyInit):
             minions=tuple(v for v in self.__cached_minions.values()),
             wizards=tuple(v for v in self.__cached_wizards.values()),
             bonuses=tuple(v for v in self.__cached_bonuses.values()),
+            target_lane=self.__target_lane,
         )
         nearest_node = get_nearest_node(self.__graph.nodes, context.me.position)
-        if self.__destination is not None and id(nearest_node) == id(self.__departure):
+        if id(nearest_node) == id(self.__departure):
             return
         path, _ = get_shortest_path(nearest_node, destination)
         context.post_event(name='update_destination', destination=str(destination.position),

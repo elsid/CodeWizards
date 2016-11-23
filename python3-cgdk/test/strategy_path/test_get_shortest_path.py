@@ -43,7 +43,7 @@ def test_get_shortest_path(nodes, arcs, src, dst, path, sum_weights):
 
 
 def make_graph(nodes, arcs):
-    graph = Graph(list(), list(), 0)
+    graph = Graph(list(), list(), 0, None)
     for node in nodes:
         graph.nodes.append(Node(node, list()))
     for arc in arcs:

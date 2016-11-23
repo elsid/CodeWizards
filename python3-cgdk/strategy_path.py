@@ -3,12 +3,14 @@ from math import hypot
 from itertools import chain
 from heapq import heappop, heappush
 
+from model.LaneType import LaneType
+
 from strategy_common import Point
 from strategy_target import is_enemy
 
 Node = namedtuple('Node', ('position', 'arcs'))
 Arc = namedtuple('Arc', ('dst', 'weight'))
-Graph = namedtuple('Graph', ('nodes', 'center', 'zone_size'))
+Graph = namedtuple('Graph', ('nodes', 'center', 'zone_size', 'lanes_nodes'))
 
 
 def make_graph(map_size):
@@ -16,19 +18,34 @@ def make_graph(map_size):
     map_size = int(map_size)
 
     def add_node(x, y):
-        nodes[x][y] = Node(Point(x, y), list())
+        node = Node(Point(x, y), list())
+        nodes[x][y] = node
+        return node
 
     resolution = map_size // 10
     half = resolution // 2
     count = map_size // resolution
+    lanes_nodes = defaultdict(list)
+
+    for shift in range(resolution + half, map_size - resolution, resolution):
+        lanes_nodes[LaneType.TOP].append(add_node(half, map_size - shift))
+        lanes_nodes[LaneType.TOP].append(add_node(map_size - shift, half))
+        lanes_nodes[LaneType.BOTTOM].append(add_node(shift, map_size - half))
+        lanes_nodes[LaneType.BOTTOM].append(add_node(map_size - half, shift))
+        lanes_nodes[LaneType.MIDDLE].append(add_node(shift, map_size - shift))
+
+    add_node(half, map_size - half)
+    add_node(map_size - half, half)
 
     for shift in range(half, map_size, resolution):
-        add_node(half, map_size - shift)
-        add_node(shift, map_size - half)
-        add_node(shift, map_size - shift)
         add_node(map_size - shift, map_size - shift)
-        add_node(map_size - half, shift)
-        add_node(map_size - shift, half)
+
+    lanes_nodes[LaneType.TOP].append(nodes[half][half])
+    lanes_nodes[LaneType.TOP].append(nodes[half + resolution][half + resolution])
+    lanes_nodes[LaneType.BOTTOM].append(nodes[map_size - half][map_size - half])
+    lanes_nodes[LaneType.BOTTOM].append(nodes[map_size - half - resolution][map_size - half - resolution])
+    lanes_nodes[LaneType.MIDDLE].append(nodes[map_size // 2 - half][map_size // 2 - half])
+    lanes_nodes[LaneType.MIDDLE].append(nodes[map_size // 2 + half][map_size // 2 + half])
 
     def add_arc(src_x, src_y, dst_x, dst_y, weight):
         src = nodes[src_x][src_y]
@@ -94,15 +111,16 @@ def make_graph(map_size):
         nodes=list(generate()),
         center=nodes[count // 2 * resolution - half][count // 2 * resolution + half],
         zone_size=1.5 * resolution,
+        lanes_nodes=lanes_nodes,
     )
 
 
-def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses):
+def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses, target_lane):
     units = tuple(chain(buildings, minions, wizards))
     nodes = graph.nodes
     nodes_with_bonus = tuple(node for node in nodes
                              if has_near_units(node.position, bonuses, graph.zone_size))
-    nodes_with_enemy = tuple(node for node in nodes
+    nodes_with_enemy = tuple(node for node in (graph.lanes_nodes[target_lane] if target_lane else nodes)
                              if has_near_enemy(node.position, units, me.faction, graph.zone_size))
     nearest_node = get_nearest_node(nodes, me.position)
     if nodes_with_bonus and nodes_with_enemy:
