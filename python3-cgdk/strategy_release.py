@@ -103,6 +103,7 @@ class Context:
 
     def __enter__(self):
         self.__start = time()
+        player = next(v for v in self.world.players if v.id == self.me.owner_player_id)
         self.post_event(
             name='start',
             x=self.me.x,
@@ -130,6 +131,7 @@ class Context:
             max_life=self.me.max_life,
             statuses={STATUS_TYPES_NAMES.get(v.type, str(v.type)): v.remaining_duration_ticks
                       for v in self.me.statuses},
+            player=dict(id=player.id, name=player.name, strategy_crashed=player.strategy_crashed, score=player.score),
         )
         return self
 
