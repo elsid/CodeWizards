@@ -1,9 +1,9 @@
 # Отрисовка игры на экран: true или false.
-render-to-screen=true
+render-to-screen={{RENDER_TO_SCREEN}}
 
 # Синхронизация обсчёта игры и её отрисовки на экран: true или false.
 # Не используется, если настройка render-to-screen=false.
-render-to-screen-sync=true
+render-to-screen-sync={{RENDER_TO_SCREEN_SYNC}}
 
 # Размер окна визуализатора.
 # Не используется, если настройка render-to-screen=false.
@@ -14,10 +14,10 @@ render-to-screen-size=1280x800
 render-to-screen-tick=
 
 # Имя файла с результатами игры. Формат файла описан в read.me.
-results-file=result.txt
+results-file=log/{{ID}}/result.log
 
 # Имя файла с логом игры, который может быть использован для её воспроизведения.
-log-file=game.log
+log-file=log/{{ID}}/game.log
 
 # Количество игроков: 2, 10.
 player-count=10
@@ -82,7 +82,7 @@ skills-enabled=false
 # Число, которое игровой симулятор будет использовать для инициализации
 # генератора случайных чисел или пустая строка.
 # Параметр в командной строке имеет больший приоритет.
-seed=42
+seed={{SEED}}
 
 # Путь к каталогу с плагинами или пустая строка для работы без плагинов.
 # Необходимо скомпилировать плагин, чтобы он загрузился игровым симулятором.
