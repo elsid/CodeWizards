@@ -99,61 +99,64 @@ class Context:
             from debug import log_dict
             self.__write_log = log_dict
         else:
-            self.__write_log = lambda _: None
+            self.__write_log = None
 
     def __enter__(self):
         self.__start = time()
-        player = next(v for v in self.world.players if v.id == self.me.owner_player_id)
-        self.post_event(
-            name='start',
-            x=self.me.x,
-            y=self.me.y,
-            angle=self.me.angle,
-            speed_x=self.me.speed_x,
-            speed_y=self.me.speed_y,
-            life=self.me.life,
-            owner_player_id=self.me.owner_player_id,
-            random_seed=self.game.random_seed,
-            remaining_action_cooldown_ticks=self.me.remaining_action_cooldown_ticks,
-            remaining_cooldown_ticks_by_action={ACTION_TYPES_NAMES.get(i, str(i)): v for i, v in
-                                                enumerate(self.me.remaining_cooldown_ticks_by_action)},
-            mana=self.me.mana,
-            max_mana=self.me.max_mana,
-            vision_range=self.me.vision_range,
-            cast_range=self.me.cast_range,
-            xp=self.me.xp,
-            level=self.me.level,
-            skills=sorted(SKILL_TYPES_NAMES.get(v, str(v)) for v in self.me.skills),
-            master=self.me.master,
-            messages=[dict(lane=LANE_TYPES_NAMES.get(v.lane, str(v.lane)),
-                           skill_to_learn=SKILL_TYPES_NAMES.get(v.skill_to_learn, str(v.skill_to_learn)),
-                           raw_message=v.raw_message) for v in self.me.messages],
-            max_life=self.me.max_life,
-            statuses={STATUS_TYPES_NAMES.get(v.type, str(v.type)): v.remaining_duration_ticks
-                      for v in self.me.statuses},
-            player=dict(id=player.id, name=player.name, strategy_crashed=player.strategy_crashed, score=player.score),
-        )
+        if self.__write_log:
+            player = next(v for v in self.world.players if v.id == self.me.owner_player_id)
+            self.post_event(
+                name='start',
+                x=self.me.x,
+                y=self.me.y,
+                angle=self.me.angle,
+                speed_x=self.me.speed_x,
+                speed_y=self.me.speed_y,
+                life=self.me.life,
+                owner_player_id=self.me.owner_player_id,
+                random_seed=self.game.random_seed,
+                remaining_action_cooldown_ticks=self.me.remaining_action_cooldown_ticks,
+                remaining_cooldown_ticks_by_action={ACTION_TYPES_NAMES.get(i, str(i)): v for i, v in
+                                                    enumerate(self.me.remaining_cooldown_ticks_by_action)},
+                mana=self.me.mana,
+                max_mana=self.me.max_mana,
+                vision_range=self.me.vision_range,
+                cast_range=self.me.cast_range,
+                xp=self.me.xp,
+                level=self.me.level,
+                skills=sorted(SKILL_TYPES_NAMES.get(v, str(v)) for v in self.me.skills),
+                master=self.me.master,
+                messages=[dict(lane=LANE_TYPES_NAMES.get(v.lane, str(v.lane)),
+                               skill_to_learn=SKILL_TYPES_NAMES.get(v.skill_to_learn, str(v.skill_to_learn)),
+                               raw_message=v.raw_message) for v in self.me.messages],
+                max_life=self.me.max_life,
+                statuses={STATUS_TYPES_NAMES.get(v.type, str(v.type)): v.remaining_duration_ticks
+                          for v in self.me.statuses},
+                player=dict(id=player.id, name=player.name, strategy_crashed=player.strategy_crashed, score=player.score),
+            )
         return self
 
     def __exit__(self, *_):
-        self.post_event(name='finish', duration=time() - self.__events[0]['time'], speed=self.move.speed,
-                        strafe_speed=self.move.strafe_speed, turn=self.move.turn, action=self.move.action)
-        for event in self.__events:
-            self.__write_log(event)
+        if self.__write_log:
+            self.post_event(name='finish', duration=time() - self.__events[0]['time'], speed=self.move.speed,
+                            strafe_speed=self.move.strafe_speed, turn=self.move.turn, action=self.move.action)
+            for event in self.__events:
+                self.__write_log(event)
         self.__finish = time()
 
     def time_left(self):
         return (self.__start + MAX_TIME) - time()
 
     def post_event(self, name, **kwargs):
-        data = OrderedDict()
-        data['tick'] = self.world.tick_index
-        data['time'] = time()
-        data['id'] = self.me.id
-        data['name'] = name
-        for k, v in kwargs.items():
-            data[k] = v
-        self.__events.append(data)
+        if self.__write_log:
+            data = OrderedDict()
+            data['tick'] = self.world.tick_index
+            data['time'] = time()
+            data['id'] = self.me.id
+            data['name'] = name
+            for k, v in kwargs.items():
+                data[k] = v
+            self.__events.append(data)
 
     @property
     def duration(self):
