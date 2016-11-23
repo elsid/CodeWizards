@@ -425,7 +425,7 @@ class Strategy(LazyInit):
             shielded_direct_damage_absorption_factor=context.game.shielded_direct_damage_absorption_factor,
             empowered_damage_factor=context.game.empowered_damage_factor,
             penalties=self.__target_positions_penalties,
-            max_distance=1.1 * context.me.vision_range,
+            max_distance=1.5 * context.me.vision_range,
             max_iterations=GET_TARGET_MAX_ITERATIONS,
         )
         if self.__target:
