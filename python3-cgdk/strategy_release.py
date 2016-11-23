@@ -193,7 +193,7 @@ class Strategy(LazyInit):
         self.__next_node = 0
         self.__apply_mode = self.__apply_move_mode
         self.__last_change_mode = 0
-        self.__target_lane = LaneType.MIDDLE
+        self.__target_lane = None
         self.__last_apply_battle_mode = None
         self.__last_apply_move_mode = None
         self.__last_message = 0
