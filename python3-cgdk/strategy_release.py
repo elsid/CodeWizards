@@ -7,6 +7,7 @@ from model.ActionType import ActionType
 from model.Bonus import Bonus
 from model.Faction import Faction
 from model.Game import Game
+from model.LaneType import LaneType
 from model.Move import Move
 from model.SkillType import SkillType
 from model.StatusType import StatusType
@@ -41,6 +42,11 @@ ACTION_TYPES_NAMES = {
     ActionType.FIREBALL: 'FIREBALL',
     ActionType.HASTE: 'HASTE',
     ActionType.SHIELD: 'SHIELD',
+}
+LANE_TYPES_NAMES = {
+    LaneType.TOP: 'TOP',
+    LaneType.BOTTOM: 'BOTTOM',
+    LaneType.MIDDLE: 'MIDDLE',
 }
 SKILL_TYPES_NAMES = {
     SkillType.RANGE_BONUS_PASSIVE_1: 'RANGE_BONUS_PASSIVE_1',
@@ -117,7 +123,9 @@ class Context:
             level=self.me.level,
             skills=sorted(SKILL_TYPES_NAMES.get(v, str(v)) for v in self.me.skills),
             master=self.me.master,
-            messages=self.me.messages,
+            messages=[dict(lane=LANE_TYPES_NAMES.get(v.lane, str(v.lane)),
+                           skill_to_learn=SKILL_TYPES_NAMES.get(v.skill_to_learn, str(v.skill_to_learn)),
+                           raw_message=v.raw_message) for v in self.me.messages],
             max_life=self.me.max_life,
             statuses={STATUS_TYPES_NAMES.get(v.type, str(v.type)): v.remaining_duration_ticks
                       for v in self.me.statuses},
@@ -181,7 +189,6 @@ class Strategy(LazyInit):
 
     @lazy_init
     def move(self, context: Context):
-        context.post_event(name='strategy_release_move')
         self.__actual_path.append(Point(context.me.x, context.me.y))
         self.__update_cache(context)
         self.__apply_mode(context)

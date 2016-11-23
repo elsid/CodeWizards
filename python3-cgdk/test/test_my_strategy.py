@@ -47,7 +47,7 @@ def test_my_strategy_move():
         remaining_action_cooldown_ticks=None,
         remaining_cooldown_ticks_by_action=tuple(),
         master=None,
-        messages=None,
+        messages=tuple(),
     )
     world = World(
         tick_index=0,
