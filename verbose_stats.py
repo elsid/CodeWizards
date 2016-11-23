@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, FileType
+from collections import Counter
 from json import loads
 from matplotlib.pyplot import show
 from sys import stdin
@@ -32,6 +33,7 @@ def main():
         get_target_count = sum(1 for v in events if v['name'] == 'get_target')
         target_updated_count = sum(1 for v in events if v['name'] == 'target_updated')
         change_mode_count = sum(1 for v in events if v['name'] == 'change_mode')
+        score_increases_count = score_increases_distribution(events)
         print('ticks count: %s' % ticks_count)
         print('sum duration: %s' % sum_duration)
         print('min life: %s' % min_life)
@@ -39,6 +41,7 @@ def main():
         print('actions count: %s' % actions_count)
         print('staff actions count: %s' % staff_actions_count)
         print('magic missile actions count: %s' % magic_missile_actions_count)
+        print('score_increases: %s %s' % (sum(score_increases_count.values()), score_increases_count))
         print('ticks with statuses: %s' % ticks_with_statuses)
         print('movement error overflow count: %s' % movement_error_overflow_count)
         print('calculate_movements_count: %s' % calculate_movements_count)
@@ -73,6 +76,17 @@ def sum_damage(events):
             elif prev_life > event['life']:
                 result += prev_life - event['life']
                 prev_life = event['life']
+    return result
+
+
+def score_increases_distribution(events):
+    prev_score = 0
+    result = Counter()
+    for event in events:
+        if event['name'] == 'start':
+            if prev_score < event['player']['score']:
+                result[event['player']['score'] - prev_score] += 1
+                prev_score = event['player']['score']
     return result
 
 
