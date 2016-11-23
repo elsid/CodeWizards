@@ -536,8 +536,6 @@ class Strategy(LazyInit):
             elif need_apply_missile():
                 context.post_event(name='apply_target_action', type='MAGIC_MISSILE')
                 context.move.action = ActionType.MAGIC_MISSILE
-        else:
-            context.post_event(name='pass_apply_target_turn', distance=distance)
 
 
 def update_dynamic_unit(cache, new):
