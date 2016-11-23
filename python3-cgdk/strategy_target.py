@@ -23,7 +23,8 @@ UNIT_WEIGHT = 1
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, orc_woodcutter_attack_range,
                fetish_blowdart_attack_range, magic_missile_direct_damage, magic_missile_radius, dart_radius, map_size,
-               shielded_direct_damage_absorption_factor, max_distance=None, max_iterations=None, penalties=None):
+               shielded_direct_damage_absorption_factor, empowered_damage_factor, max_distance=None,
+               max_iterations=None, penalties=None):
     my_position = Point(me.x, me.y)
 
     def filter_friends(units):
@@ -48,11 +49,11 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
             return None, None
         target = min(trees, key=lambda v: v.life)
         return target, target.position
-    get_damage = make_get_damage(magic_missile_direct_damage)
+    get_damage = make_get_damage(magic_missile_direct_damage, empowered_damage_factor)
 
     def target_penalty(unit):
         distance = unit.position.distance(my_position)
-        return distance * unit.life / unit.max_life if distance <= me.vision_range else distance
+        return distance * unit.life / get_damage(me) if distance <= me.vision_range else distance
 
     if bonuses:
         target = min(bonuses, key=lambda v: my_position.distance(Point(v.x, v.y)))
@@ -222,13 +223,14 @@ def make_get_attack_range(orc_woodcutter_attack_range, fetish_blowdart_attack_ra
     return impl
 
 
-def make_get_damage(magic_missile_direct_damage):
+def make_get_damage(magic_missile_direct_damage, empowered_damage_factor):
 
     def impl(unit):
+        factor = 1 + next((empowered_damage_factor for v in unit.statuses if v.type == StatusType.EMPOWERED), 0)
         if isinstance(unit, (Building, Minion)):
-            return unit.damage
+            return factor * unit.damage
         if isinstance(unit, Wizard):
-            return magic_missile_direct_damage
+            return factor * magic_missile_direct_damage
 
     return impl
 

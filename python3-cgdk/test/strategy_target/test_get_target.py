@@ -85,6 +85,7 @@ def test_get_target_with_only_me():
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
 
 
@@ -102,7 +103,7 @@ def test_get_target_with_only_me():
                 radius=MINION_RADIUS,
                 life=FETISH_BLOWDART_MAX_LIFE,
                 max_life=FETISH_BLOWDART_MAX_LIFE,
-                statuses=None,
+                statuses=tuple(),
                 type=MinionType.FETISH_BLOWDART,
                 vision_range=None,
                 damage=FETISH_BLOWDART_DAMAGE,
@@ -125,7 +126,7 @@ def test_get_target_with_only_me():
                 radius=MINION_RADIUS,
                 life=ORC_WOODCUTTER_MAX_LIFE,
                 max_life=ORC_WOODCUTTER_MAX_LIFE,
-                statuses=None,
+                statuses=tuple(),
                 type=MinionType.ORC_WOODCUTTER,
                 vision_range=None,
                 damage=ORC_WOODCUTTER_DAMAGE,
@@ -148,7 +149,7 @@ def test_get_target_with_only_me():
                 radius=MINION_RADIUS,
                 life=ORC_WOODCUTTER_MAX_LIFE,
                 max_life=ORC_WOODCUTTER_MAX_LIFE,
-                statuses=None,
+                statuses=tuple(),
                 type=MinionType.ORC_WOODCUTTER,
                 vision_range=None,
                 damage=ORC_WOODCUTTER_DAMAGE,
@@ -178,6 +179,7 @@ def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_p
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
     assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
@@ -200,7 +202,7 @@ def test_get_target_with_me_and_neural_minion():
                 radius=MINION_RADIUS,
                 life=FETISH_BLOWDART_MAX_LIFE,
                 max_life=None,
-                statuses=None,
+                statuses=tuple(),
                 type=MinionType.FETISH_BLOWDART,
                 vision_range=None,
                 damage=None,
@@ -219,6 +221,7 @@ def test_get_target_with_me_and_neural_minion():
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
 
 
@@ -238,7 +241,7 @@ def test_get_target_with_me_and_neural_minion():
                     radius=WIZARD_RADIUS,
                     life=WIZARD_MAX_LIFE,
                     max_life=WIZARD_MAX_LIFE,
-                    statuses=None,
+                    statuses=tuple(),
                     owner_player_id=None,
                     me=None,
                     mana=None,
@@ -271,7 +274,7 @@ def test_get_target_with_me_and_neural_minion():
                     radius=MINION_RADIUS,
                     life=50,
                     max_life=ORC_WOODCUTTER_MAX_LIFE,
-                    statuses=None,
+                    statuses=tuple(),
                     type=MinionType.ORC_WOODCUTTER,
                     vision_range=None,
                     damage=ORC_WOODCUTTER_DAMAGE,
@@ -291,7 +294,7 @@ def test_get_target_with_me_and_neural_minion():
                     radius=WIZARD_RADIUS,
                     life=100,
                     max_life=WIZARD_MAX_LIFE,
-                    statuses=None,
+                    statuses=tuple(),
                     owner_player_id=None,
                     me=None,
                     mana=None,
@@ -324,7 +327,7 @@ def test_get_target_with_me_and_neural_minion():
                     radius=MINION_RADIUS,
                     life=100,
                     max_life=ORC_WOODCUTTER_MAX_LIFE,
-                    statuses=None,
+                    statuses=tuple(),
                     type=MinionType.ORC_WOODCUTTER,
                     vision_range=None,
                     damage=ORC_WOODCUTTER_DAMAGE,
@@ -344,7 +347,7 @@ def test_get_target_with_me_and_neural_minion():
                     radius=WIZARD_RADIUS,
                     life=50,
                     max_life=WIZARD_MAX_LIFE,
-                    statuses=None,
+                    statuses=tuple(),
                     owner_player_id=None,
                     me=None,
                     mana=None,
@@ -385,6 +388,7 @@ def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_ta
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
     assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
@@ -403,7 +407,7 @@ def test_get_target_with_me_and_tree():
         radius=TREE_RADIUS,
         life=None,
         max_life=None,
-        statuses=None,
+        statuses=tuple(),
     )
     setattr(tree, 'position', Point(tree.x, tree.y))
     assert (None, None) == get_target(
@@ -421,6 +425,7 @@ def test_get_target_with_me_and_tree():
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
 
 
@@ -436,7 +441,7 @@ def test_get_target_with_me_and_nearby_tree():
         radius=TREE_RADIUS,
         life=100,
         max_life=None,
-        statuses=None,
+        statuses=tuple(),
     )
     setattr(tree, 'position', Point(tree.x, tree.y))
     target, position = get_target(
@@ -454,6 +459,7 @@ def test_get_target_with_me_and_nearby_tree():
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
     assert (target.id, position) == (2, tree.position)
 
@@ -486,6 +492,7 @@ def test_get_target_with_me_and_bonus():
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
     assert target.position.distance(position) <= bonus.radius + WIZARD_RADIUS
     assert (target.id, position) == (2, Point(1099.9999654385429, 1100.0000372327122))
@@ -627,6 +634,7 @@ def test_get_target_with_me_friend_and_enemy(friend, enemy, expected_target, exp
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-3))
     assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
@@ -706,6 +714,7 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
+        empowered_damage_factor=None,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
     assert target.id == 2
@@ -756,7 +765,7 @@ def test_get_target_with_me_and_tower_use_shielded(shielded, expected_distance):
         radius=GUARDIAN_TOWER_RADIUS,
         life=GUARDIAN_TOWER_LIFE,
         max_life=GUARDIAN_TOWER_LIFE,
-        statuses=None,
+        statuses=tuple(),
         type=None,
         vision_range=None,
         attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
@@ -780,6 +789,7 @@ def test_get_target_with_me_and_tower_use_shielded(shielded, expected_distance):
         dart_radius=DART_RADIUS,
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=SHIELDED_DIRECT_DAMAGE_ABSORPTION_FACTOR,
+        empowered_damage_factor=None,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 0.51))
     assert target.id == 2
