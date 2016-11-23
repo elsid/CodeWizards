@@ -307,10 +307,7 @@ class Strategy(LazyInit):
     def __apply_battle_mode(self, context: Context):
         context.post_event(name='apply_battle_mode')
         if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
-            context.post_event(name='change_mode', old='battle', new='move')
-            self.__target = None
-            self.__apply_mode = self.__apply_move_mode
-            self.__last_change_mode = context.world.tick_index
+            self.__use_move_mode(context)
             self.__apply_mode(context)
         else:
             self.__update_target(context)
@@ -318,13 +315,7 @@ class Strategy(LazyInit):
     def __apply_move_mode(self, context: Context):
         context.post_event(name='apply_move_mode')
         if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
-            context.post_event(name='change_mode', old='move', new='battle')
-            self.__next_node = 0
-            self.__path = list()
-            self.__destination = None
-            self.__departure = None
-            self.__apply_mode = self.__apply_battle_mode
-            self.__last_change_mode = context.world.tick_index
+            self.__use_battle_mode(context)
             self.__apply_mode(context)
         else:
             self.__update_path(context)
@@ -374,12 +365,7 @@ class Strategy(LazyInit):
             self.__target_position = self.__path[self.__next_node].position
         else:
             context.post_event(name='change_mode', old='move', new='battle')
-            self.__apply_mode = self.__apply_battle_mode
-            self.__next_node = 0
-            self.__path = list()
-            self.__destination = None
-            self.__departure = None
-            self.__last_change_mode = context.world.tick_index
+            self.__use_battle_mode(context)
             self.__apply_mode(context)
 
     def __update_target(self, context: Context):
@@ -429,10 +415,7 @@ class Strategy(LazyInit):
             self.__target_position = position
             self.__last_update_target = context.world.tick_index
         else:
-            context.post_event(name='change_mode', old='battle', new='move')
-            self.__target = None
-            self.__apply_mode = self.__apply_move_mode
-            self.__last_change_mode = context.world.tick_index
+            self.__use_move_mode(context)
             self.__apply_mode(context)
 
     def __update_movements(self, context: Context):
@@ -544,6 +527,33 @@ class Strategy(LazyInit):
             elif need_apply_missile():
                 context.post_event(name='apply_target_action', type='MAGIC_MISSILE')
                 context.move.action = ActionType.MAGIC_MISSILE
+
+    def __use_move_mode(self, context: Context):
+        context.post_event(name='change_mode', old=self.__current_mode_name, new='move')
+        self.__next_node = 0
+        self.__path = list()
+        self.__destination = None
+        self.__departure = None
+        self.__target = None
+        self.__apply_mode = self.__apply_move_mode
+        self.__last_change_mode = context.world.tick_index
+
+    def __use_battle_mode(self, context: Context):
+        context.post_event(name='change_mode', old=self.__current_mode_name, new='battle')
+        self.__next_node = 0
+        self.__path = list()
+        self.__destination = None
+        self.__departure = None
+        self.__target = None
+        self.__apply_mode = self.__apply_battle_mode
+        self.__last_change_mode = context.world.tick_index
+
+    @property
+    def __current_mode_name(self):
+        if self.__apply_mode == self.__apply_move_mode:
+            return 'move'
+        if self.__apply_mode == self.__apply_battle_mode:
+            return 'battle'
 
 
 def update_dynamic_unit(cache, new):
