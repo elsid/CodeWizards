@@ -110,8 +110,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1084.0770037489024, 465.70022214212509),
-            634.4996059889729,
+            Point(1072.9637063145433, 565.80170028385146),
+            WIZARD_CAST_RANGE + MINION_RADIUS + MAGIC_MISSILE_RADIUS - 0.11797133406935245,
         ),
         (
             Minion(
@@ -133,8 +133,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1084.0770037489024, 465.70022214212509),
-            634.4996059889729,
+            Point(1072.9637063145433, 565.80170028385146),
+            WIZARD_CAST_RANGE + MINION_RADIUS + MAGIC_MISSILE_RADIUS - 0.11797133406935245,
         ),
         (
             Minion(
@@ -156,8 +156,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1531.8462157825002, 1571.4323919960013),
-            634.6953287266533,
+            Point(1686.5111142408321, 1566.6139098964334),
+            WIZARD_CAST_RANGE + MINION_RADIUS + MAGIC_MISSILE_RADIUS - 0.11797133406935245,
         ),
     ]
 )
@@ -255,8 +255,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(1111.749473479857, 455.60749548663307),
-            644.4996121023989,
+            Point(1086.7249125568969, 555.28164859088633),
+            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199119881912,
         ),
         (
             [
@@ -308,8 +308,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1066.3763534657346, 356.37806097532575),
-            644.4996121023989,
+            Point(1142.5224700111228, 456.78167386157526),
+            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199119881912,
         ),
         (
             [
@@ -361,8 +361,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1066.3763534657346, 356.37806097532575),
-            644.4996121023989,
+            Point(1142.5224700111228, 456.78167386157526),
+            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199119881912,
         ),
     ]
 )
@@ -547,8 +547,8 @@ def test_get_target_with_me_and_bonus():
                 messages=None,
             ),
             3,
-            Point(960.67102899179849, 601.58426354556082),
-            644.4996121024072,
+            Point(1055.7926969905302, 674.54918016315344),
+            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199112787854,
         ),
         (
             Wizard(
@@ -604,8 +604,8 @@ def test_get_target_with_me_and_bonus():
                 messages=None,
             ),
             3,
-            Point(752.84358174170552, 1332.4199749960562),
-            644.4996121024491,
+            Point(854.15126507744606, 1305.9897523239772),
+            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199112787854,
         ),
     ]
 )
@@ -637,11 +637,11 @@ def test_get_target_with_me_friend_and_enemy(friend, enemy, expected_target, exp
 
 @pytest.mark.parametrize(
     ('wizard_life', 'expected_distance'), [
-        (WIZARD_MAX_LIFE, GUARDIAN_TOWER_ATTACK_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
-        (3 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
-        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 11.224340175952648),
-        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 11.224340175952648),
-        (1, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 11.224340175952648),
+        (WIZARD_MAX_LIFE, WIZARD_CAST_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS - 0.12280701754332313),
+        (3 * GUARDIAN_TOWER_DAMAGE, WIZARD_CAST_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS - 0.12280701754332313),
+        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 13.1232749147795),
+        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 13.1232749147795),
+        (1, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 13.1232749147795),
     ]
 )
 def test_get_target_with_me_and_tower(wizard_life, expected_distance):
@@ -707,14 +707,14 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
     )
-    assert_that(target.position.distance(position), close_to(expected_distance, 0.51))
+    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
     assert target.id == 2
 
 
 @pytest.mark.parametrize(
     ('shielded', 'expected_distance'), [
-        (False, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 11.224340175952648),
-        (True, GUARDIAN_TOWER_ATTACK_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
+        (False, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 13.123274914779472),
+        (True, WIZARD_CAST_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
     ]
 )
 def test_get_target_with_me_and_tower_use_shielded(shielded, expected_distance):
@@ -727,7 +727,7 @@ def test_get_target_with_me_and_tower_use_shielded(shielded, expected_distance):
         angle=None,
         faction=Faction.ACADEMY,
         radius=WIZARD_RADIUS,
-        life=2 * GUARDIAN_TOWER_DAMAGE,
+        life=1.9 * GUARDIAN_TOWER_DAMAGE,
         max_life=WIZARD_MAX_LIFE,
         statuses=[Status(id=None, type=StatusType.SHIELDED, wizard_id=None, player_id=None,
                          remaining_duration_ticks=shielded)],

@@ -84,7 +84,10 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         position = Point(values[0], values[1])
 
         def get_unit_damage(unit):
-            return get_damage(unit) if get_attack_range(unit) >= position.distance(unit.position) else 0
+            attack_range = get_attack_range(unit)
+            distance = position.distance(unit.position)
+            return get_damage(unit) * (1 if attack_range >= distance
+                                       else distance_penalty(distance - attack_range, 0.5 * attack_range))
 
         sum_damage = sum(damage_factor * get_unit_damage(v) for v in enemies_units)
 
@@ -115,7 +118,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                 if distance <= max_cast_range:
                     d_penalty = distance_penalty(distance, max_cast_range)
                 else:
-                    safe_distance = max(max_cast_range, my_position.distance(target.position) + me.radius)
+                    safe_distance = max(max_cast_range, map_size)
                     d_penalty = 1 - distance_penalty(distance - max_cast_range, safe_distance)
                 return max(unit_danger_penalty(target), d_penalty)
 
