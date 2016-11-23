@@ -53,7 +53,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
     def target_penalty(unit):
         distance = unit.position.distance(my_position)
-        return distance * unit.life / get_damage(me) if distance <= me.vision_range else distance
+        return distance * unit.life / get_damage(me) if distance <= 2 * unit.radius + me.vision_range else distance
 
     def is_in_cast_range(unit):
         return my_position.distance(unit.position) <= me.cast_range + magic_missile_radius + unit.radius
