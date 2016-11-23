@@ -288,18 +288,14 @@ class Strategy(LazyInit):
             setattr(unit, 'position', Point(unit.x, unit.y))
             if isinstance(unit, type(self.__target)) and unit.id == self.__target.id:
                 self.__target = unit
-        invalidate_cache(self.__cached_buildings, context.world.tick_index, CACHE_TTL_BUILDINGS, context.me.position,
-                         context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_minions, context.world.tick_index, CACHE_TTL_MINIONS, context.me.position,
-                         context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_wizards, context.world.tick_index, CACHE_TTL_WIZARDS, context.me.position,
-                         context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_trees, context.world.tick_index, CACHE_TTL_BUILDINGS, context.me.position,
-                         context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_projectiles, context.world.tick_index, CACHE_TTL_TREES, context.me.position,
-                         context.me.vision_range * 0.9)
-        invalidate_cache(self.__cached_bonuses, context.world.tick_index, CACHE_TTL_BONUSES, context.me.position,
-                         context.me.vision_range * 0.9)
+        friends = [v for v in chain(context.world.wizards, context.world.minions, context.world.buildings)
+                   if v.faction == context.me.faction]
+        invalidate_cache(self.__cached_buildings, context.world.tick_index, CACHE_TTL_BUILDINGS, friends)
+        invalidate_cache(self.__cached_minions, context.world.tick_index, CACHE_TTL_MINIONS, friends)
+        invalidate_cache(self.__cached_wizards, context.world.tick_index, CACHE_TTL_WIZARDS, friends)
+        invalidate_cache(self.__cached_trees, context.world.tick_index, CACHE_TTL_BUILDINGS, friends)
+        invalidate_cache(self.__cached_projectiles, context.world.tick_index, CACHE_TTL_TREES, friends)
+        invalidate_cache(self.__cached_bonuses, context.world.tick_index, CACHE_TTL_BONUSES, friends)
 
     def __apply_battle_mode(self, context: Context):
         context.post_event(name='apply_battle_mode')
@@ -558,8 +554,14 @@ def update_dynamic_unit(cache, new):
     cache[new.id] = new
 
 
-def invalidate_cache(cache, tick, ttl, my_position, min_range):
-    to_rm = [v.id for v in cache.values() if v.last_seen < tick - ttl
-             or (v.last_seen < tick and v.position.distance(my_position) < min_range)]
-    for v in to_rm:
-        del cache[v]
+def invalidate_cache(cache, tick, ttl, friends):
+    def to_rm():
+        for cached in cache.values():
+            if cached.last_seen < tick - ttl:
+                yield cached.id
+            elif (cached.last_seen < tick
+                    and next((True for v in friends if cached.position.distance(v.position)
+                              < v.vision_range - 2 * cached.radius), False)):
+                yield cached.id
+    for cached_id in tuple(to_rm()):
+        del cache[cached_id]
