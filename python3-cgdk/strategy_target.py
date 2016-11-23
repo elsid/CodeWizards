@@ -55,15 +55,29 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         distance = unit.position.distance(my_position)
         return distance * unit.life / get_damage(me) if distance <= me.vision_range else distance
 
+    def is_in_cast_range(unit):
+        return my_position.distance(unit.position) <= me.cast_range + magic_missile_radius + unit.radius
+
+    def get_optimal_in_cast_range(units):
+        in_cast_range = tuple(v for v in units if is_in_cast_range(v))
+        return min(in_cast_range, key=target_penalty) if in_cast_range else None
+
     if bonuses:
-        target = min(bonuses, key=lambda v: my_position.distance(Point(v.x, v.y)))
+        target = min(bonuses, key=lambda v: my_position.distance(v.position))
         bonuses = tuple(v for v in bonuses if v.id != target.id)
-    elif enemy_wizards:
-        target = min(enemy_wizards, key=target_penalty)
-    elif enemy_minions:
-        target = min(enemy_minions, key=target_penalty)
-    elif enemy_buildings:
-        target = min(enemy_buildings, key=target_penalty)
+    elif enemy_wizards or enemy_minions or enemy_buildings:
+        target = get_optimal_in_cast_range(enemy_wizards)
+        if target is None:
+            target = get_optimal_in_cast_range(enemy_minions)
+        if target is None:
+            target = get_optimal_in_cast_range(enemy_buildings)
+        if target is None:
+            if enemy_wizards:
+                target = min(enemy_wizards, key=target_penalty)
+            elif enemy_minions:
+                target = min(enemy_minions, key=target_penalty)
+            elif enemy_buildings:
+                target = min(enemy_buildings, key=target_penalty)
     else:
         target = None
     get_attack_range = make_get_attack_range(
