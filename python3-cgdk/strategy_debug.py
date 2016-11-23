@@ -82,6 +82,8 @@ class Strategy:
         for lane, nodes in graph.lanes_nodes.items():
             for node in nodes:
                 post.circle(node.position.x, node.position.y, 20, LANE_TYPES_COLORS[lane])
+        post.circle(graph.friend_base.position.x, graph.friend_base.position.y, 20, (0, 0.5, 0))
+        post.circle(graph.enemy_base.position.x, graph.enemy_base.position.y, 20, (0.5, 0, 0))
 
     def __visualize_graph_path(self, post):
         self.__visualize_path(post, (v.position for v in self.__impl.path), (0.2, 0.2, 0.2), 10)

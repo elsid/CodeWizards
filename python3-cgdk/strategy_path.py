@@ -10,7 +10,7 @@ from strategy_target import is_enemy
 
 Node = namedtuple('Node', ('position', 'arcs'))
 Arc = namedtuple('Arc', ('dst', 'weight'))
-Graph = namedtuple('Graph', ('nodes', 'center', 'zone_size', 'lanes_nodes'))
+Graph = namedtuple('Graph', ('nodes', 'center', 'zone_size', 'lanes_nodes', 'friend_base', 'enemy_base'))
 
 
 def make_graph(map_size):
@@ -112,6 +112,8 @@ def make_graph(map_size):
         center=nodes[count // 2 * resolution - half][count // 2 * resolution + half],
         zone_size=1.5 * resolution,
         lanes_nodes=lanes_nodes,
+        friend_base=nodes[half][map_size - half],
+        enemy_base=nodes[map_size - half][half],
     )
 
 
