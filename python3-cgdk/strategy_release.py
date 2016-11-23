@@ -35,6 +35,7 @@ GET_TARGET_MAX_ITERATIONS = 10
 UPDATE_DESTINATION_TICKS = 50
 CHANGE_MODE_TICKS = 100
 MESSAGE_TICKS = 500
+RECENTLY_SEEN_TICKS = 3
 ACTION_TYPES_NAMES = {
     ActionType.NONE: 'NONE',
     ActionType.STAFF: 'STAFF',
@@ -394,7 +395,7 @@ class Strategy(LazyInit):
     def __update_target(self, context: Context):
 
         def is_recently_seen(unit):
-            return unit.last_seen == context.world.tick_index
+            return context.world.tick_index - unit.last_seen <= RECENTLY_SEEN_TICKS
 
         context.post_event(name='update_target')
         if self.__target is not None and context.world.tick_index - self.__target.last_seen > LOST_TARGET_TICKS:
