@@ -126,7 +126,7 @@ def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses, t
                              if has_near_enemy(node.position, units, me.faction, graph.zone_size))
     nearest_node = get_nearest_node(nodes, me.position)
     if nodes_with_bonus and nodes_with_enemy:
-        enemy = get_nearest_node_by_path(nodes_with_bonus, nearest_node)
+        enemy = get_nearest_node_by_path(nodes_with_enemy, nearest_node)
         if id(enemy) == id(nearest_node):
             return enemy
     if nodes_with_bonus:
