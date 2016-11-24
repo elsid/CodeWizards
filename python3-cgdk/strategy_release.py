@@ -586,10 +586,11 @@ def update_dynamic_unit(cache, new):
     new_position = Point(new.x, new.y)
     if old is None:
         speed = Point(new.speed_x, new.speed_y)
-        setattr(new, 'positions_history', [new_position - speed, new_position])
+        setattr(new, 'positions_history', deque([new_position - speed, new_position], maxlen=5))
         setattr(new, 'mean_speed', speed)
     else:
-        setattr(new, 'positions_history', old.positions_history[-3:] + [new_position])
+        old.positions_history.append(new_position)
+        setattr(new, 'positions_history', old.positions_history)
         setattr(new, 'mean_speed',
                 reduce(lambda s, v: s + v, old.positions_history, Point(0, 0)) / len(old.positions_history))
     cache[new.id] = new
