@@ -14,7 +14,7 @@ from model.StatusType import StatusType
 from model.Wizard import Wizard
 from model.World import World
 
-from strategy_common import LazyInit, lazy_init, Point, Circle
+from strategy_common import LazyInit, lazy_init, Point, Circle, normalize_angle
 from strategy_move import optimize_movement, has_intersection_with_barriers, make_circles
 from strategy_path import make_graph, select_destination, get_shortest_path, get_nearest_node, has_near_enemy
 from strategy_target import get_target
@@ -520,7 +520,7 @@ class Strategy(LazyInit):
         def need_apply_missile():
             if context.me.remaining_cooldown_ticks_by_action[ActionType.MAGIC_MISSILE] != 0:
                 return False
-            direction = Point(1, 0).rotate(context.me.angle)
+            direction = Point(1, 0).rotate(normalize_angle(context.me.angle + turn))
             if (target_position.distance(context.me.position + direction * distance) >
                     context.game.magic_missile_radius + self.__target.radius):
                 return False
