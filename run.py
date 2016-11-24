@@ -13,4 +13,7 @@ if __name__ == '__main__':
               'local-runner-ru/local-runner.jar', argv[1]]
     with AutoKillProcess(runner):
         sleep(3)
-        strategy.run()
+        if len(argv) > 2 and argv[2] == 'cpp':
+            strategy.cpp()
+        else:
+            strategy.python3()

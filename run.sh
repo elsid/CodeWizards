@@ -29,6 +29,6 @@ sed -i "s;{{RENDER_TO_SCREEN}};${RENDER_TO_SCREEN};g" ${CONFIG}
 sed -i "s;{{RENDER_TO_SCREEN_SYNC}};${RENDER_TO_SCREEN_SYNC};g" ${CONFIG}
 sed -i "s;{{SEED}};${SEED};g" ${CONFIG}
 
-./run.py ${CONFIG} | tee ${RUN_LOG}
+./run.py ${CONFIG} "${@}" | tee ${RUN_LOG}
 
 echo "run log: ${RUN_LOG}"
