@@ -7,3 +7,6 @@
 [submodule "python3-cgdk-origin"]
 	path = python3-cgdk-origin
 	url = git@github.com:Russian-AI-Cup-2016/python3-cgdk.git
+[submodule "cpp-cgdk-origin"]
+	path = cpp-cgdk-origin
+	url = git@github.com:Russian-AI-Cup-2016/cpp-cgdk.git
