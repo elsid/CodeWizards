@@ -537,7 +537,7 @@ class Strategy(LazyInit):
 
         target_position = self.__target.position
         distance = target_position.distance(context.me.position)
-        if distance <= context.me.cast_range + self.__target.radius + context.game.magic_missile_radius + 1:
+        if distance <= context.me.cast_range + self.__target.radius + context.game.magic_missile_radius:
             context.post_event(name='apply_target_turn')
             turn = context.me.get_angle_to_unit(self.__target)
             context.move.turn = turn
