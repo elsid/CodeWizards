@@ -108,10 +108,10 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         sum_damage = sum(damage_factor * get_unit_damage(v) for v in enemies_units)
 
         def unit_intersection_penalty(unit):
-            if isinstance(unit, (Building, Tree)):
-                return distance_penalty(position.distance(unit.position), 2 * me.radius + 3 * unit.radius)
+            if isinstance(unit, Tree):
+                return distance_penalty(position.distance(unit.position), 2 * me.radius + unit.radius)
             else:
-                return distance_penalty(position.distance(unit.position), me.radius + 2 * unit.radius)
+                return distance_penalty(position.distance(unit.position), 1.1 * me.radius + unit.radius)
 
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
