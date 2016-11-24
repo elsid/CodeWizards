@@ -89,7 +89,8 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     )
     other_wizards = tuple(v for v in wizards if v.id != me.id)
     units = tuple(v for v in chain(buildings, trees, minions, other_wizards) if id(v) != id(target))
-    friends_units = tuple(filter_friends(chain(other_wizards)))
+    friends_wizards = tuple(filter_friends(chain(other_wizards)))
+    friends_units = tuple(chain(friends_wizards, filter_friends(chain(minions, buildings))))
     enemies_units = tuple(filter_enemies(chain(buildings, minions, other_wizards)))
     target_position = target.position if target else None
     damage_factor = 1 - next((shielded_direct_damage_absorption_factor * bool(v.remaining_duration_ticks)
@@ -115,11 +116,15 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         def unit_danger_penalty(unit):
             if not is_enemy(unit, me.faction):
                 return 0
+            distance_to_unit = position.distance(unit.position)
+            if isinstance(unit, Minion) and friends_units:
+                nearest_friend = min(friends_units, key=lambda v: v.position.distance(unit.position))
+                if nearest_friend.position.distance(unit.position) < distance_to_unit:
+                    return 0
             add_damage = damage_factor * (get_damage(unit) - get_unit_damage(unit))
             safe_distance = max(me.cast_range + magic_missile_radius + unit.radius,
                                 (get_attack_range(unit) + 2 * me.radius) *
                                 min(1, 2 * (sum_damage + add_damage) / me.life))
-            distance_to_unit = position.distance(unit.position)
             return distance_penalty(distance_to_unit, safe_distance)
 
         def target_distance_penalty():
@@ -138,7 +143,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                 return max(unit_danger_penalty(target), d_penalty)
 
         def friend_units_intersections_penalties():
-            for friend in friends_units:
+            for friend in friends_wizards:
                 circle = Circle(friend.position, friend.radius)
                 intersection = circle.has_intersection_with_moving_circle(
                     Circle(position, magic_missile_radius), target_position)
@@ -159,7 +164,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                     yield distance_to_tangent / max_distance
 
         def direction_penalty():
-            return max(friend_units_intersections_penalties()) if target_position and friends_units else 0
+            return max(friend_units_intersections_penalties()) if target_position and friends_wizards else 0
 
         def bonus_penalty(bonus):
             return 1 - distance_penalty(position.distance(bonus.position),
@@ -189,7 +194,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
             + len(units) * UNIT_WEIGHT
             + len(bonuses) * BONUS_WEIGHT
             + len(projectiles) * PROJECTILE_WEIGHT
-            + (DIRECTION_WEIGHT if target_position and friends_units else 0)
+            + (DIRECTION_WEIGHT if target_position and friends_wizards else 0)
             + (TARGET_DISTANCE_WEIGHT if target_position else 0)
         )
         penalty = max(borders_penalty() * penalties_count, (
