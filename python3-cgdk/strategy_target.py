@@ -23,7 +23,7 @@ UNIT_WEIGHT = 1
 
 def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, orc_woodcutter_attack_range,
                fetish_blowdart_attack_range, magic_missile_direct_damage, magic_missile_radius, dart_radius, map_size,
-               shielded_direct_damage_absorption_factor, empowered_damage_factor, max_distance=None,
+               shielded_direct_damage_absorption_factor, empowered_damage_factor, staff_range, max_distance=None,
                max_iterations=None, penalties=None):
     my_position = Point(me.x, me.y)
 
@@ -55,22 +55,22 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         distance = unit.position.distance(my_position)
         return distance * unit.life / get_damage(me) if distance <= 2 * unit.radius + me.vision_range else distance
 
-    def is_in_cast_range(unit):
-        return my_position.distance(unit.position) <= me.cast_range + magic_missile_radius + unit.radius
+    def is_in_staff_range(unit):
+        return my_position.distance(unit.position) <= staff_range + unit.radius
 
-    def get_optimal_in_cast_range(units):
-        in_cast_range = tuple(v for v in units if is_in_cast_range(v))
-        return min(in_cast_range, key=target_penalty) if in_cast_range else None
+    def get_optimal_in_range(units, is_in_range):
+        in_range = tuple(v for v in units if is_in_range(v))
+        return min(in_range, key=target_penalty) if in_range else None
 
     if bonuses:
         target = min(bonuses, key=lambda v: my_position.distance(v.position))
         bonuses = tuple(v for v in bonuses if v.id != target.id)
     elif enemy_wizards or enemy_minions or enemy_buildings:
-        target = get_optimal_in_cast_range(enemy_wizards)
+        target = get_optimal_in_range(enemy_wizards, is_in_staff_range)
         if target is None:
-            target = get_optimal_in_cast_range(enemy_minions)
+            target = get_optimal_in_range(enemy_minions, is_in_staff_range)
         if target is None:
-            target = get_optimal_in_cast_range(enemy_buildings)
+            target = get_optimal_in_range(enemy_buildings, is_in_staff_range)
         if target is None:
             if enemy_wizards:
                 target = min(enemy_wizards, key=target_penalty)
@@ -122,7 +122,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                 if nearest_friend.position.distance(unit.position) < distance_to_unit:
                     return 0
             add_damage = damage_factor * (get_damage(unit) - get_unit_damage(unit))
-            safe_distance = max(me.cast_range + magic_missile_radius + unit.radius,
+            safe_distance = max(me.cast_range + magic_missile_radius,
                                 (get_attack_range(unit) + 2 * me.radius) *
                                 min(1, 2 * (sum_damage + add_damage) / me.life))
             return distance_penalty(distance_to_unit, safe_distance)
@@ -133,10 +133,10 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
             if isinstance(target, Bonus):
                 return bonus_penalty(target)
             else:
-                max_cast_range = me.cast_range + magic_missile_radius + target.radius - 1
+                max_cast_range = me.cast_range + magic_missile_radius
                 distance = position.distance(target_position)
                 if distance <= max_cast_range:
-                    d_penalty = distance_penalty(distance, max_cast_range)
+                    d_penalty = 0
                 else:
                     safe_distance = max(max_cast_range, map_size)
                     d_penalty = 1 - distance_penalty(distance - max_cast_range, safe_distance)

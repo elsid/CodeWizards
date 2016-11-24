@@ -34,6 +34,7 @@ from test.common import (
     ORC_WOODCUTTER_DAMAGE,
     ORC_WOODCUTTER_MAX_LIFE,
     SHIELDED_DIRECT_DAMAGE_ABSORPTION_FACTOR,
+    STAFF_RANGE,
     TREE_RADIUS,
     WIZARD_CAST_RANGE,
     WIZARD_MAX_LIFE,
@@ -86,6 +87,7 @@ def test_get_target_with_only_me():
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
 
 
@@ -111,8 +113,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1072.9637063145433, 565.80170028385146),
-            WIZARD_CAST_RANGE + MINION_RADIUS + MAGIC_MISSILE_RADIUS - 0.11797133406935245,
+            Point(1092.9945268848903, 590.04811663605028),
+            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
         ),
         (
             Minion(
@@ -134,8 +136,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1072.9637063145433, 565.80170028385146),
-            WIZARD_CAST_RANGE + MINION_RADIUS + MAGIC_MISSILE_RADIUS - 0.11797133406935245,
+            Point(1092.9945268848903, 590.04811663605028),
+            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
         ),
         (
             Minion(
@@ -157,8 +159,8 @@ def test_get_target_with_only_me():
                 remaining_action_cooldown_ticks=None,
             ),
             2,
-            Point(1686.5111142408321, 1566.6139098964334),
-            WIZARD_CAST_RANGE + MINION_RADIUS + MAGIC_MISSILE_RADIUS - 0.11797133406935245,
+            Point(1640.6753050738948, 1638.0804459327037),
+            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
         ),
     ]
 )
@@ -180,9 +182,9 @@ def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_p
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
-    assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
     assert (target.id, position) == (expected_target, expected_position)
 
 
@@ -222,6 +224,7 @@ def test_get_target_with_me_and_neural_minion():
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
 
 
@@ -258,8 +261,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             2,
-            Point(1086.7249125568969, 555.28164859088633),
-            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199119881912,
+            Point(1092.9945268848903, 590.04811663605028),
+            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
         ),
         (
             [
@@ -311,8 +314,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1142.5224700111228, 456.78167386157526),
-            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199119881912,
+            Point(1170.8522014525097, 494.94558159605424),
+            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
         ),
         (
             [
@@ -364,8 +367,8 @@ def test_get_target_with_me_and_neural_minion():
                 ),
             ],
             3,
-            Point(1142.5224700111228, 456.78167386157526),
-            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199119881912,
+            Point(1170.8522014525097, 494.94558159605424),
+            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
         ),
     ]
 )
@@ -389,9 +392,9 @@ def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_ta
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
-    assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
     assert (target.id, position) == (expected_target, expected_position)
 
 
@@ -426,6 +429,7 @@ def test_get_target_with_me_and_tree():
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
 
 
@@ -460,6 +464,7 @@ def test_get_target_with_me_and_nearby_tree():
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
     assert (target.id, position) == (2, tree.position)
 
@@ -493,6 +498,7 @@ def test_get_target_with_me_and_bonus():
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
     assert target.position.distance(position) <= bonus.radius + WIZARD_RADIUS
     assert (target.id, position) == (2, Point(1099.9999654385429, 1100.0000372327122))
@@ -554,8 +560,8 @@ def test_get_target_with_me_and_bonus():
                 messages=None,
             ),
             3,
-            Point(1055.7926969905302, 674.54918016315344),
-            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199112787854,
+            Point(1060.0827586918113, 709.56838847326571),
+            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
         ),
         (
             Wizard(
@@ -611,8 +617,8 @@ def test_get_target_with_me_and_bonus():
                 messages=None,
             ),
             3,
-            Point(854.15126507744606, 1305.9897523239772),
-            WIZARD_CAST_RANGE + WIZARD_RADIUS + MAGIC_MISSILE_RADIUS - 0.11991199112787854,
+            Point(904.45684079912985, 1315.6979214651112),
+            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
         ),
     ]
 )
@@ -635,6 +641,7 @@ def test_get_target_with_me_friend_and_enemy(friend, enemy, expected_target, exp
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-3))
     assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
@@ -645,11 +652,11 @@ def test_get_target_with_me_friend_and_enemy(friend, enemy, expected_target, exp
 
 @pytest.mark.parametrize(
     ('wizard_life', 'expected_distance'), [
-        (WIZARD_MAX_LIFE, WIZARD_CAST_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS - 0.12280701754332313),
-        (3 * GUARDIAN_TOWER_DAMAGE, WIZARD_CAST_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS - 0.12280701754332313),
-        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 13.1232749147795),
-        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 13.1232749147795),
-        (1, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 13.1232749147795),
+        (WIZARD_MAX_LIFE, WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS),
+        (3 * GUARDIAN_TOWER_DAMAGE, WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS),
+        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 5.781083953264329),
+        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 5.781083953264329),
+        (1, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 5.781083953264329),
     ]
 )
 def test_get_target_with_me_and_tower(wizard_life, expected_distance):
@@ -715,6 +722,7 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
     assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
     assert target.id == 2
@@ -722,8 +730,8 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
 
 @pytest.mark.parametrize(
     ('shielded', 'expected_distance'), [
-        (False, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 13.123274914779472),
-        (True, WIZARD_CAST_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS),
+        (False, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 5.781083953264329),
+        (True, WIZARD_CAST_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS - 9.110597747611678),
     ]
 )
 def test_get_target_with_me_and_tower_use_shielded(shielded, expected_distance):
@@ -790,6 +798,7 @@ def test_get_target_with_me_and_tower_use_shielded(shielded, expected_distance):
         map_size=MAP_SIZE,
         shielded_direct_damage_absorption_factor=SHIELDED_DIRECT_DAMAGE_ABSORPTION_FACTOR,
         empowered_damage_factor=None,
+        staff_range=STAFF_RANGE,
     )
-    assert_that(target.position.distance(position), close_to(expected_distance, 0.51))
+    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
     assert target.id == 2
