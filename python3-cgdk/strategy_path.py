@@ -132,6 +132,10 @@ def select_destination(graph: Graph, me, buildings, minions, wizards, bonuses, t
     if nodes_with_bonus:
         return get_nearest_node_by_path(nodes_with_bonus, nearest_node)
     if nodes_with_enemy:
+        to_friend_base = get_path_to_nearest_node(nodes_with_enemy, graph.friend_base)
+        to_enemy_base = get_shortest_path(nearest_node, graph.enemy_base)
+        if to_friend_base[1] < 2 * graph.zone_size < to_enemy_base[1]:
+            return graph.friend_base
         return get_nearest_node_by_path(nodes_with_enemy, nearest_node)
     return graph.center
 
@@ -160,6 +164,10 @@ def get_nearest_node(nodes, my_position):
 
 def get_nearest_node_by_path(nodes, my_node):
     return min(nodes, key=lambda v: get_shortest_path(my_node, v)[1])
+
+
+def get_path_to_nearest_node(nodes, my_node):
+    return min((get_shortest_path(my_node, v) for v in nodes), key=lambda v: v[1])
 
 
 def get_shortest_path(src: Node, dst: Node):

@@ -67,7 +67,7 @@ def test_select_destination_to_enemy_wizard():
         me=me,
         buildings=tuple(),
         minions=tuple(),
-        wizards=[wizard],
+        wizards=[me, wizard],
         bonuses=tuple(),
         target_lane=tuple(),
     )
@@ -164,7 +164,7 @@ def test_select_destination_to_nearest_enemy_wizard():
         me=me,
         buildings=tuple(),
         minions=tuple(),
-        wizards=[far_wizard, near_wizard],
+        wizards=[me, far_wizard, near_wizard],
         bonuses=tuple(),
         target_lane=tuple(),
     )
@@ -219,7 +219,7 @@ def test_select_destination_to_bonus():
         me=me,
         buildings=tuple(),
         minions=tuple(),
-        wizards=tuple(),
+        wizards=[me],
         bonuses=[bonus],
         target_lane=tuple(),
     )
@@ -301,7 +301,7 @@ def test_select_destination_to_bonus_instead_of_enemy():
         me=me,
         buildings=tuple(),
         minions=tuple(),
-        wizards=[wizard],
+        wizards=[me, wizard],
         bonuses=[bonus],
         target_lane=tuple(),
     )
@@ -383,10 +383,177 @@ def test_select_destination_to_enemy_instead_of_bonus():
         me=me,
         buildings=tuple(),
         minions=tuple(),
-        wizards=[wizard],
+        wizards=[me, wizard],
         bonuses=[bonus],
         target_lane=tuple(),
     )
     destination = destination.position
     assert destination == Point(2200, 2200)
     assert destination.distance(wizard.position) <= graph.zone_size
+
+
+def test_select_destination_to_enemy_wizard_near_friend_base():
+    graph = make_graph(4000)
+    me = Wizard(
+        id=None,
+        x=2500,
+        y=2500,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.ACADEMY,
+        radius=None,
+        life=None,
+        max_life=None,
+        statuses=None,
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=None,
+        cast_range=None,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
+    setattr(me, 'position', Point(me.x, me.y))
+    far_wizard = Wizard(
+        id=None,
+        x=3000,
+        y=3000,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=None,
+        life=None,
+        max_life=None,
+        statuses=None,
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=None,
+        cast_range=None,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
+    setattr(far_wizard, 'position', Point(far_wizard.x, far_wizard.y))
+    near_wizard = Wizard(
+        id=None,
+        x=graph.friend_base.position.x,
+        y=graph.friend_base.position.y,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=None,
+        life=None,
+        max_life=None,
+        statuses=None,
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=None,
+        cast_range=None,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
+    setattr(near_wizard, 'position', Point(near_wizard.x, near_wizard.y))
+    destination = select_destination(
+        graph=graph,
+        me=me,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=[me, far_wizard, near_wizard],
+        bonuses=tuple(),
+        target_lane=tuple(),
+    )
+    destination = destination.position
+    assert destination == Point(200, 3800)
+    assert destination.distance(near_wizard.position) <= graph.zone_size
+
+
+def test_select_destination_not_to_enemy_wizard_near_friend_base():
+    graph = make_graph(4000)
+    me = Wizard(
+        id=None,
+        x=graph.enemy_base.position.x,
+        y=graph.enemy_base.position.y,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.ACADEMY,
+        radius=None,
+        life=None,
+        max_life=None,
+        statuses=None,
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=None,
+        cast_range=None,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
+    setattr(me, 'position', Point(me.x, me.y))
+    near_wizard = Wizard(
+        id=None,
+        x=graph.friend_base.position.x,
+        y=graph.friend_base.position.y,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=None,
+        life=None,
+        max_life=None,
+        statuses=None,
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=None,
+        cast_range=None,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
+    setattr(near_wizard, 'position', Point(near_wizard.x, near_wizard.y))
+    destination = select_destination(
+        graph=graph,
+        me=me,
+        buildings=tuple(),
+        minions=tuple(),
+        wizards=[me, near_wizard],
+        bonuses=tuple(),
+        target_lane=tuple(),
+    )
+    destination = destination.position
+    assert destination == Point(600, 3400)
+    assert destination.distance(near_wizard.position) <= graph.zone_size
