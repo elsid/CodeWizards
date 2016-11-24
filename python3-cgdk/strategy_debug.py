@@ -1,5 +1,6 @@
 from operator import itemgetter
 
+from model.ActionType import ActionType
 from model.LaneType import LaneType
 
 from strategy_release import Strategy as ReleaseStrategy, Context
@@ -31,6 +32,7 @@ class Strategy:
             self.__visualize_states(context.world.tick_index, post)
             self.__visualize_target(post)
             self.__visualize_target_position(context, post)
+            self.__visualize_cast_range(context, post)
 
     def __visualize_target(self, post):
         target = self.__impl.target
@@ -95,3 +97,9 @@ class Strategy:
         shift = tick % 10
         self.__visualize_path(post, (v.position for i, v in enumerate(self.__impl.states)
                                      if (i + shift) % 10 == 0), (0.2, 0.75, 0), 5)
+
+    @staticmethod
+    def __visualize_cast_range(context, post):
+        post.circle(context.me.position.x, context.me.position.y, context.me.cast_range, (0.5, 0.5, 0.5))
+        post.text(context.me.position.x + 35, context.me.position.y + 35,
+                  str(context.me.remaining_cooldown_ticks_by_action[ActionType.MAGIC_MISSILE]), (0, 0, 0))
