@@ -10,3 +10,6 @@
 [submodule "cpp-cgdk-origin"]
 	path = cpp-cgdk-origin
 	url = git@github.com:Russian-AI-Cup-2016/cpp-cgdk.git
+[submodule "newuoa-cpp"]
+	path = newuoa-cpp
+	url = git@github.com:elsid/newuoa-cpp.git
