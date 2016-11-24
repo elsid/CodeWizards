@@ -301,6 +301,8 @@ class Strategy(LazyInit):
             update_dynamic_unit(self.__cached_minions, v)
         for v in context.world.wizards:
             update_dynamic_unit(self.__cached_wizards, v)
+            if v.me:
+                setattr(context.me, 'mean_speed', v.mean_speed)
         for v in context.world.trees:
             self.__cached_trees[v.id] = v
         for v in context.world.projectiles:
