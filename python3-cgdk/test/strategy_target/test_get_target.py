@@ -68,6 +68,7 @@ WIZARD = Wizard(
     master=None,
     messages=None,
 )
+setattr(WIZARD, 'mean_speed', Point(0, 0))
 
 
 def test_get_target_with_only_me():

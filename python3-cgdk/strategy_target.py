@@ -43,8 +43,8 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
     enemy_minions = tuple(filter_max_distance(filter_enemies(minions)))
     enemy_wizards = tuple(filter_max_distance(filter_enemies(wizards)))
     bonuses = tuple(filter_max_distance(bonuses))
-    if not enemy_buildings and not enemy_minions and not enemy_wizards and not bonuses:
-        trees = tuple(v for v in trees if my_position.distance(v.position) < 1.3 * me.radius + v.radius)
+    if not enemy_buildings and not enemy_minions and not enemy_wizards and not bonuses and me.mean_speed.norm() < 1:
+        trees = tuple(v for v in trees if my_position.distance(v.position) < 2 * me.radius + v.radius)
         if not trees:
             return None, None
         target = min(trees, key=lambda v: v.life)

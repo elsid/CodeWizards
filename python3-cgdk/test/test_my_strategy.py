@@ -8,6 +8,8 @@ from model.Move import Move
 from model.Wizard import Wizard
 from model.World import World
 
+from strategy_common import Point
+
 from test.common import (
     MAP_SIZE,
     WIZARD_BACKWARD_SPEED,
@@ -49,6 +51,7 @@ def test_my_strategy_move():
         master=None,
         messages=tuple(),
     )
+    setattr(me, 'mean_speed', Point(0, 0))
     world = World(
         tick_index=0,
         tick_count=None,
