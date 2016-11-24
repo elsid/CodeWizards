@@ -110,7 +110,7 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
         def unit_intersection_penalty(unit):
             if isinstance(unit, Tree):
-                return distance_penalty(position.distance(unit.position), 2 * me.radius + unit.radius)
+                return distance_penalty(position.distance(unit.position), 2 * me.radius + 2 * unit.radius)
             else:
                 return distance_penalty(position.distance(unit.position), 1.1 * me.radius + unit.radius)
 
