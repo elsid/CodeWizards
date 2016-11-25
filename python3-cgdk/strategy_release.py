@@ -535,13 +535,8 @@ class Strategy(LazyInit):
             if target_position.distance(missile_target) > context.game.magic_missile_radius + self.__target.radius:
                 return False
             missile = Circle(context.me.position, context.game.magic_missile_radius)
-            factions = frozenset((context.me.faction, Faction.NEUTRAL))
-            barriers = tuple(chain(
-                make_circles(v for v in context.world.wizards if v.id != context.me.id
-                             and v.faction == context.me.faction),
-                make_circles(v for v in context.world.minions if v.faction in factions),
-                make_circles(v for v in context.world.buildings if v.faction == context.me.faction),
-            ))
+            barriers = tuple(make_circles(v for v in context.world.wizards if v.id != context.me.id
+                                          and v.faction == context.me.faction))
             return not has_intersection_with_barriers(missile, missile_target, barriers)
 
         target_position = self.__target.position
