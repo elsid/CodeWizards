@@ -1,25 +1,16 @@
-import pytest
-
-from hamcrest import assert_that, close_to
-from itertools import chain
-
 from model.Bonus import Bonus
 from model.Building import Building
 from model.Faction import Faction
 from model.Minion import Minion
 from model.MinionType import MinionType
-from model.Status import Status
-from model.StatusType import StatusType
 from model.Tree import Tree
 from model.Wizard import Wizard
 
-from strategy_common import Point, Circle
+from strategy_common import Point
 from strategy_target import get_target
 
 from test.common import (
     BONUS_RADIUS,
-    DART_RADIUS,
-    FETISH_BLOWDART_ATTACK_RANGE,
     FETISH_BLOWDART_DAMAGE,
     FETISH_BLOWDART_MAX_LIFE,
     GUARDIAN_TOWER_ATTACK_RANGE,
@@ -27,13 +18,9 @@ from test.common import (
     GUARDIAN_TOWER_LIFE,
     GUARDIAN_TOWER_RADIUS,
     MAGIC_MISSILE_DIRECT_DAMAGE,
-    MAGIC_MISSILE_RADIUS,
-    MAP_SIZE,
     MINION_RADIUS,
-    ORC_WOODCUTTER_ATTACK_RANGE,
     ORC_WOODCUTTER_DAMAGE,
     ORC_WOODCUTTER_MAX_LIFE,
-    SHIELDED_DIRECT_DAMAGE_ABSORPTION_FACTOR,
     STAFF_RANGE,
     TREE_RADIUS,
     WIZARD_CAST_RANGE,
@@ -72,125 +59,54 @@ setattr(WIZARD, 'mean_speed', Point(0, 0))
 
 
 def test_get_target_with_only_me():
-    assert (None, None) == get_target(
+    assert get_target(
         me=WIZARD,
         buildings=tuple(),
         minions=tuple(),
         wizards=[WIZARD],
         trees=tuple(),
-        projectiles=tuple(),
         bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
+    ) is None
+
+
+def test_get_target_with_me_and_enemy_minion():
+    minion = Minion(
+        id=2,
+        x=1100,
+        y=1100,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=MINION_RADIUS,
+        life=FETISH_BLOWDART_MAX_LIFE,
+        max_life=FETISH_BLOWDART_MAX_LIFE,
+        statuses=tuple(),
+        type=MinionType.FETISH_BLOWDART,
+        vision_range=None,
+        damage=FETISH_BLOWDART_DAMAGE,
+        cooldown_ticks=None,
+        remaining_action_cooldown_ticks=None,
     )
-
-
-@pytest.mark.parametrize(
-    ('minion', 'expected_target', 'expected_position', 'expected_distance'), [
-        (
-            Minion(
-                id=2,
-                x=1100,
-                y=1100,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.RENEGADES,
-                radius=MINION_RADIUS,
-                life=FETISH_BLOWDART_MAX_LIFE,
-                max_life=FETISH_BLOWDART_MAX_LIFE,
-                statuses=tuple(),
-                type=MinionType.FETISH_BLOWDART,
-                vision_range=None,
-                damage=FETISH_BLOWDART_DAMAGE,
-                cooldown_ticks=None,
-                remaining_action_cooldown_ticks=None,
-            ),
-            2,
-            Point(1092.9945268848903, 590.04811663605028),
-            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
-        ),
-        (
-            Minion(
-                id=2,
-                x=1100,
-                y=1100,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.RENEGADES,
-                radius=MINION_RADIUS,
-                life=ORC_WOODCUTTER_MAX_LIFE,
-                max_life=ORC_WOODCUTTER_MAX_LIFE,
-                statuses=tuple(),
-                type=MinionType.ORC_WOODCUTTER,
-                vision_range=None,
-                damage=ORC_WOODCUTTER_DAMAGE,
-                cooldown_ticks=None,
-                remaining_action_cooldown_ticks=None,
-            ),
-            2,
-            Point(1092.9945268848903, 590.04811663605028),
-            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
-        ),
-        (
-            Minion(
-                id=2,
-                x=2000,
-                y=2000,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.RENEGADES,
-                radius=MINION_RADIUS,
-                life=ORC_WOODCUTTER_MAX_LIFE,
-                max_life=ORC_WOODCUTTER_MAX_LIFE,
-                statuses=tuple(),
-                type=MinionType.ORC_WOODCUTTER,
-                vision_range=None,
-                damage=ORC_WOODCUTTER_DAMAGE,
-                cooldown_ticks=None,
-                remaining_action_cooldown_ticks=None,
-            ),
-            2,
-            Point(1640.6753050738948, 1638.0804459327037),
-            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
-        ),
-    ]
-)
-def test_get_target_with_me_and_enemy_minion(minion, expected_target, expected_position, expected_distance):
     setattr(minion, 'position', Point(minion.x, minion.y))
-    target, position = get_target(
+    assert minion == get_target(
         me=WIZARD,
         buildings=tuple(),
         minions=[minion],
         wizards=[WIZARD],
         trees=tuple(),
-        projectiles=tuple(),
         bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
     )
-    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
-    assert (target.id, position) == (expected_target, expected_position)
 
 
 def test_get_target_with_me_and_neural_minion():
-    assert (None, None) == get_target(
+    assert get_target(
         me=WIZARD,
         buildings=tuple(),
         minions=[
@@ -215,188 +131,71 @@ def test_get_target_with_me_and_neural_minion():
         ],
         wizards=[WIZARD],
         trees=tuple(),
-        projectiles=tuple(),
         bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
+    ) is None
+
+
+def test_get_target_with_enemy_minions_and_wizards():
+    minion = Minion(
+        id=2,
+        x=1000,
+        y=1100,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=MINION_RADIUS,
+        life=100,
+        max_life=ORC_WOODCUTTER_MAX_LIFE,
+        statuses=tuple(),
+        type=MinionType.ORC_WOODCUTTER,
+        vision_range=None,
+        damage=ORC_WOODCUTTER_DAMAGE,
+        cooldown_ticks=None,
+        remaining_action_cooldown_ticks=None,
     )
-
-
-@pytest.mark.parametrize(
-    ('minions', 'wizards', 'expected_target', 'expected_position', 'expected_distance'), [
-        (
-            tuple(),
-            [
-                Wizard(
-                    id=2,
-                    x=1100,
-                    y=1100,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.RENEGADES,
-                    radius=WIZARD_RADIUS,
-                    life=WIZARD_MAX_LIFE,
-                    max_life=WIZARD_MAX_LIFE,
-                    statuses=tuple(),
-                    owner_player_id=None,
-                    me=None,
-                    mana=None,
-                    max_mana=None,
-                    vision_range=None,
-                    cast_range=WIZARD_CAST_RANGE,
-                    xp=None,
-                    level=None,
-                    skills=None,
-                    remaining_action_cooldown_ticks=None,
-                    remaining_cooldown_ticks_by_action=None,
-                    master=None,
-                    messages=None,
-                ),
-            ],
-            2,
-            Point(1092.9945268848903, 590.04811663605028),
-            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
-        ),
-        (
-            [
-                Minion(
-                    id=2,
-                    x=1000,
-                    y=1100,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.RENEGADES,
-                    radius=MINION_RADIUS,
-                    life=50,
-                    max_life=ORC_WOODCUTTER_MAX_LIFE,
-                    statuses=tuple(),
-                    type=MinionType.ORC_WOODCUTTER,
-                    vision_range=None,
-                    damage=ORC_WOODCUTTER_DAMAGE,
-                    cooldown_ticks=None,
-                    remaining_action_cooldown_ticks=None,
-                ),
-            ],
-            [
-                Wizard(
-                    id=3,
-                    x=1100,
-                    y=1000,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.RENEGADES,
-                    radius=WIZARD_RADIUS,
-                    life=100,
-                    max_life=WIZARD_MAX_LIFE,
-                    statuses=tuple(),
-                    owner_player_id=None,
-                    me=None,
-                    mana=None,
-                    max_mana=None,
-                    vision_range=None,
-                    cast_range=WIZARD_CAST_RANGE,
-                    xp=None,
-                    level=None,
-                    skills=None,
-                    remaining_action_cooldown_ticks=None,
-                    remaining_cooldown_ticks_by_action=None,
-                    master=None,
-                    messages=None,
-                ),
-            ],
-            3,
-            Point(1170.8522014525097, 494.94558159605424),
-            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
-        ),
-        (
-            [
-                Minion(
-                    id=2,
-                    x=1000,
-                    y=1100,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.RENEGADES,
-                    radius=MINION_RADIUS,
-                    life=100,
-                    max_life=ORC_WOODCUTTER_MAX_LIFE,
-                    statuses=tuple(),
-                    type=MinionType.ORC_WOODCUTTER,
-                    vision_range=None,
-                    damage=ORC_WOODCUTTER_DAMAGE,
-                    cooldown_ticks=None,
-                    remaining_action_cooldown_ticks=None,
-                ),
-            ],
-            [
-                Wizard(
-                    id=3,
-                    x=1100,
-                    y=1000,
-                    speed_x=None,
-                    speed_y=None,
-                    angle=None,
-                    faction=Faction.RENEGADES,
-                    radius=WIZARD_RADIUS,
-                    life=50,
-                    max_life=WIZARD_MAX_LIFE,
-                    statuses=tuple(),
-                    owner_player_id=None,
-                    me=None,
-                    mana=None,
-                    max_mana=None,
-                    vision_range=None,
-                    cast_range=WIZARD_CAST_RANGE,
-                    xp=None,
-                    level=None,
-                    skills=None,
-                    remaining_action_cooldown_ticks=None,
-                    remaining_cooldown_ticks_by_action=None,
-                    master=None,
-                    messages=None,
-                ),
-            ],
-            3,
-            Point(1170.8522014525097, 494.94558159605424),
-            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
-        ),
-    ]
-)
-def test_get_target_with_enemy_minions_and_wizards(minions, wizards, expected_target, expected_position,
-                                                   expected_distance):
-    for unit in chain(minions, wizards):
-        setattr(unit, 'position', Point(unit.x, unit.y))
-    target, position = get_target(
+    setattr(minion, 'position', Point(minion.x, minion.y))
+    wizard = Wizard(
+        id=3,
+        x=1100,
+        y=1000,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=WIZARD_RADIUS,
+        life=50,
+        max_life=WIZARD_MAX_LIFE,
+        statuses=tuple(),
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=None,
+        cast_range=WIZARD_CAST_RANGE,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
+    setattr(wizard, 'position', Point(wizard.x, wizard.y))
+    assert wizard == get_target(
         me=WIZARD,
         buildings=tuple(),
-        minions=minions,
-        wizards=wizards + [WIZARD],
+        minions=[minion],
+        wizards=[wizard, WIZARD],
         trees=tuple(),
-        projectiles=tuple(),
         bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
     )
-    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
-    assert (target.id, position) == (expected_target, expected_position)
 
 
 def test_get_target_with_me_and_tree():
@@ -414,24 +213,17 @@ def test_get_target_with_me_and_tree():
         statuses=tuple(),
     )
     setattr(tree, 'position', Point(tree.x, tree.y))
-    assert (None, None) == get_target(
+    assert get_target(
         me=WIZARD,
         buildings=tuple(),
         minions=tuple(),
         wizards=[WIZARD],
         trees=[tree],
-        projectiles=tuple(),
         bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
-    )
+    ) is None
 
 
 def test_get_target_with_me_and_nearby_tree():
@@ -449,25 +241,17 @@ def test_get_target_with_me_and_nearby_tree():
         statuses=tuple(),
     )
     setattr(tree, 'position', Point(tree.x, tree.y))
-    target, position = get_target(
+    assert tree == get_target(
         me=WIZARD,
         buildings=tuple(),
         minions=tuple(),
         wizards=[WIZARD],
         trees=[tree],
-        projectiles=tuple(),
         bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
     )
-    assert (target.id, position) == (2, tree.position)
 
 
 def test_get_target_with_me_and_bonus():
@@ -483,184 +267,88 @@ def test_get_target_with_me_and_bonus():
         type=None,
     )
     setattr(bonus, 'position', Point(bonus.x, bonus.y))
-    target, position = get_target(
+    assert bonus == get_target(
         me=WIZARD,
         buildings=tuple(),
         minions=tuple(),
         wizards=[WIZARD],
         trees=tuple(),
-        projectiles=tuple(),
         bonuses=[bonus],
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
     )
-    assert target.position.distance(position) <= bonus.radius + WIZARD_RADIUS
-    assert (target.id, position) == (2, Point(1099.9999654385429, 1100.0000372327122))
 
 
-@pytest.mark.parametrize(
-    ('friend', 'enemy', 'expected_target', 'expected_position', 'expected_distance'), [
-        (
-            Wizard(
-                id=2,
-                x=1200,
-                y=1000,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.ACADEMY,
-                radius=WIZARD_RADIUS,
-                life=WIZARD_MAX_LIFE,
-                max_life=WIZARD_MAX_LIFE,
-                statuses=tuple(),
-                owner_player_id=None,
-                me=None,
-                mana=None,
-                max_mana=None,
-                vision_range=WIZARD_VISION_RANGE,
-                cast_range=WIZARD_CAST_RANGE,
-                xp=None,
-                level=None,
-                skills=None,
-                remaining_action_cooldown_ticks=None,
-                remaining_cooldown_ticks_by_action=None,
-                master=None,
-                messages=None,
-            ),
-            Wizard(
-                id=3,
-                x=1200,
-                y=1200,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.RENEGADES,
-                radius=WIZARD_RADIUS,
-                life=WIZARD_MAX_LIFE,
-                max_life=WIZARD_MAX_LIFE,
-                statuses=tuple(),
-                owner_player_id=None,
-                me=None,
-                mana=None,
-                max_mana=None,
-                vision_range=WIZARD_VISION_RANGE,
-                cast_range=WIZARD_CAST_RANGE,
-                xp=None,
-                level=None,
-                skills=None,
-                remaining_action_cooldown_ticks=None,
-                remaining_cooldown_ticks_by_action=None,
-                master=None,
-                messages=None,
-            ),
-            3,
-            Point(1060.0827586918113, 709.56838847326571),
-            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
-        ),
-        (
-            Wizard(
-                id=2,
-                x=1200,
-                y=1000,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.ACADEMY,
-                radius=WIZARD_RADIUS,
-                life=WIZARD_MAX_LIFE,
-                max_life=WIZARD_MAX_LIFE,
-                statuses=tuple(),
-                owner_player_id=None,
-                me=None,
-                mana=None,
-                max_mana=None,
-                vision_range=WIZARD_VISION_RANGE,
-                cast_range=WIZARD_CAST_RANGE,
-                xp=None,
-                level=None,
-                skills=None,
-                remaining_action_cooldown_ticks=None,
-                remaining_cooldown_ticks_by_action=None,
-                master=None,
-                messages=None,
-            ),
-            Wizard(
-                id=3,
-                x=1200 + 3 * WIZARD_RADIUS,
-                y=1000,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.RENEGADES,
-                radius=WIZARD_RADIUS,
-                life=WIZARD_MAX_LIFE,
-                max_life=WIZARD_MAX_LIFE,
-                statuses=tuple(),
-                owner_player_id=None,
-                me=None,
-                mana=None,
-                max_mana=None,
-                vision_range=WIZARD_VISION_RANGE,
-                cast_range=WIZARD_CAST_RANGE,
-                xp=None,
-                level=None,
-                skills=None,
-                remaining_action_cooldown_ticks=None,
-                remaining_cooldown_ticks_by_action=None,
-                master=None,
-                messages=None,
-            ),
-            3,
-            Point(904.45684079912985, 1315.6979214651112),
-            WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS,
-        ),
-    ]
-)
-def test_get_target_with_me_friend_and_enemy(friend, enemy, expected_target, expected_position, expected_distance):
+def test_get_target_with_me_friend_and_enemy():
+    friend = Wizard(
+        id=2,
+        x=1200,
+        y=1000,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.ACADEMY,
+        radius=WIZARD_RADIUS,
+        life=WIZARD_MAX_LIFE,
+        max_life=WIZARD_MAX_LIFE,
+        statuses=tuple(),
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=WIZARD_VISION_RANGE,
+        cast_range=WIZARD_CAST_RANGE,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
     setattr(friend, 'position', Point(friend.x, friend.y))
+    enemy = Wizard(
+        id=3,
+        x=1200,
+        y=1200,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.RENEGADES,
+        radius=WIZARD_RADIUS,
+        life=WIZARD_MAX_LIFE,
+        max_life=WIZARD_MAX_LIFE,
+        statuses=tuple(),
+        owner_player_id=None,
+        me=None,
+        mana=None,
+        max_mana=None,
+        vision_range=WIZARD_VISION_RANGE,
+        cast_range=WIZARD_CAST_RANGE,
+        xp=None,
+        level=None,
+        skills=None,
+        remaining_action_cooldown_ticks=None,
+        remaining_cooldown_ticks_by_action=None,
+        master=None,
+        messages=None,
+    )
     setattr(enemy, 'position', Point(enemy.x, enemy.y))
-    target, position = get_target(
+    assert enemy == get_target(
         me=WIZARD,
         buildings=tuple(),
         minions=tuple(),
         wizards=[WIZARD, friend, enemy],
         trees=tuple(),
-        projectiles=tuple(),
         bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
     )
-    assert_that(target.position.distance(position), close_to(expected_distance, 1e-3))
-    assert target.position.distance(position) < WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS + target.radius
-    assert (target.id, position) == (expected_target, expected_position)
-    assert not Circle(Point(friend.x, friend.y), friend.radius).has_intersection_with_moving_circle(
-        Circle(position, MAGIC_MISSILE_RADIUS), Point(enemy.x, enemy.y))
 
 
-@pytest.mark.parametrize(
-    ('wizard_life', 'expected_distance'), [
-        (WIZARD_MAX_LIFE, WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS),
-        (3 * GUARDIAN_TOWER_DAMAGE, WIZARD_CAST_RANGE + MAGIC_MISSILE_RADIUS),
-        (2 * GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 5.781083953264329),
-        (GUARDIAN_TOWER_DAMAGE, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 5.781083953264329),
-        (1, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 5.781083953264329),
-    ]
-)
-def test_get_target_with_me_and_tower(wizard_life, expected_distance):
+def test_get_target_with_me_and_tower():
     wizard = Wizard(
         id=1,
         x=1000,
@@ -670,7 +358,7 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
         angle=None,
         faction=Faction.ACADEMY,
         radius=WIZARD_RADIUS,
-        life=wizard_life,
+        life=WIZARD_MAX_LIFE,
         max_life=WIZARD_MAX_LIFE,
         statuses=tuple(),
         owner_player_id=None,
@@ -707,99 +395,14 @@ def test_get_target_with_me_and_tower(wizard_life, expected_distance):
         remaining_action_cooldown_ticks=None,
     )
     setattr(tower, 'position', Point(tower.x, tower.y))
-    target, position = get_target(
+    assert tower == get_target(
         me=wizard,
         buildings=[tower],
         minions=tuple(),
         wizards=[wizard],
         trees=tuple(),
-        projectiles=tuple(),
         bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
         magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=None,
         empowered_damage_factor=None,
         staff_range=STAFF_RANGE,
     )
-    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
-    assert target.id == 2
-
-
-@pytest.mark.parametrize(
-    ('shielded', 'expected_distance'), [
-        (False, GUARDIAN_TOWER_ATTACK_RANGE + 2 * WIZARD_RADIUS + 5.781083953264329),
-        (True, WIZARD_CAST_RANGE + GUARDIAN_TOWER_RADIUS + MAGIC_MISSILE_RADIUS - 9.110597747611678),
-    ]
-)
-def test_get_target_with_me_and_tower_use_shielded(shielded, expected_distance):
-    wizard = Wizard(
-        id=1,
-        x=1000,
-        y=1000,
-        speed_x=None,
-        speed_y=None,
-        angle=None,
-        faction=Faction.ACADEMY,
-        radius=WIZARD_RADIUS,
-        life=1.9 * GUARDIAN_TOWER_DAMAGE,
-        max_life=WIZARD_MAX_LIFE,
-        statuses=[Status(id=None, type=StatusType.SHIELDED, wizard_id=None, player_id=None,
-                         remaining_duration_ticks=shielded)],
-        owner_player_id=None,
-        me=None,
-        mana=None,
-        max_mana=None,
-        vision_range=WIZARD_VISION_RANGE,
-        cast_range=WIZARD_CAST_RANGE,
-        xp=None,
-        level=None,
-        skills=None,
-        remaining_action_cooldown_ticks=None,
-        remaining_cooldown_ticks_by_action=None,
-        master=None,
-        messages=None,
-    )
-    tower = Building(
-        id=2,
-        x=wizard.x + WIZARD_RADIUS + GUARDIAN_TOWER_RADIUS,
-        y=wizard.y + WIZARD_RADIUS + GUARDIAN_TOWER_RADIUS,
-        speed_x=None,
-        speed_y=None,
-        angle=None,
-        faction=Faction.RENEGADES,
-        radius=GUARDIAN_TOWER_RADIUS,
-        life=GUARDIAN_TOWER_LIFE,
-        max_life=GUARDIAN_TOWER_LIFE,
-        statuses=tuple(),
-        type=None,
-        vision_range=None,
-        attack_range=GUARDIAN_TOWER_ATTACK_RANGE,
-        damage=GUARDIAN_TOWER_DAMAGE,
-        cooldown_ticks=None,
-        remaining_action_cooldown_ticks=None,
-    )
-    setattr(tower, 'position', Point(tower.x, tower.y))
-    target, position = get_target(
-        me=wizard,
-        buildings=[tower],
-        minions=tuple(),
-        wizards=[wizard],
-        trees=tuple(),
-        projectiles=tuple(),
-        bonuses=tuple(),
-        orc_woodcutter_attack_range=ORC_WOODCUTTER_ATTACK_RANGE,
-        fetish_blowdart_attack_range=FETISH_BLOWDART_ATTACK_RANGE,
-        magic_missile_direct_damage=MAGIC_MISSILE_DIRECT_DAMAGE,
-        magic_missile_radius=MAGIC_MISSILE_RADIUS,
-        dart_radius=DART_RADIUS,
-        map_size=MAP_SIZE,
-        shielded_direct_damage_absorption_factor=SHIELDED_DIRECT_DAMAGE_ABSORPTION_FACTOR,
-        empowered_damage_factor=None,
-        staff_range=STAFF_RANGE,
-    )
-    assert_that(target.position.distance(position), close_to(expected_distance, 1e-8))
-    assert target.id == 2

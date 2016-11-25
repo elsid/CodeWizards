@@ -17,7 +17,7 @@ from model.World import World
 from strategy_common import LazyInit, lazy_init, Point, Circle, normalize_angle
 from strategy_move import optimize_movement, has_intersection_with_barriers, make_circles
 from strategy_path import make_graph, select_destination, get_shortest_path, get_nearest_node, has_near_enemy
-from strategy_target import get_target
+from strategy_target import get_target, get_optimal_position
 
 
 OPTIMIZE_MOVEMENT_STEP_SIZE = 20
@@ -399,36 +399,57 @@ class Strategy(LazyInit):
         context.post_event(name='get_target', last_update_target=self.__last_update_target,
                            target=str(self.__target) if self.__target else self.__target)
         self.__target_positions_penalties.clear()
-        self.__target, position = get_target(
-            me=context.me,
-            buildings=tuple(self.__cached_buildings.values()),
-            minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
-            wizards=tuple(v for v in self.__cached_wizards.values() if is_recently_seen(v)),
-            trees=tuple(self.__cached_trees.values()),
-            projectiles=tuple(v for v in self.__cached_projectiles.values() if is_recently_seen(v)),
-            bonuses=tuple(self.__cached_bonuses.values()),
-            orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
-            fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
-            magic_missile_direct_damage=context.game.magic_missile_direct_damage,
-            magic_missile_radius=context.game.magic_missile_radius,
-            dart_radius=context.game.dart_radius,
-            map_size=context.game.map_size,
-            shielded_direct_damage_absorption_factor=context.game.shielded_direct_damage_absorption_factor,
-            empowered_damage_factor=context.game.empowered_damage_factor,
-            staff_range=context.game.staff_range,
-            penalties=self.__target_positions_penalties,
-            max_distance=1.3 * context.me.vision_range,
-            max_iterations=GET_TARGET_MAX_ITERATIONS,
-        )
+        optimal_position = None
+        max_distance = 1.3 * context.me.vision_range
+        for _ in range(2):
+            self.__target = get_target(
+                me=context.me,
+                buildings=tuple(self.__cached_buildings.values()),
+                minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
+                wizards=tuple(v for v in self.__cached_wizards.values() if is_recently_seen(v)),
+                trees=tuple(self.__cached_trees.values()),
+                bonuses=tuple(self.__cached_bonuses.values()),
+                magic_missile_direct_damage=context.game.magic_missile_direct_damage,
+                empowered_damage_factor=context.game.empowered_damage_factor,
+                staff_range=context.game.staff_range,
+                max_distance=max_distance,
+            )
+            if not self.__target:
+                break
+            optimal_position = get_optimal_position(
+                target=self.__target,
+                me=context.me,
+                buildings=tuple(self.__cached_buildings.values()),
+                minions=tuple(v for v in self.__cached_minions.values() if is_recently_seen(v)),
+                wizards=tuple(v for v in self.__cached_wizards.values() if is_recently_seen(v)),
+                trees=tuple(self.__cached_trees.values()),
+                projectiles=tuple(v for v in self.__cached_projectiles.values() if is_recently_seen(v)),
+                bonuses=tuple(self.__cached_bonuses.values()),
+                orc_woodcutter_attack_range=context.game.orc_woodcutter_attack_range,
+                fetish_blowdart_attack_range=context.game.fetish_blowdart_attack_range,
+                magic_missile_direct_damage=context.game.magic_missile_direct_damage,
+                magic_missile_radius=context.game.magic_missile_radius,
+                dart_radius=context.game.dart_radius,
+                map_size=context.game.map_size,
+                shielded_direct_damage_absorption_factor=context.game.shielded_direct_damage_absorption_factor,
+                empowered_damage_factor=context.game.empowered_damage_factor,
+                penalties=self.__target_positions_penalties,
+                max_distance=max_distance,
+                max_iterations=GET_TARGET_MAX_ITERATIONS,
+            )
+            if (self.__target.position.distance(optimal_position)
+                    <= context.me.cast_range + context.game.magic_missile_radius + self.__target.radius):
+                break
+            max_distance = context.me.cast_range + context.game.magic_missile_radius + self.__target.radius
         if self.__target:
             context.post_event(name='target_updated', target_type=str(type(self.__target)),
                                target_id=self.__target.id, position=str(self.__target.position))
             context.post_event(name='update_target_position',
                                old=str(self.__target_position) if self.__target_position else self.__target_position,
-                               new=str(position))
-            if self.__target_position.distance(position) > context.game.wizard_forward_speed:
+                               new=str(optimal_position))
+            if self.__target_position.distance(optimal_position) > context.game.wizard_forward_speed:
                 self.__movements = tuple()
-            self.__target_position = position
+            self.__target_position = optimal_position
             self.__last_update_target = context.world.tick_index
         else:
             self.__use_move_mode(context)

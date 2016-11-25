@@ -21,10 +21,10 @@ TARGET_DISTANCE_WEIGHT = 1
 UNIT_WEIGHT = 1
 
 
-def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses, orc_woodcutter_attack_range,
-               fetish_blowdart_attack_range, magic_missile_direct_damage, magic_missile_radius, dart_radius, map_size,
-               shielded_direct_damage_absorption_factor, empowered_damage_factor, staff_range, max_distance=None,
-               max_iterations=None, penalties=None):
+def get_optimal_position(target, me: Wizard, buildings, minions, wizards, trees, projectiles, bonuses,
+                         orc_woodcutter_attack_range, fetish_blowdart_attack_range, magic_missile_direct_damage,
+                         magic_missile_radius, dart_radius, map_size, shielded_direct_damage_absorption_factor,
+                         empowered_damage_factor, max_distance=None, max_iterations=None, penalties=None):
     my_position = Point(me.x, me.y)
 
     def filter_friends(units):
@@ -47,40 +47,10 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
         factor = 2 if me.mean_speed.norm() < 1 else 1.3
         trees = tuple(v for v in trees if my_position.distance(v.position) < factor * me.radius + v.radius)
         if not trees:
-            return None, None
+            return my_position
         target = min(trees, key=lambda v: v.life)
-        return target, target.position
+        return target.position
     get_damage = make_get_damage(magic_missile_direct_damage, empowered_damage_factor)
-
-    def target_penalty(unit):
-        distance = unit.position.distance(my_position)
-        return distance * unit.life / get_damage(me) if distance <= 2 * unit.radius + me.vision_range else distance
-
-    def is_in_staff_range(unit):
-        return my_position.distance(unit.position) <= staff_range + unit.radius
-
-    def get_optimal_in_range(units, is_in_range):
-        in_range = tuple(v for v in units if is_in_range(v))
-        return min(in_range, key=target_penalty) if in_range else None
-
-    if bonuses:
-        target = min(bonuses, key=lambda v: my_position.distance(v.position))
-        bonuses = tuple(v for v in bonuses if v.id != target.id)
-    elif enemy_wizards or enemy_minions or enemy_buildings:
-        target = get_optimal_in_range(enemy_wizards, is_in_staff_range)
-        if target is None:
-            target = get_optimal_in_range(enemy_minions, is_in_staff_range)
-        if target is None:
-            target = get_optimal_in_range(enemy_buildings, is_in_staff_range)
-        if target is None:
-            if enemy_wizards:
-                target = min(enemy_wizards, key=target_penalty)
-            elif enemy_minions:
-                target = min(enemy_minions, key=target_penalty)
-            elif enemy_buildings:
-                target = min(enemy_buildings, key=target_penalty)
-    else:
-        target = None
     get_attack_range = make_get_attack_range(
         orc_woodcutter_attack_range=orc_woodcutter_attack_range,
         fetish_blowdart_attack_range=fetish_blowdart_attack_range,
@@ -212,9 +182,62 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
 
     from_my_position = minimize(position_penalty, array([my_position.x, my_position.y]),
                                 method='Nelder-Mead', options=dict(maxiter=max_iterations))
-    result = Point(from_my_position.x[0], from_my_position.x[1])
-    return target if target else None, result
+    return Point(from_my_position.x[0], from_my_position.x[1])
 
+
+def get_target(me: Wizard, buildings, minions, wizards, trees, bonuses, magic_missile_direct_damage,
+               empowered_damage_factor, staff_range, max_distance=None):
+    my_position = Point(me.x, me.y)
+
+    def filter_enemies(units):
+        return (v for v in units if is_enemy(v, me.faction))
+
+    def filter_max_distance(units):
+        if max_distance is None:
+            return units
+        else:
+            return (v for v in units if my_position.distance(v.position) <= max_distance)
+
+    enemy_buildings = tuple(filter_max_distance(filter_enemies(buildings)))
+    enemy_minions = tuple(filter_max_distance(filter_enemies(minions)))
+    enemy_wizards = tuple(filter_max_distance(filter_enemies(wizards)))
+    bonuses = tuple(filter_max_distance(bonuses))
+    if not enemy_buildings and not enemy_minions and not enemy_wizards and not bonuses:
+        factor = 2 if me.mean_speed.norm() < 1 else 1.3
+        trees = tuple(v for v in trees if my_position.distance(v.position) < factor * me.radius + v.radius)
+        if not trees:
+            return None
+        target = min(trees, key=lambda v: v.life)
+        return target
+    get_damage = make_get_damage(magic_missile_direct_damage, empowered_damage_factor)
+
+    def target_penalty(unit):
+        distance = unit.position.distance(my_position)
+        return distance * unit.life / get_damage(me) if distance <= 2 * unit.radius + me.vision_range else distance
+
+    def is_in_staff_range(unit):
+        return my_position.distance(unit.position) <= staff_range + unit.radius
+
+    def get_optimal_in_range(units, is_in_range):
+        in_range = tuple(v for v in units if is_in_range(v))
+        return min(in_range, key=target_penalty) if in_range else None
+
+    if bonuses:
+        return min(bonuses, key=lambda v: my_position.distance(v.position))
+    elif enemy_wizards or enemy_minions or enemy_buildings:
+        target = get_optimal_in_range(enemy_wizards, is_in_staff_range)
+        if target is None:
+            target = get_optimal_in_range(enemy_minions, is_in_staff_range)
+        if target is None:
+            target = get_optimal_in_range(enemy_buildings, is_in_staff_range)
+        if target is None:
+            if enemy_wizards:
+                target = min(enemy_wizards, key=target_penalty)
+            elif enemy_minions:
+                target = min(enemy_minions, key=target_penalty)
+            elif enemy_buildings:
+                target = min(enemy_buildings, key=target_penalty)
+        return target
 
 NOT_ENEMIES = frozenset((Faction.NEUTRAL, Faction.OTHER))
 
