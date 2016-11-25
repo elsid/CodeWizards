@@ -140,7 +140,8 @@ class Context:
     def __exit__(self, *_):
         if self.__write_log:
             self.post_event(name='finish', duration=time() - self.__events[0]['time'], speed=self.move.speed,
-                            strafe_speed=self.move.strafe_speed, turn=self.move.turn, action=self.move.action)
+                            strafe_speed=self.move.strafe_speed, turn=self.move.turn, action=self.move.action,
+                            min_cast_distance=self.move.min_cast_distance)
             for event in self.__events:
                 self.__write_log(event)
         self.__finish = time()
@@ -556,6 +557,7 @@ class Strategy(LazyInit):
             elif need_apply_missile():
                 context.post_event(name='apply_target_action', type='MAGIC_MISSILE')
                 context.move.action = ActionType.MAGIC_MISSILE
+                context.move.min_cast_distance = distance - self.__target.radius - context.game.magic_missile_radius
 
     def __use_move_mode(self, context: Context):
         context.post_event(name='change_mode', old=self.__current_mode_name, new='move')
