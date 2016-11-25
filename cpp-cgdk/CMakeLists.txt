@@ -14,7 +14,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 include_directories(${CMAKE_SOURCE_DIR})
 
-add_executable(cpp-cgdk
+set(SOURCES
     csimplesocket/ActiveSocket.cpp
     csimplesocket/HTTPActiveSocket.cpp
     csimplesocket/PassiveSocket.cpp
@@ -37,7 +37,6 @@ add_executable(cpp-cgdk
     model/World.cpp
     MyStrategy.cpp
     RemoteProcessClient.cpp
-    Runner.cpp
     Strategy.cpp
 
     newuoa.cpp
@@ -45,6 +44,26 @@ add_executable(cpp-cgdk
     optimal_position.cpp
 )
 
+add_executable(cpp-cgdk
+    ${SOURCES}
+
+    Runner.cpp
+)
+
 target_link_libraries(cpp-cgdk
     m
+)
+
+enable_testing()
+add_subdirectory(googletest)
+
+add_executable(cpp-cgdk-tests
+    ${SOURCES}
+
+    tests/optimal_position.cpp
+    tests/main.cpp
+)
+
+target_link_libraries(cpp-cgdk-tests
+    gmock
 )
