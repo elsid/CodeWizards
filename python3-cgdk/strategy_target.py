@@ -229,8 +229,6 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, bonuses, magic_mi
         if target is None:
             target = get_optimal_in_range(enemy_minions, is_in_staff_range)
         if target is None:
-            target = get_optimal_in_range(enemy_buildings, is_in_staff_range)
-        if target is None:
             if enemy_wizards:
                 target = min(enemy_wizards, key=target_penalty)
             elif enemy_minions:
