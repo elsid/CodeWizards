@@ -117,9 +117,9 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
     else:
         occupier = next((v for v in chain(initial_dynamic_barriers.values())
                          if target.distance(v.position) < v.radius + barrier.radius), None)
-    max_distance_errors = [occupier.radius + barrier.radius + step_size if occupier else step_size]
-    occupiers = [occupier]
-    dynamic_barriers = [initial_dynamic_barriers]
+    max_distance_errors = {0: occupier.radius + barrier.radius + step_size if occupier else step_size}
+    occupiers = {0: occupier}
+    dynamic_barriers = {0: initial_dynamic_barriers}
     closed = set()
     opened = {position}
     queue = [(target.distance(position), 0, position)]
@@ -127,12 +127,12 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
     lengths = {position: 0}
     result = None
     while queue:
-        distance, depth, position = heappop(queue)
+        distance, ticks, position = heappop(queue)
         if max_time is not None and time() - start > max_time:
             result = None
             break
-        if distance <= max_distance_errors[depth]:
-            if occupiers[depth] is None and target != position and target not in came_from and position in came_from:
+        if distance <= max_distance_errors[ticks]:
+            if occupiers[ticks] is None and target != position and target not in came_from and position in came_from:
                 came_from[target] = came_from[position]
                 result = target
             else:
@@ -148,34 +148,34 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
             new_distance = target.distance(new_position)
             length = shift.norm()
             new_length = lengths[position] + length
+            new_ticks = ticks + length / absolute_speed
             if new_position not in opened:
-                if depth >= len(dynamic_barriers):
-                    ticks = length / absolute_speed
+                if ticks not in dynamic_barriers:
                     barriers = dict()
                     for unit in dynamic_units:
-                        unit_barrier = dynamic_barriers[depth - 1][unit.id]
+                        unit_barrier = dynamic_barriers[0][unit.id]
                         barriers[unit.id] = Circle(unit_barrier.position + unit.mean_speed.normalized() * ticks,
                                                    unit_barrier.radius)
-                    dynamic_barriers.append(barriers)
+                    dynamic_barriers[ticks] = barriers
                 else:
-                    barriers = dynamic_barriers[depth]
-                if depth + 1 >= len(max_distance_errors):
+                    barriers = dynamic_barriers[ticks]
+                if new_ticks not in max_distance_errors:
                     if static_occupier:
-                        max_distance_errors.append(max_distance_errors[-1])
-                        occupiers.append(static_occupier)
+                        max_distance_errors[new_ticks] = max_distance_errors[ticks]
+                        occupiers[new_ticks] = static_occupier
                     else:
                         occupier = next((v for v in barriers.values()
                                          if target.distance(v.position) < v.radius + barrier.radius), None)
-                        max_distance_errors.append(occupier.radius + barrier.radius + step_size
-                                                   if occupier else step_size)
-                        occupiers.append(occupier)
+                        max_distance_errors[new_ticks] = (occupier.radius + barrier.radius + step_size
+                                                          if occupier else step_size)
+                        occupiers[new_ticks] = occupier
                 intersection = (
                     (position.distance(initial_position) > max_range and
                      position.distance(target) > max_range) or
                     has_intersection_with_borders(barrier, map_size) or
                     has_intersection_with_barriers(barrier, new_position, chain(static_barriers, barriers.values()))
                 )
-                heappush(queue, (float('inf') if intersection else new_distance, depth + 1, new_position))
+                heappush(queue, (float('inf') if intersection else new_distance, new_ticks, new_position))
                 opened.add(new_position)
             elif new_length >= lengths[new_position]:
                 continue
