@@ -60,6 +60,7 @@ def test_distance(line: Line, point: Point, distance: float):
         (Line(Point(0, 0), Point(1, 0)), Point(1, 1), Point(1, 0)),
         (Line(Point(0, 0), Point(1, 0)), Point(2, 1), Point(2, 0)),
         (Line(Point(0, 0), Point(0, 0)), Point(1, 0), Point(0, 0)),
+        (Line(Point(0, 0), Point(10, 0)), Point(5, 5), Point(5, 0)),
     ]
 )
 def test_nearest(line, point, nearest):
