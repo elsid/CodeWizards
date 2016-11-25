@@ -447,8 +447,6 @@ class Strategy(LazyInit):
             context.post_event(name='update_target_position',
                                old=str(self.__target_position) if self.__target_position else self.__target_position,
                                new=str(optimal_position))
-            if self.__target_position.distance(optimal_position) > context.game.wizard_forward_speed:
-                self.__movements = tuple()
             self.__target_position = optimal_position
             self.__last_update_target = context.world.tick_index
         else:
@@ -459,7 +457,7 @@ class Strategy(LazyInit):
         if not self.__target_position:
             return
         context.post_event(name='update_movements')
-        if (not self.__movements or self.__last_update_movements_tick_index is None or
+        if (self.__last_update_movements_tick_index is None or
                 context.world.tick_index - self.__last_update_movements_tick_index >= OPTIMIZE_MOVEMENT_TICKS):
             self.__calculate_movements(context)
         else:
