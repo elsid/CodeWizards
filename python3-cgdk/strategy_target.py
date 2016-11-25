@@ -143,26 +143,27 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, projectiles, bonu
                     d_penalty = 1 - distance_penalty(distance - max_cast_range, safe_distance)
                 return max(unit_danger_penalty(target), d_penalty)
 
+        def friend_unit_intersection_penalty(friend):
+            circle = Circle(friend.position, friend.radius)
+            intersection = circle.has_intersection_with_moving_circle(
+                Circle(position, magic_missile_radius), target_position)
+            if not intersection:
+                return 0
+            target_to_friend = friend.position - target_position
+            tangent_cos = (friend.radius + magic_missile_radius) / target_position.distance(friend.position)
+            tangent_angle = acos(min(1, max(-1, tangent_cos)))
+            tangent1_direction = target_to_friend.rotate(tangent_angle)
+            tangent2_direction = target_to_friend.rotate(-tangent_angle)
+            tangent1 = target_position + tangent1_direction
+            tangent2 = target_position + tangent2_direction
+            tangent1_distance = Line(target_position, tangent1).distance(position)
+            tangent2_distance = Line(target_position, tangent2).distance(position)
+            max_distance = (tangent1_distance + tangent2_distance) * 0.5
+            distance_to_tangent = min(tangent1_distance, tangent2_distance)
+            return distance_to_tangent / max_distance
+
         def friend_units_intersections_penalties():
-            for friend in friends_wizards:
-                circle = Circle(friend.position, friend.radius)
-                intersection = circle.has_intersection_with_moving_circle(
-                    Circle(position, magic_missile_radius), target_position)
-                if not intersection:
-                    yield 0
-                else:
-                    target_to_friend = friend.position - target_position
-                    tangent_cos = (friend.radius + magic_missile_radius) / target_position.distance(friend.position)
-                    tangent_angle = acos(min(1, max(-1, tangent_cos)))
-                    tangent1_direction = target_to_friend.rotate(tangent_angle)
-                    tangent2_direction = target_to_friend.rotate(-tangent_angle)
-                    tangent1 = target_position + tangent1_direction
-                    tangent2 = target_position + tangent2_direction
-                    tangent1_distance = Line(target_position, tangent1).distance(position)
-                    tangent2_distance = Line(target_position, tangent2).distance(position)
-                    max_distance = (tangent1_distance + tangent2_distance) * 0.5
-                    distance_to_tangent = min(tangent1_distance, tangent2_distance)
-                    yield distance_to_tangent / max_distance
+            return (friend_unit_intersection_penalty(v) for v in friends_wizards)
 
         def direction_penalty():
             return max(friend_units_intersections_penalties()) if target_position and friends_wizards else 0
