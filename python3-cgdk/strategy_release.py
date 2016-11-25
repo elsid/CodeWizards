@@ -5,7 +5,6 @@ from time import time
 
 from model.ActionType import ActionType
 from model.Bonus import Bonus
-from model.Faction import Faction
 from model.Game import Game
 from model.LaneType import LaneType
 from model.Move import Move
