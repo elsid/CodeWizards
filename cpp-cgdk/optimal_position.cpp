@@ -1,10 +1,11 @@
-#include "target.hpp"
+#include "optimal_position.hpp"
 #include "minimize.hpp"
 #include "circle.hpp"
 
 #include <stdexcept>
 #include <algorithm>
 #include <numeric>
+#include <type_traits>
 
 namespace strategy {
 
@@ -156,11 +157,24 @@ struct GetUnitDangerPenalty {
     }
 };
 
+
 Point get_optimal_position(const Context& context, const model::LivingUnit* target) {
-    const double damage_factor = 1 - is_shielded(context.self) * context.game.getShieldedDirectDamageAbsorptionFactor();
-    const auto enemy_wizards = filter_enemies(context.world.getWizards(), context.self.getFaction());
-    const auto enemy_minions = filter_enemies(context.world.getMinions(), context.self.getFaction());
-    const auto enemy_buildings = filter_enemies(context.world.getBuildings(), context.self.getFaction());
+    const auto is_target = [&] (const auto& unit) {
+        using Type = typename std::decay<decltype(unit)>::type;
+        if (const auto casted = dynamic_cast<const Type*>(target)) {
+            return casted->getId() == unit.getId();
+        }
+        return false;
+    };
+
+    const auto is_enemy_and_not_target = [&] (const auto& unit) {
+        return !is_target(unit) && is_enemy(unit, context.self.getFaction());
+    };
+
+    const auto enemy_wizards = filter_units(context.world.getWizards(), is_enemy_and_not_target);
+    const auto enemy_minions = filter_units(context.world.getMinions(), is_enemy_and_not_target);
+    const auto enemy_buildings = filter_units(context.world.getBuildings(), is_enemy_and_not_target);
+
     const auto friend_wizards = filter_friends(context.world.getWizards(), context.self.getFaction(), context.self.getId());
     const auto friend_minions = filter_friends(context.world.getMinions(), context.self.getFaction(), context.self.getId());
     const auto friend_buildings = filter_friends(context.world.getBuildings(), context.self.getFaction(), context.self.getId());
@@ -205,6 +219,7 @@ Point get_optimal_position(const Context& context, const model::LivingUnit* targ
     };
 
     const auto my_position = get_position(context.self);
+    const auto damage_factor = 1.0 - is_shielded(context.self) * context.game.getShieldedDirectDamageAbsorptionFactor();
 
     const auto get_friendly_fire_penalty = [&] (const model::CircularUnit& unit, const Point& position) {
         if (!target) {
