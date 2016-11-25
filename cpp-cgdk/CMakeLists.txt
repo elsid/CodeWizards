@@ -44,6 +44,9 @@ add_executable(cpp-cgdk
     RemoteProcessClient.cpp
     Runner.cpp
     Strategy.cpp
+
+    newuoa.cpp
+    target.cpp
 )
 
 target_link_libraries(cpp-cgdk
