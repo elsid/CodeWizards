@@ -450,7 +450,7 @@ def test_select_destination_to_enemy_wizard_near_friend_base():
     setattr(far_wizard, 'position', Point(far_wizard.x, far_wizard.y))
     near_wizard = Wizard(
         id=None,
-        x=graph.friend_base.position.x,
+        x=graph.friend_base.position.x + 800,
         y=graph.friend_base.position.y,
         speed_x=None,
         speed_y=None,
@@ -485,7 +485,7 @@ def test_select_destination_to_enemy_wizard_near_friend_base():
         target_lane=tuple(),
     )
     destination = destination.position
-    assert destination == Point(200, 3800)
+    assert destination == Point(600, 3800)
     assert destination.distance(near_wizard.position) <= graph.zone_size
 
 
@@ -520,7 +520,7 @@ def test_select_destination_not_to_enemy_wizard_near_friend_base():
     setattr(me, 'position', Point(me.x, me.y))
     near_wizard = Wizard(
         id=None,
-        x=graph.friend_base.position.x,
+        x=graph.friend_base.position.x + 400,
         y=graph.friend_base.position.y,
         speed_x=None,
         speed_y=None,
