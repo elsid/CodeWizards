@@ -175,7 +175,7 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
             )
             new_length = float('inf') if intersection else lengths[position] + length
             if new_position not in opened:
-                if not intersection:
+                if not intersection or position.distance(initial_position) > radius:
                     heappush(queue, (new_distance, new_ticks, new_position))
                     opened.add(new_position)
             elif new_length >= lengths[new_position]:
