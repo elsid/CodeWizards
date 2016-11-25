@@ -1,8 +1,10 @@
 from operator import itemgetter
+from math import pi
 
 from model.ActionType import ActionType
 from model.LaneType import LaneType
 
+from strategy_common import Point, normalize_angle
 from strategy_release import Strategy as ReleaseStrategy, Context
 from debug.client import DebugClient
 
@@ -100,6 +102,10 @@ class Strategy:
 
     @staticmethod
     def __visualize_cast_range(context, post):
-        post.circle(context.me.position.x, context.me.position.y, context.me.cast_range, (0.5, 0.5, 0.5))
-        post.text(context.me.position.x + 35, context.me.position.y + 35,
-                  str(context.me.remaining_cooldown_ticks_by_action[ActionType.MAGIC_MISSILE]), (0, 0, 0))
+        post.circle(context.me.position.x, context.me.position.y, context.me.cast_range, (0.4, 0.4, 0.4))
+        post.text(context.me.position.x + 40, context.me.position.y + 40,
+                  str(context.me.remaining_cooldown_ticks_by_action[ActionType.MAGIC_MISSILE]), (0.4, 0.4, 0.4))
+        direction = Point(1, 0).rotate(normalize_angle(context.me.angle + context.move.cast_angle))
+        target = context.me.position + direction * context.me.cast_range
+        post.line(context.me.x, context.me.y, target.x, target.y, (0.4, 0.4, 0.4))
+        post.circle(target.x, target.y, context.game.magic_missile_radius, (0.4, 0.4, 0.4))

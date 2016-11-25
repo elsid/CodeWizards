@@ -510,8 +510,8 @@ class Strategy(LazyInit):
             if context.me.remaining_cooldown_ticks_by_action[ActionType.MAGIC_MISSILE] != 0:
                 return False
             direction = Point(1, 0).rotate(normalize_angle(context.me.angle + turn))
-            if (target_position.distance(context.me.position + direction * distance) >
-                    context.game.magic_missile_radius + self.__target.radius):
+            missile_target = context.me.position + direction * distance
+            if target_position.distance(missile_target) > context.game.magic_missile_radius + self.__target.radius:
                 return False
             missile = Circle(context.me.position, context.game.magic_missile_radius)
             factions = frozenset((context.me.faction, Faction.NEUTRAL))
@@ -521,8 +521,7 @@ class Strategy(LazyInit):
                 make_circles(v for v in context.world.minions if v.faction in factions),
                 make_circles(v for v in context.world.buildings if v.faction == context.me.faction),
             ))
-            return not has_intersection_with_barriers(missile, missile.position + direction * context.me.cast_range,
-                                                      barriers)
+            return not has_intersection_with_barriers(missile, missile_target, barriers)
 
         target_position = self.__target.position
         distance = target_position.distance(context.me.position)
