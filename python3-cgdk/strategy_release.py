@@ -174,8 +174,6 @@ class Strategy(LazyInit):
         self.__last_next_movement_tick_index = None
         self.__target = None
         self.__target_position = None
-        self.__actual_path = deque(maxlen=50)
-        self.__expected_path = deque(maxlen=50)
         self.__get_attack_range = None
         self.__last_update_target = None
         self.__cached_buildings = dict()
@@ -207,14 +205,6 @@ class Strategy(LazyInit):
         return self.__states[self.__cur_movement:]
 
     @property
-    def actual_path(self):
-        return self.__actual_path
-
-    @property
-    def expected_path(self):
-        return self.__expected_path
-
-    @property
     def target(self):
         return self.__target
 
@@ -240,7 +230,6 @@ class Strategy(LazyInit):
 
     @lazy_init
     def move(self, context: Context):
-        self.__actual_path.append(Point(context.me.x, context.me.y))
         self.__update_cache(context)
         self.__handle_messages(context)
         if context.world.tick_index - self.__last_change_mode > CHANGE_MODE_TICKS:
@@ -485,7 +474,6 @@ class Strategy(LazyInit):
             context.post_event(name='movements_updated')
             self.__cur_movement = 0
             self.__last_next_movement_tick_index = context.world.tick_index
-            self.__expected_path.append(self.__states[self.__cur_movement].position)
 
     def __next_movement(self, context: Context):
         if (self.__cur_movement >= len(self.__movements) or
@@ -494,8 +482,7 @@ class Strategy(LazyInit):
             return
         context.post_event(name='next_movement')
         self.__cur_movement += 1
-        self.__expected_path.append(self.__states[self.__cur_movement].position)
-        error = abs(self.__expected_path[-1].distance(self.__actual_path[-1]))
+        error = abs(self.__states[self.__cur_movement].position.distance(context.me.position))
         if error > context.game.wizard_radius:
             context.post_event(name='movement_error_overflow', value=error)
             self.__calculate_movements(context)
