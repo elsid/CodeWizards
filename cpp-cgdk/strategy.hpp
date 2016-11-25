@@ -1,6 +1,7 @@
 #pragma once
 
 #include "target.hpp"
+#include "optimal_position.hpp"
 
 namespace strategy {
 

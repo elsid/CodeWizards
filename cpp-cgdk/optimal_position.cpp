@@ -9,10 +9,6 @@
 
 namespace strategy {
 
-const model::LivingUnit* get_target(const Context& /*context*/) {
-    return nullptr;
-}
-
 bool is_with_status(const model::LivingUnit& unit, model::StatusType status) {
     return unit.getStatuses().end() != std::find_if(
                 unit.getStatuses().begin(), unit.getStatuses().end(),

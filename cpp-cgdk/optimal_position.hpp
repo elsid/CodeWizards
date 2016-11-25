@@ -4,8 +4,6 @@
 
 namespace strategy {
 
-const model::LivingUnit* get_target(const Context& context);
-
 bool is_with_status(const model::LivingUnit& unit, model::StatusType status);
 
 bool is_empowered(const model::LivingUnit& unit);

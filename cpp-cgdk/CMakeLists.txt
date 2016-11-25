@@ -47,6 +47,7 @@ add_executable(cpp-cgdk
 
     newuoa.cpp
     target.cpp
+    optimal_position.cpp
 )
 
 target_link_libraries(cpp-cgdk
