@@ -141,9 +141,9 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
         opened.remove(position)
         closed.add(position)
         barrier.position = position
-        for shift in chain((target - position,), shifts):
+        for i, shift in enumerate(chain((target - position,), shifts)):
             new_position = position + shift
-            if new_position in closed:
+            if i != 0 and new_position in closed:
                 continue
             new_distance = target.distance(new_position)
             length = shift.norm()
@@ -175,8 +175,9 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
             )
             new_length = float('inf') if intersection else lengths[position] + length
             if new_position not in opened:
-                heappush(queue, (float('inf') if intersection else new_distance, new_ticks, new_position))
-                opened.add(new_position)
+                if not intersection:
+                    heappush(queue, (new_distance, new_ticks, new_position))
+                    opened.add(new_position)
             elif new_length >= lengths[new_position]:
                 continue
             came_from[new_position] = position
