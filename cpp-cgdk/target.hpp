@@ -4,6 +4,13 @@
 
 namespace strategy {
 
-const model::LivingUnit* get_target(const Context& context);
+struct Target {
+    const model::Building* building;
+    const model::Minion* minion;
+    const model::Wizard* wizard;
+    const model::Tree* tree;
+};
+
+Target get_target(const Context& context);
 
 }

@@ -2,8 +2,8 @@
 
 namespace strategy {
 
-const model::LivingUnit* get_target(const Context& /*context*/) {
-    return nullptr;
+Target get_target(const Context& /*context*/) {
+    return Target {nullptr, nullptr, nullptr, nullptr};
 }
 
 }
