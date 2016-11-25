@@ -3,6 +3,7 @@
 #include "context.hpp"
 #include "minimize.hpp"
 #include "circle.hpp"
+#include "optimal_target.hpp"
 
 #include <stdexcept>
 #include <algorithm>
@@ -19,63 +20,17 @@
 
 namespace strategy {
 
-bool is_with_status(const model::LivingUnit& unit, model::StatusType status);
-
-bool is_empowered(const model::LivingUnit& unit);
-
-bool is_shielded(const model::LivingUnit& unit);
-
 bool is_enemy(const model::Unit& unit, model::Faction my_faction);
 
-bool is_friend(const model::Unit& unit, model::Faction my_faction, UnitId);
+bool is_friend(const model::Unit& unit, model::Faction my_faction, UnitId my_id);
 bool is_friend(const model::Wizard& unit, model::Faction my_faction, UnitId my_id);
 
 double get_distance_penalty(double value, double safe);
-
-template <class T, class Predicate>
-std::vector<const T*> filter_units(const std::vector<T>& units, const Predicate& predicate) {
-    std::vector<const T*> result;
-    for (const auto& unit : units) {
-        if (predicate(unit)) {
-            result.push_back(&unit);
-        }
-    }
-    return result;
-}
-
-template <class T>
-std::vector<const T*> filter_enemies(const std::vector<T>& units, model::Faction my_faction) {
-    return filter_units(units, [&] (const auto& v) { return is_enemy(v, my_faction); });
-}
 
 template <class T>
 std::vector<const T*> filter_friends(const std::vector<T>& units, model::Faction my_faction, UnitId my_id) {
     return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
 }
-
-struct GetDamage {
-    const Context& context;
-
-    double operator ()(const model::Tree&) const {
-        return 0.0;
-    }
-
-    double operator ()(const model::Building& unit) const {
-        return get_factor(unit) * unit.getDamage();
-    }
-
-    double operator ()(const model::Minion& unit) const {
-        return get_factor(unit) * unit.getDamage();
-    }
-
-    double operator ()(const model::Wizard& unit) const {
-        return get_factor(unit) * context.game.getMagicMissileDirectDamage();
-    }
-
-    double get_factor(const model::LivingUnit& unit) const {
-        return 1 + is_empowered(unit) * context.game.getEmpoweredDamageFactor();
-    }
-};
 
 struct GetAttackRange {
     const Context& context;
@@ -175,26 +130,31 @@ struct IsTarget {
     }
 
     template <class V>
-    typename std::enable_if<!std::is_same<T, V>::value, bool>::type operator ()(const V& unit) const {
+    typename std::enable_if<!std::is_same<T, V>::value, bool>::type operator ()(const V&) const {
         return false;
     }
 };
 
-template <class T>
-Point get_optimal_position(const Context& context, const T* target) {
-    const IsTarget<T> is_target {target};
+Point get_optimal_position(const Context& context, const Target& target, double max_distance);
 
-    const auto is_enemy_and_not_target = [&] (const auto& unit) {
-        return !is_target(unit) && is_enemy(unit, context.self.getFaction());
+template <class T>
+Point get_optimal_position(const Context& context, const T* target, double max_distance) {
+    const IsTarget<T> is_target {target};
+    IsInMyRange is_in_my_range {context, max_distance};
+
+    const auto is_enemy_and_not_target_and_in_range = [&] (const auto& unit) {
+        return !is_target(unit) && is_enemy(unit, context.self.getFaction()) && is_in_my_range(unit);
     };
 
-    const auto enemy_wizards = filter_units(context.world.getWizards(), is_enemy_and_not_target);
-    const auto enemy_minions = filter_units(context.world.getMinions(), is_enemy_and_not_target);
-    const auto enemy_buildings = filter_units(context.world.getBuildings(), is_enemy_and_not_target);
+    const auto enemy_wizards = filter_units(context.world.getWizards(), is_enemy_and_not_target_and_in_range);
+    const auto enemy_minions = filter_units(context.world.getMinions(), is_enemy_and_not_target_and_in_range);
+    const auto enemy_buildings = filter_units(context.world.getBuildings(), is_enemy_and_not_target_and_in_range);
 
     const auto friend_wizards = filter_friends(context.world.getWizards(), context.self.getFaction(), context.self.getId());
     const auto friend_minions = filter_friends(context.world.getMinions(), context.self.getFaction(), context.self.getId());
     const auto friend_buildings = filter_friends(context.world.getBuildings(), context.self.getFaction(), context.self.getId());
+
+    const auto bonuses = filter_units(context.world.getBuildings(), is_in_my_range);
 
     std::vector<const model::CircularUnit*> friend_units;
     friend_units.reserve(friend_wizards.size() + friend_minions.size() + friend_buildings.size());
@@ -235,7 +195,6 @@ Point get_optimal_position(const Context& context, const T* target) {
         return get_distance_penalty(distance_to, safe_distance);
     };
 
-    const auto my_position = get_position(context.self);
     const auto damage_factor = 1.0 - is_shielded(context.self) * context.game.getShieldedDirectDamageAbsorptionFactor();
 
     const auto get_friendly_fire_penalty = [&] (const model::CircularUnit& unit, const Point& position) {
@@ -243,6 +202,7 @@ Point get_optimal_position(const Context& context, const T* target) {
             return 0.0;
         }
 
+        const auto my_position = get_position(context.self);
         const auto target_position = get_position(*target);
         const auto unit_position = get_position(unit);
         const auto has_intersection = Circle(unit_position, unit.getRadius())
@@ -298,7 +258,7 @@ Point get_optimal_position(const Context& context, const T* target) {
         const double sum_enemy_damage = enemy_wizards_damage
                 + enemy_minions_damage
                 + enemy_buildings_damage
-                + (target ? get_ranged_damage(*target, position) : 0);
+                + (target ? get_ranged_damage(*target, position) : 0.0);
 
         const auto get_sum_wizards_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
@@ -368,7 +328,7 @@ Point get_optimal_position(const Context& context, const T* target) {
                 + target_distance_penalty;
     };
 
-    return minimize(get_position_penalty, my_position, 100);
+    return minimize(get_position_penalty, get_position(context.self), 100);
 }
 
 }

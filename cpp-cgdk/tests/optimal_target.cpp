@@ -1,5 +1,5 @@
 #include <debug/output.hpp>
-#include <optimal_position.hpp>
+#include <optimal_target.hpp>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -150,17 +150,16 @@ const model::Game GAME(
     1 // MagicalDamageAbsorptionPerSkillLevel
 );
 
-TEST(get_optimal_position, for_all_default) {
+TEST(get_optimal_target, for_all_default) {
     const model::Wizard wizard;
     const model::World world;
     const model::Game game;
     model::Move move;
     const Context context {wizard, world, game, move};
-    const model::Wizard *target = nullptr;
-    ASSERT_EQ(get_optimal_position(context, target, 0), get_position(wizard));
+    ASSERT_FALSE(get_optimal_target(context, 0).has_value());
 }
 
-TEST(get_optimal_position, for_me_and_enemy_wizard) {
+TEST(get_optimal_target, for_me_and_enemy_wizard) {
     const model::Wizard enemy(
         2, // Id
         1100, // X
@@ -202,10 +201,8 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
     );
     model::Move move;
     const Context context {WIZARD, world, GAME, move};
-    const auto& target = world.getWizards()[0];
-    const auto result = get_optimal_position(context, &target, 1000);
-    EXPECT_LE(result.distance(get_position(target)) - (GAME.getWizardCastRange() + GAME.getMagicMissileRadius()), 1);
-    EXPECT_EQ(result, Point(754.08414214017716, 724.97268783975505));
+    const auto result = get_optimal_target(context, 1000);
+    EXPECT_EQ(result.wizard(), &world.getWizards()[0]);
 }
 
 }

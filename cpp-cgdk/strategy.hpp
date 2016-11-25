@@ -1,6 +1,5 @@
 #pragma once
 
-#include "target.hpp"
 #include "optimal_position.hpp"
 
 #ifdef STRATEGY_DEBUG

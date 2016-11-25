@@ -40,8 +40,8 @@ set(SOURCES
     Strategy.cpp
 
     newuoa.cpp
-    target.cpp
     optimal_position.cpp
+    optimal_target.cpp
 )
 
 add_executable(cpp-cgdk
@@ -61,6 +61,7 @@ add_executable(cpp-cgdk-tests
     ${SOURCES}
 
     tests/optimal_position.cpp
+    tests/optimal_target.cpp
     tests/main.cpp
 )
 
