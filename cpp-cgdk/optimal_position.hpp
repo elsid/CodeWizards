@@ -28,6 +28,11 @@ bool is_friend(const model::Wizard& unit, model::Faction my_faction, UnitId my_i
 double get_distance_penalty(double value, double safe);
 
 template <class T>
+std::vector<const T*> filter_friends(const std::vector<const T*>& units, model::Faction my_faction, UnitId my_id) {
+    return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
+}
+
+template <class T>
 std::vector<const T*> filter_friends(const std::vector<T>& units, model::Faction my_faction, UnitId my_id) {
     return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
 }
@@ -142,19 +147,24 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
     const IsTarget<T> is_target {target};
     IsInMyRange is_in_my_range {context, max_distance};
 
-    const auto is_enemy_and_not_target_and_in_range = [&] (const auto& unit) {
-        return !is_target(unit) && is_enemy(unit, context.self.getFaction()) && is_in_my_range(unit);
+    const auto is_enemy_and_not_target = [&] (const auto& unit) {
+        return !is_target(unit) && is_enemy(unit, context.self.getFaction());
     };
 
-    const auto enemy_wizards = filter_units(context.world.getWizards(), is_enemy_and_not_target_and_in_range);
-    const auto enemy_minions = filter_units(context.world.getMinions(), is_enemy_and_not_target_and_in_range);
-    const auto enemy_buildings = filter_units(context.world.getBuildings(), is_enemy_and_not_target_and_in_range);
+    const auto buildings = filter_units(context.world.getBuildings(), is_in_my_range);
+    const auto minions = filter_units(context.world.getMinions(), is_in_my_range);
+    const auto wizards = filter_units(context.world.getWizards(), is_in_my_range);
+    const auto trees = filter_units(context.world.getTrees(), is_in_my_range);
+    const auto projectiles = filter_units(context.world.getProjectiles(), is_in_my_range);
+    const auto bonuses = filter_units(context.world.getBonuses(), is_in_my_range);
 
-    const auto friend_wizards = filter_friends(context.world.getWizards(), context.self.getFaction(), context.self.getId());
-    const auto friend_minions = filter_friends(context.world.getMinions(), context.self.getFaction(), context.self.getId());
-    const auto friend_buildings = filter_friends(context.world.getBuildings(), context.self.getFaction(), context.self.getId());
+    const auto enemy_wizards = filter_units(wizards, is_enemy_and_not_target);
+    const auto enemy_minions = filter_units(minions, is_enemy_and_not_target);
+    const auto enemy_buildings = filter_units(buildings, is_enemy_and_not_target);
 
-    const auto bonuses = filter_units(context.world.getBuildings(), is_in_my_range);
+    const auto friend_wizards = filter_friends(wizards, context.self.getFaction(), context.self.getId());
+    const auto friend_minions = filter_friends(minions, context.self.getFaction(), context.self.getId());
+    const auto friend_buildings = filter_friends(buildings, context.self.getFaction(), context.self.getId());
 
     std::vector<const model::CircularUnit*> friend_units;
     friend_units.reserve(friend_wizards.size() + friend_minions.size() + friend_buildings.size());
@@ -228,19 +238,17 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
         return distance_to_tangent / max_distance;
     };
 
+    const auto borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
+                                        + projectiles.size() + trees.size() + wizards.size());
+
     const auto get_position_penalty = [&] (const Point& position) {
-        const bool borders_penalty = context.self.getRadius() >= position.x()
+        const bool is_out_of_borders = context.self.getRadius() >= position.x()
                 || position.x() >= context.game.getMapSize() - context.self.getRadius()
                 || context.self.getRadius() >= position.y()
                 || position.y() >= context.game.getMapSize() - context.self.getRadius();
 
-        if (borders_penalty) {
-            return double(context.world.getBonuses().size()
-                    + context.world.getBuildings().size()
-                    + context.world.getMinions().size()
-                    + context.world.getProjectiles().size()
-                    + context.world.getTrees().size()
-                    + context.world.getWizards().size());
+        if (is_out_of_borders) {
+            return borders_penalty;
         }
 
         const double enemy_wizards_damage = std::accumulate(
@@ -262,27 +270,27 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
 
         const auto get_sum_wizards_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
-                [&] (auto sum, const model::Wizard& v) {
-                    if (v.isMe() || is_target(v)) {
+                [&] (auto sum, const model::Wizard* v) {
+                    if (v->isMe() || is_target(*v)) {
                         return 0.0;
                     }
-                    return sum + std::max(get_unit_collision_penalty(v),
-                                          get_unit_danger_penalty(v, position, damage_factor, sum_enemy_damage));
+                    return sum + std::max(get_unit_collision_penalty(*v),
+                                          get_unit_danger_penalty(*v, position, damage_factor, sum_enemy_damage));
                 });
         };
 
         const auto get_sum_units_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
-                [&] (auto sum, const auto& v) {
-                    return sum + std::max(get_unit_collision_penalty(v),
-                                          get_unit_danger_penalty(v, position, damage_factor, sum_enemy_damage));
+                [&] (auto sum, auto v) {
+                    return sum + std::max(get_unit_collision_penalty(*v),
+                                          get_unit_danger_penalty(*v, position, damage_factor, sum_enemy_damage));
                 });
         };
 
         const auto get_sum_bonuses_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
-                [&] (auto sum, const auto& v) {
-                    return sum + get_bonus_penalty(v, position);
+                [&] (auto sum, auto v) {
+                    return sum + get_bonus_penalty(*v, position);
                 });
         };
 
@@ -295,8 +303,8 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
 
         const auto get_sum_projectiles_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
-                [&] (auto sum, const auto& v) {
-                    return sum + get_projectile_penalty(v, position);
+                [&] (auto sum, auto v) {
+                    return sum + get_projectile_penalty(*v, position);
                 });
         };
 
@@ -318,12 +326,12 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
             }
         }
 
-        return get_sum_units_penalty(context.world.getBuildings(), position)
-                + get_sum_units_penalty(context.world.getMinions(), position)
-                + get_sum_units_penalty(context.world.getTrees(), position)
-                + get_sum_wizards_penalty(context.world.getWizards(), position)
-                + get_sum_bonuses_penalty(context.world.getBonuses(), position)
-                + get_sum_projectiles_penalty(context.world.getProjectiles(), position)
+        return get_sum_units_penalty(buildings, position)
+                + get_sum_units_penalty(minions, position)
+                + get_sum_units_penalty(trees, position)
+                + get_sum_wizards_penalty(wizards, position)
+                + get_sum_bonuses_penalty(bonuses, position)
+                + get_sum_projectiles_penalty(projectiles, position)
                 + get_sum_friendly_fire_penalty(friend_units, position)
                 + target_distance_penalty;
     };

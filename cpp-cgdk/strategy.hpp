@@ -1,6 +1,9 @@
 #pragma once
 
 #include "optimal_position.hpp"
+#include "world_graph.hpp"
+
+#include <memory>
 
 #ifdef STRATEGY_DEBUG
 
@@ -14,13 +17,13 @@ namespace strategy {
 
 class Strategy {
 public:
-    void apply(Context& context) {
-//        std::cout << context.self << std::endl;
-        std::cout << context.world << std::endl;
-//        std::cout << context.game << std::endl;
-//        const auto target = get_target(context);
-//        get_optimal_position(context, target);
-    }
+    void apply(Context& context);
+
+private:
+    bool initialized_ = false;
+    std::unique_ptr<WorldGraph> graph_;
+
+    void initialize(const Context& context);
 };
 
 }

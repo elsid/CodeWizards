@@ -9,7 +9,7 @@ namespace strategy {
 
 class Point {
 public:
-    Point(double x, double y) : x_(x), y_(y) {}
+    Point(double x = 0, double y = 0) : x_(x), y_(y) {}
 
     double x() const { return x_; }
     double y() const { return y_; }
@@ -63,6 +63,10 @@ inline Point operator +(const Point& lhs, const Point& rhs) {
 
 inline Point operator -(const Point& lhs, const Point& rhs) {
     return Point(lhs.x() - rhs.x(), lhs.y() - rhs.y());
+}
+
+inline bool operator <(const Point& lhs, const Point& rhs) {
+    return lhs.x() < rhs.x() || (lhs.x() == rhs.x() && lhs.y() < rhs.y());
 }
 
 }

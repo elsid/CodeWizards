@@ -45,6 +45,7 @@ bool is_enemy(const model::Unit& unit, model::Faction my_faction);
 template <class T, class Predicate>
 std::vector<const T*> filter_units(const std::vector<T>& units, const Predicate& predicate) {
     std::vector<const T*> result;
+    result.reserve(units.size());
     for (const auto& unit : units) {
         if (predicate(unit)) {
             result.push_back(&unit);
@@ -56,6 +57,7 @@ std::vector<const T*> filter_units(const std::vector<T>& units, const Predicate&
 template <class T, class Predicate>
 std::vector<const T*> filter_units(const std::vector<const T*>& units, const Predicate& predicate) {
     std::vector<const T*> result;
+    result.reserve(units.size());
     for (auto unit : units) {
         if (predicate(*unit)) {
             result.push_back(unit);

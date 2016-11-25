@@ -9,7 +9,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-optimize-sibling-calls")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wtype-limits")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 include_directories(${CMAKE_SOURCE_DIR})
@@ -40,8 +41,12 @@ set(SOURCES
     Strategy.cpp
 
     newuoa.cpp
+    strategy.cpp
     optimal_position.cpp
     optimal_target.cpp
+    optimal_destination.cpp
+    world_graph.cpp
+    graph.cpp
 )
 
 add_executable(cpp-cgdk
@@ -62,6 +67,7 @@ add_executable(cpp-cgdk-tests
 
     tests/optimal_position.cpp
     tests/optimal_target.cpp
+    tests/optimal_destination.cpp
     tests/main.cpp
 )
 
