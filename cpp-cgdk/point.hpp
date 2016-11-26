@@ -40,6 +40,10 @@ public:
         return dot(other) / (norm() * other.norm());
     }
 
+    double absolute_rotation() const {
+        return std::atan2(__y, __x);
+    }
+
 private:
     double x_;
     double y_;
