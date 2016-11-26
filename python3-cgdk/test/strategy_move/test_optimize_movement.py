@@ -196,9 +196,9 @@ def test_optimize_movement_with_static_barriers():
         hastened_movement_bonus_factor=HASTENED_MOVEMENT_BONUS_FACTOR,
         hastened_rotation_bonus_factor=HASTENED_ROTATION_BONUS_FACTOR,
     )
-    assert states[-1] == State(position=Point(300.0, 300.0), angle=0.6611350060413702, path_length=315.78010811176955)
-    assert len(states) == 83
-    assert len(movements) == 82
+    assert states[-1] == State(position=Point(300.0, 300.0), angle=0.6033786138303007, path_length=323.72164454324377)
+    assert len(states) == 86
+    assert len(movements) == 85
 
 
 @pytest.mark.parametrize(
@@ -206,16 +206,16 @@ def test_optimize_movement_with_static_barriers():
         (
             Point(103 + WIZARD_RADIUS + MINION_RADIUS, 103 + WIZARD_RADIUS + MINION_RADIUS),
             Point(4, 4),
-            State(position=Point(300.0, 300.0), angle=0.6587623386176736, path_length=321.12454804088986),
-            85,
-            84,
+            State(position=Point(300.0, 300.0), angle=0.3859193195143633, path_length=366.165445262159),
+            101,
+            100,
         ),
         (
             Point(103 + WIZARD_RADIUS + MINION_RADIUS, 103 + WIZARD_RADIUS + MINION_RADIUS),
             Point(-3, -3),
-            State(position=Point(300.0, 300.0), angle=0.6611350060413702, path_length=315.78010811176955),
-            83,
-            82,
+            State(position=Point(300.0, 300.0), angle=0.5177670445494689, path_length=333.67388861842846),
+            90,
+            89,
         )
     ]
 )

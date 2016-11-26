@@ -179,16 +179,17 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
                 has_intersection_with_borders(barrier, map_size) or
                 has_intersection_with_barriers(barrier, new_position, chain(static_barriers, barriers.values()))
             )
+            if intersection:
+                continue
             if static_barriers or barriers:
                 penalty = min(Line(position, new_position).distance(v.position)
                               for v in chain(static_barriers, barriers.values()))
             else:
                 penalty = 0
-            sum_penalty = float('inf') if intersection else sum_penalties[position] - penalty + length
+            sum_penalty = sum_penalties[position] - penalty + length
             if new_position not in opened:
-                if not intersection or position.distance(initial_position) > radius:
-                    heappush(queue, (new_distance - penalty, new_distance, new_ticks, new_position))
-                    opened.add(new_position)
+                heappush(queue, (new_distance - penalty, new_distance, new_ticks, new_position))
+                opened.add(new_position)
             elif sum_penalty >= sum_penalties[new_position]:
                 continue
             came_from[new_position] = position
