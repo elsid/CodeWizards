@@ -33,6 +33,9 @@ def get_optimal_position(target, me: Wizard, buildings, minions, wizards, trees,
     def filter_enemies(units):
         return (v for v in units if is_enemy(v, me.faction))
 
+    def filter_neutral(units):
+        return (v for v in units if v.faction == Faction.NEUTRAL)
+
     def filter_max_distance(units):
         if max_distance is None:
             return units
@@ -46,10 +49,13 @@ def get_optimal_position(target, me: Wizard, buildings, minions, wizards, trees,
     if not enemy_buildings and not enemy_minions and not enemy_wizards and not bonuses:
         factor = 2 if me.mean_speed.norm() < 1 else 1.3
         trees = tuple(v for v in trees if my_position.distance(v.position) < factor * me.radius + v.radius)
-        if not trees:
-            return my_position
-        target = min(trees, key=lambda v: v.life)
-        return target.position
+        if trees:
+            return min(trees, key=lambda v: my_position.distance(v.position)).position
+        neutral_minions = tuple(v for v in filter_neutral(minions)
+                                if my_position.distance(v.position) < factor * me.radius + v.radius)
+        if neutral_minions:
+            return min(neutral_minions, key=lambda v: my_position.distance(v.position)).position
+        return my_position
     get_damage = make_get_damage(magic_missile_direct_damage, empowered_damage_factor)
     get_attack_range = make_get_attack_range(
         orc_woodcutter_attack_range=orc_woodcutter_attack_range,
@@ -80,6 +86,8 @@ def get_optimal_position(target, me: Wizard, buildings, minions, wizards, trees,
 
         def unit_intersection_penalty(unit):
             if isinstance(unit, Tree):
+                return distance_penalty(position.distance(unit.position), 2 * me.radius + 2 * unit.radius)
+            elif isinstance(unit, Minion) and unit.faction == Faction.NEUTRAL:
                 return distance_penalty(position.distance(unit.position), 2 * me.radius + 2 * unit.radius)
             else:
                 return distance_penalty(position.distance(unit.position), 1.1 * me.radius + unit.radius)
@@ -192,6 +200,9 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, bonuses, magic_mi
     def filter_enemies(units):
         return (v for v in units if is_enemy(v, me.faction))
 
+    def filter_neutral(units):
+        return (v for v in units if v.faction == Faction.NEUTRAL)
+
     def filter_max_distance(units):
         if max_distance is None:
             return units
@@ -205,10 +216,13 @@ def get_target(me: Wizard, buildings, minions, wizards, trees, bonuses, magic_mi
     if not enemy_buildings and not enemy_minions and not enemy_wizards and not bonuses:
         factor = 2 if me.mean_speed.norm() < 1 else 1.3
         trees = tuple(v for v in trees if my_position.distance(v.position) < factor * me.radius + v.radius)
-        if not trees:
-            return None
-        target = min(trees, key=lambda v: v.life)
-        return target
+        if trees:
+            return min(trees, key=lambda v: my_position.distance(v.position))
+        neutral_minions = tuple(v for v in filter_neutral(minions)
+                                if my_position.distance(v.position) < factor * me.radius + v.radius)
+        if neutral_minions:
+            return min(neutral_minions, key=lambda v: my_position.distance(v.position))
+        return None
     get_damage = make_get_damage(magic_missile_direct_damage, empowered_damage_factor)
 
     def target_penalty(unit):

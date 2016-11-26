@@ -185,7 +185,7 @@ def test_get_target_with_me_and_enemy_minion(minion, expected_position, expected
     assert position == expected_position
 
 
-def test_get_target_with_me_and_neural_minion():
+def test_get_target_with_me_and_neutral_minion():
     minion = Minion(
         id=2,
         x=1100,
@@ -204,6 +204,7 @@ def test_get_target_with_me_and_neural_minion():
         cooldown_ticks=None,
         remaining_action_cooldown_ticks=None,
     )
+    setattr(minion, 'position', Point(minion.x, minion.y))
     assert WIZARD.position == get_optimal_position(
         target=None,
         me=WIZARD,

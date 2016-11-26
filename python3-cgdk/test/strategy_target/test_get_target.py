@@ -56,6 +56,7 @@ WIZARD = Wizard(
     messages=None,
 )
 setattr(WIZARD, 'mean_speed', Point(0, 0))
+setattr(WIZARD, 'position', Point(WIZARD.x, WIZARD.y))
 
 
 def test_get_target_with_only_me():
@@ -105,30 +106,30 @@ def test_get_target_with_me_and_enemy_minion():
     )
 
 
-def test_get_target_with_me_and_neural_minion():
+def test_get_target_with_me_and_neutral_minion():
+    minion = Minion(
+        id=2,
+        x=1100,
+        y=1100,
+        speed_x=None,
+        speed_y=None,
+        angle=None,
+        faction=Faction.NEUTRAL,
+        radius=MINION_RADIUS,
+        life=FETISH_BLOWDART_MAX_LIFE,
+        max_life=None,
+        statuses=tuple(),
+        type=MinionType.FETISH_BLOWDART,
+        vision_range=None,
+        damage=None,
+        cooldown_ticks=None,
+        remaining_action_cooldown_ticks=None,
+    )
+    setattr(minion, 'position', Point(minion.x, minion.y))
     assert get_target(
         me=WIZARD,
         buildings=tuple(),
-        minions=[
-            Minion(
-                id=2,
-                x=1100,
-                y=1100,
-                speed_x=None,
-                speed_y=None,
-                angle=None,
-                faction=Faction.NEUTRAL,
-                radius=MINION_RADIUS,
-                life=FETISH_BLOWDART_MAX_LIFE,
-                max_life=None,
-                statuses=tuple(),
-                type=MinionType.FETISH_BLOWDART,
-                vision_range=None,
-                damage=None,
-                cooldown_ticks=None,
-                remaining_action_cooldown_ticks=None,
-            ),
-        ],
+        minions=[minion],
         wizards=[WIZARD],
         trees=tuple(),
         bonuses=tuple(),
