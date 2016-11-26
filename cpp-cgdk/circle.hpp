@@ -9,7 +9,7 @@ namespace strategy {
 
 class Circle {
 public:
-    Circle(const Point& position, double radius) : position_(position), radius_(radius) {}
+    Circle(const Point& position = Point(), double radius = 0) : position_(position), radius_(radius) {}
 
     const Point& position() const { return position_; }
     double radius() const { return radius_; }
@@ -38,8 +38,8 @@ public:
     }
 
 private:
-    const Point position_;
-    const double radius_;
+    Point position_;
+    double radius_;
 };
 
 }

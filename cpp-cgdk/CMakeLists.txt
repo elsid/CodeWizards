@@ -45,6 +45,8 @@ set(SOURCES
     optimal_position.cpp
     optimal_target.cpp
     optimal_destination.cpp
+    optimal_movement.cpp
+    optimal_path.cpp
     world_graph.cpp
     graph.cpp
 )

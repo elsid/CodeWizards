@@ -29,4 +29,12 @@ Point get_optimal_position(const Context& context, const Target& target, double 
     throw std::logic_error("Target has no value in " + std::string(__FUNCTION__));
 }
 
+bool is_me(const model::Wizard& unit) {
+    return unit.isMe();
+}
+
+bool is_me(const model::Unit&) {
+    return false;
+}
+
 }

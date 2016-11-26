@@ -140,23 +140,30 @@ struct IsTarget {
     }
 };
 
+bool is_me(const model::Wizard& unit);
+bool is_me(const model::Unit&);
+
 Point get_optimal_position(const Context& context, const Target& target, double max_distance);
 
 template <class T>
 Point get_optimal_position(const Context& context, const T* target, double max_distance) {
+    const IsInMyRange is_in_my_range {context, max_distance};
     const IsTarget<T> is_target {target};
-    IsInMyRange is_in_my_range {context, max_distance};
+
+    const auto initial_filter = [&] (const auto& units) {
+        return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && !is_target(unit) && is_in_my_range(unit); });
+    };
+
+    const auto buildings = initial_filter(context.world.getBuildings());
+    const auto minions = initial_filter(context.world.getMinions());
+    const auto wizards = initial_filter(context.world.getWizards());
+    const auto trees = initial_filter(context.world.getTrees());
+    const auto projectiles = initial_filter(context.world.getProjectiles());
+    const auto bonuses = initial_filter(context.world.getBonuses());
 
     const auto is_enemy_and_not_target = [&] (const auto& unit) {
         return !is_target(unit) && is_enemy(unit, context.self.getFaction());
     };
-
-    const auto buildings = filter_units(context.world.getBuildings(), is_in_my_range);
-    const auto minions = filter_units(context.world.getMinions(), is_in_my_range);
-    const auto wizards = filter_units(context.world.getWizards(), is_in_my_range);
-    const auto trees = filter_units(context.world.getTrees(), is_in_my_range);
-    const auto projectiles = filter_units(context.world.getProjectiles(), is_in_my_range);
-    const auto bonuses = filter_units(context.world.getBonuses(), is_in_my_range);
 
     const auto enemy_wizards = filter_units(wizards, is_enemy_and_not_target);
     const auto enemy_minions = filter_units(minions, is_enemy_and_not_target);
@@ -271,9 +278,6 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
         const auto get_sum_wizards_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
                 [&] (auto sum, const model::Wizard* v) {
-                    if (v->isMe() || is_target(*v)) {
-                        return 0.0;
-                    }
                     return sum + std::max(get_unit_collision_penalty(*v),
                                           get_unit_danger_penalty(*v, position, damage_factor, sum_enemy_damage));
                 });

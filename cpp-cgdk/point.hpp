@@ -41,12 +41,16 @@ public:
     }
 
 private:
-    const double x_;
-    const double y_;
+    double x_;
+    double y_;
 };
 
 inline bool operator ==(const Point& lhs, const Point& rhs) {
     return lhs.x() == rhs.x() && lhs.y() == rhs.y();
+}
+
+inline bool operator !=(const Point& lhs, const Point& rhs) {
+    return !(lhs == rhs);
 }
 
 inline Point operator *(const Point& lhs, const double rhs) {
