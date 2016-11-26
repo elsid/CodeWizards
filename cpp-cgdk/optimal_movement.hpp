@@ -2,6 +2,7 @@
 
 #include "point.hpp"
 #include "context.hpp"
+#include "optimal_path.hpp"
 
 #include <vector>
 
@@ -9,10 +10,10 @@ namespace strategy {
 
 class MovementState {
 public:
-    MovementState(double tick, const Point& position, double angle)
+    MovementState(int tick, const Point& position, double angle)
         : tick_(tick), position_(position), angle_(angle) {}
 
-    double tick() const {
+    int tick() const {
         return tick_;
     }
 
@@ -25,7 +26,7 @@ public:
     }
 
 private:
-    double tick_;
+    int tick_;
     Point position_;
     double angle_;
 };
@@ -57,6 +58,6 @@ using MovementsStates = std::vector<MovementState>;
 using Movements = std::vector<Movement>;
 using OptPoint = std::pair<bool, Point>;
 
-std::pair<MovementsStates, Movements> get_optimal_movement(const Context& context, const strategy::Path& path, const OptPoint& look_target);
+std::pair<MovementsStates, Movements> get_optimal_movement(const Context& context, const Path& path, const OptPoint& look_target);
 
 }

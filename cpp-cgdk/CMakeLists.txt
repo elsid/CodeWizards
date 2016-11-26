@@ -70,6 +70,8 @@ add_executable(cpp-cgdk-tests
     tests/optimal_position.cpp
     tests/optimal_target.cpp
     tests/optimal_destination.cpp
+    tests/optimal_path.cpp
+    tests/optimal_movement.cpp
     tests/main.cpp
 )
 

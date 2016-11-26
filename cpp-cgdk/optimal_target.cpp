@@ -24,12 +24,23 @@ Target get_optimal_target(const Context& context, double max_distance) {
                 return get_position(context.self).distance(get_position(unit))
                         < factor * context.self.getRadius() + unit.getRadius();
             });
-        if (trees.empty()) {
-            return Target();
+        const auto less_by_distance = [&] (auto lhs, auto rhs) {
+            return get_position(*lhs).distance(get_position(context.self)) <
+                    get_position(*rhs).distance(get_position(context.self));
+        };
+        if (!trees.empty()) {
+            return *std::min_element(trees.begin(), trees.end(), less_by_distance);
         }
-        const auto target = std::min_element(trees.begin(), trees.end(),
-            [] (auto lhs, auto rhs) { return lhs->getLife() < rhs->getLife(); });
-        return *target;
+        const auto neutral_minions = filter_units(context.world.getMinions(),
+              [&] (const auto& unit) {
+                  return unit.getFaction() == model::FACTION_NEUTRAL &&
+                          get_position(context.self).distance(get_position(unit))
+                          < factor * context.self.getRadius() + unit.getRadius();
+              });
+        if (!neutral_minions.empty()) {
+            return *std::min_element(neutral_minions.begin(), neutral_minions.end(), less_by_distance);
+        }
+        return Target();
     }
 
     if (!bonuses.empty()) {
@@ -86,10 +97,13 @@ Target get_optimal_target(const Context& context, double max_distance) {
     return Target();
 }
 
+std::vector<model::Status>::const_iterator find_status(const std::vector<model::Status>& statuses, model::StatusType status) {
+    return std::find_if(statuses.begin(), statuses.end(),
+                        [&] (const model::Status& v) { return v.getType() == status; });
+}
+
 bool is_with_status(const model::LivingUnit& unit, model::StatusType status) {
-    return unit.getStatuses().end() != std::find_if(
-                unit.getStatuses().begin(), unit.getStatuses().end(),
-                [&] (const model::Status& v) { return v.getType() == status; });
+    return unit.getStatuses().end() != find_status(unit.getStatuses(), status);
 }
 
 bool is_empowered(const model::LivingUnit& unit) {

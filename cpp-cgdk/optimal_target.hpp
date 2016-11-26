@@ -34,6 +34,8 @@ private:
 
 Target get_optimal_target(const Context& context, double max_distance);
 
+std::vector<model::Status>::const_iterator find_status(const std::vector<model::Status>& statuses, model::StatusType status);
+
 bool is_with_status(const model::LivingUnit& unit, model::StatusType status);
 
 bool is_empowered(const model::LivingUnit& unit);

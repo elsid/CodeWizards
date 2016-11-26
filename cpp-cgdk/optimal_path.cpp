@@ -1,5 +1,6 @@
 #include "optimal_path.hpp"
 #include "optimal_position.hpp"
+#include "line.hpp"
 
 #include <set>
 #include <map>
@@ -42,8 +43,12 @@ private:
 
 class StepState {
 public:
-    StepState(double distance, double tick, Point position)
-        : distance_(distance), tick_(tick), position_(position) {}
+    StepState(double penalty, double distance, double tick, Point position)
+        : penalty_(penalty), distance_(distance), tick_(tick), position_(position) {}
+
+    double penalty() const {
+        return penalty_;
+    }
 
     double distance() const {
         return distance_;
@@ -58,13 +63,14 @@ public:
     }
 
 private:
+    double penalty_;
     double distance_;
     double tick_;
     Point position_;
 };
 
 bool operator <(const StepState& lhs, const StepState& rhs) {
-    return lhs.distance() < rhs.distance();
+    return lhs.penalty() < rhs.penalty();
 }
 
 bool has_intersection_with_borders(const Circle& circle, double map_size) {
@@ -93,6 +99,19 @@ Path reconstruct_path(Point position, const std::map<Point, Point>& came_from) {
     }
     std::reverse(result.begin(), result.end());
     return result;
+}
+
+template <class T>
+auto get_closest_unit(const std::vector<const T*>& units, const Line& path) {
+    return std::min_element(units.begin(), units.end(),
+         [&] (auto lhs, auto rhs) {
+             return path.distance(get_position(*lhs)) < path.distance(get_position(*rhs));
+         });
+}
+
+template <class T>
+double get_distance_to_closest_unit(const std::vector<const T*>& units, const Line& path) {
+    return path.distance(get_position(**get_closest_unit(units, path)));
 }
 
 Path get_optimal_path(const Context& context, const Point& target, double step_size) {
@@ -175,14 +194,31 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
                 || has_intersection_with_barriers(barrier, position, tick_state.dynamic_barriers());
     };
 
+    const auto get_distance_to_units_penalty = [&] (const Line& path) {
+        double result = 0;
+        if (!buildings.empty()) {
+            result = std::min(result, get_distance_to_closest_unit(buildings, path));
+        }
+        if (!minions.empty()) {
+            result = std::min(result, get_distance_to_closest_unit(minions, path));
+        }
+        if (!wizards.empty()) {
+            result = std::min(result, get_distance_to_closest_unit(wizards, path));
+        }
+        if (!trees.empty()) {
+            result = std::min(result, get_distance_to_closest_unit(trees, path));
+        }
+        return result;
+    };
+
     std::set<Point> closed;
     std::set<Point> opened({initial_position});
     std::map<Point, Point> came_from;
-    std::map<Point, double> path_lengths;
+    std::map<Point, double> penalties;
     std::priority_queue<StepState, std::deque<StepState>> queue;
     Point final_position;
 
-    queue.push(StepState {target.distance(initial_position), 0, initial_position});
+    queue.push(StepState(0, target.distance(initial_position), 0, initial_position));
 
     while (!queue.empty()) {
         const StepState step_state = queue.top();
@@ -219,15 +255,16 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
             if (has_intersection(step_state, tick_state->second, position)) {
                 continue;
             }
-            const auto path_length = path_lengths[position] + length;
+            const auto penalty = penalties[position] + length
+                    + get_distance_to_units_penalty(Line(step_state.position(), position));
             if (!opened.count(position)) {
-                queue.push(StepState {target.distance(step_state.position()), tick, position});
+                queue.push(StepState(penalty, target.distance(position), tick, position));
                 opened.insert(step_state.position());
-            } else if (path_length > path_lengths[step_state.position()]) {
+            } else if (penalty > penalties[step_state.position()]) {
                 continue;
             }
             came_from[position] = step_state.position();
-            path_lengths[position] = path_length;
+            penalties[position] = penalty;
         }
     }
 

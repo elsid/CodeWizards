@@ -41,7 +41,11 @@ public:
     }
 
     double absolute_rotation() const {
-        return std::atan2(__y, __x);
+        return std::atan2(y_, x_);
+    }
+
+    Point left_orthogonal() const {
+        return Point(-y_, x_);
     }
 
 private:
