@@ -69,18 +69,15 @@ def optimize_movement(target, look_target, me, buildings, minions, wizards, tree
         )
         if look_target:
             turn = limit_turn(normalize_angle((look_target - position).absolute_rotation() - angle), bounds, tick)
-        shift, turn = get_shift_and_turn(
+        shift = get_shift(
             angle=angle,
-            bounds=bounds,
             speed=speed,
             strafe_speed=strafe_speed,
-            turn=turn,
-            tick=tick,
         )
         position += shift
         angle = normalize_angle(angle + turn)
         path_length += shift.norm()
-        states.append(State(position=position,angle=angle, path_length=path_length))
+        states.append(State(position=position, angle=angle, path_length=path_length))
         movements.append(Movement(speed=speed, strafe_speed=strafe_speed, turn=turn, step_size=1))
         tick += 1
         return position, angle, path_length, tick
@@ -253,6 +250,12 @@ def get_shift_and_turn(angle: float, bounds: Bounds, speed: float, strafe_speed:
     return speed_direction * speed + strafe_speed_direction * strafe_speed, turn
 
 
+def get_shift(angle: float, speed: float, strafe_speed: float):
+    speed_direction = Point(1, 0).rotate(angle)
+    strafe_speed_direction = speed_direction.left_orthogonal()
+    return speed_direction * speed + strafe_speed_direction * strafe_speed
+
+
 def limit_speed(speed: float, strafe_speed: float, bounds: Bounds, tick: int):
     speed = min(bounds.max_speed(tick), max(bounds.min_speed(tick), speed))
     strafe_speed = min(bounds.max_strafe_speed(tick), max(bounds.min_strafe_speed(tick), strafe_speed))
@@ -277,7 +280,7 @@ def get_speed_and_turn_to_point(position: Point, angle, target: Point, bounds: B
     turn = normalize_angle(direction.absolute_rotation() - angle)
     speed = bounds.max_speed(tick) * cos(turn) if abs(turn) <= pi / 2 else -bounds.min_speed(tick) * cos(turn)
     strafe_speed = bounds.max_strafe_speed(tick) * sin(turn)
-    ratio = min(1, direction.norm() / hypot(speed, strafe_speed))
+    ratio = min(1, norm / hypot(speed, strafe_speed))
     return speed * ratio, strafe_speed * ratio, limit_turn(turn, bounds, tick)
 
 
