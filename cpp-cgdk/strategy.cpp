@@ -8,6 +8,16 @@ Strategy::Strategy(const Context& context)
 }
 
 void Strategy::apply(Context &context) {
+    update_cache(context);
+}
+
+void Strategy::update_cache(const Context& context) {
+    update_specific_cache<model::Bonus>(context);
+    update_specific_cache<model::Building>(context);
+    update_specific_cache<model::Minion>(context);
+    update_specific_cache<model::Projectile>(context);
+    update_specific_cache<model::Tree>(context);
+    update_specific_cache<model::Wizard>(context);
 }
 
 }

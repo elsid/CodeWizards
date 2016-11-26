@@ -29,6 +29,14 @@ public:
 
 private:
     WorldGraph graph_;
+    FullCache cache_;
+
+    void update_cache(const Context& context);
+
+    template <class T>
+    void update_specific_cache(const Context& context) {
+        std::get<Cache<T>>(cache_).update(get_units<T>(context.world()), context.world().getTickIndex());
+    }
 };
 
 }

@@ -16,7 +16,7 @@ struct AddSumTime {
 void TimeLimitedStrategy::apply(Context& context) {
     AddSumTime add_sum_time {context.profiler(), sum_time_};
     Context time_limited_context(context.self(), context.world(), context.game(), context.move(),
-                                 context.profiler(), get_iteration_time_limit(context));
+                                 context.cache(), context.profiler(), get_iteration_time_limit(context));
     base_->apply(time_limited_context);
 }
 

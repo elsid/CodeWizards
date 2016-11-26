@@ -1,5 +1,7 @@
 #include "MyStrategy.h"
 
+#include "cache.hpp"
+
 #ifndef STRATEGY_DEBUG
 
 #include "time_limited_strategy.hpp"
@@ -9,7 +11,8 @@
 void MyStrategy::move(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move) {
     try {
         strategy::Profiler profiler;
-        strategy::Context context(self, world, game, move, profiler, strategy::Duration::max());
+        strategy::FullCache cache;
+        strategy::Context context(self, world, game, move, cache, profiler, strategy::Duration::max());
         if (!strategy_) {
             auto base = std::make_unique<strategy::Strategy>(context);
 #ifdef STRATEGY_DEBUG

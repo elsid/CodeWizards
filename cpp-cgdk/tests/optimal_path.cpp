@@ -27,7 +27,8 @@ TEST(get_optimal_path, with_only_me) {
     );
     model::Move move;
     const Profiler profiler;
-    const Context context(WIZARD, world, GAME, move, profiler, Duration::max());
+    const FullCache cache;
+    const Context context(WIZARD, world, GAME, move, cache, profiler, Duration::max());
     const Point target(2000, 2000);
     const auto step_size = 20;
     const auto result = get_optimal_path(context, target, step_size);

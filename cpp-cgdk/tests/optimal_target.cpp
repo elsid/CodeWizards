@@ -11,16 +11,6 @@ namespace tests {
 
 using namespace testing;
 
-TEST(get_optimal_target, for_all_default) {
-    const model::Wizard wizard;
-    const model::World world;
-    const model::Game game;
-    model::Move move;
-    const Profiler profiler;
-    const Context context(wizard, world, game, move, profiler, Duration::max());
-    EXPECT_FALSE(get_optimal_target(context, 0).has_value());
-}
-
 TEST(get_optimal_target, for_me_and_enemy_wizard) {
     const model::Wizard enemy(
         2, // Id
@@ -63,7 +53,8 @@ TEST(get_optimal_target, for_me_and_enemy_wizard) {
     );
     model::Move move;
     const Profiler profiler;
-    const Context context(WIZARD, world, GAME, move, profiler, Duration::max());
+    const FullCache cache;
+    const Context context(WIZARD, world, GAME, move, cache, profiler, Duration::max());
     const auto result = get_optimal_target(context, 1000);
     EXPECT_EQ(result.wizard(), &world.getWizards()[0]);
 }
