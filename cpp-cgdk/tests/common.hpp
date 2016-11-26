@@ -3,6 +3,8 @@
 #include "model/Wizard.h"
 #include "model/Game.h"
 
+#include <cmath>
+
 namespace strategy {
 namespace tests {
 
@@ -12,7 +14,7 @@ static const model::Wizard WIZARD(
     1000, // Y
     0, // SpeedX
     0, // SpeedY
-    0, // Angle
+    M_PI / 4, // Angle
     model::FACTION_ACADEMY, // Faction
     35, // Radius
     100, // Life

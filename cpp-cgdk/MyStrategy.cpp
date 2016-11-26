@@ -8,6 +8,10 @@
 
 #endif
 
+#include "debug/output.hpp"
+
+#include <iostream>
+
 void MyStrategy::move(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move) {
     try {
         strategy::Profiler profiler;

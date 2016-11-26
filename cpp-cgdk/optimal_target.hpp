@@ -4,34 +4,6 @@
 
 namespace strategy {
 
-class Target {
-public:
-    Target() = default;
-
-    Target(const model::Bonus* unit) : bonus_(unit) {}
-    Target(const model::Building* unit) : building_(unit) {}
-    Target(const model::Minion* unit) : minion_(unit) {}
-    Target(const model::Wizard* unit) : wizard_(unit) {}
-    Target(const model::Tree* unit) : tree_(unit) {}
-
-    const model::Bonus* bonus() const { return bonus_; }
-    const model::Building* building() const { return building_; }
-    const model::Minion* minion() const { return minion_; }
-    const model::Wizard* wizard() const { return wizard_; }
-    const model::Tree* tree() const { return tree_; }
-
-    bool has_value() const {
-        return bonus_ || building_ || minion_ || wizard_ || tree_;
-    }
-
-private:
-    const model::Bonus* bonus_ = nullptr;
-    const model::Building* building_ = nullptr;
-    const model::Minion* minion_ = nullptr;
-    const model::Wizard* wizard_ = nullptr;
-    const model::Tree* tree_ = nullptr;
-};
-
 Target get_optimal_target(const Context& context, double max_distance);
 
 std::vector<model::Status>::const_iterator find_status(const std::vector<model::Status>& statuses, model::StatusType status);

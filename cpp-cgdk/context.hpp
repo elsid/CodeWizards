@@ -12,6 +12,49 @@
 
 namespace strategy {
 
+class Target {
+public:
+    Target() = default;
+
+    Target(const model::Bonus* unit) : bonus_(unit) {}
+    Target(const model::Building* unit) : building_(unit) {}
+    Target(const model::Minion* unit) : minion_(unit) {}
+    Target(const model::Wizard* unit) : wizard_(unit) {}
+    Target(const model::Tree* unit) : tree_(unit) {}
+
+    const model::Bonus* bonus() const { return bonus_; }
+    const model::Building* building() const { return building_; }
+    const model::Minion* minion() const { return minion_; }
+    const model::Wizard* wizard() const { return wizard_; }
+    const model::Tree* tree() const { return tree_; }
+
+    bool has_value() const {
+        return bonus_ || building_ || minion_ || wizard_ || tree_;
+    }
+
+    const model::CircularUnit* unit() const {
+        if (const auto unit = bonus_) {
+            return unit;
+        } else if (const auto unit = building_) {
+            return unit;
+        } else if (const auto unit = minion_) {
+            return unit;
+        } else if (const auto unit = wizard_) {
+            return unit;
+        } else if (const auto unit = tree_) {
+            return unit;
+        }
+        return nullptr;
+    }
+
+private:
+    const model::Bonus* bonus_ = nullptr;
+    const model::Building* building_ = nullptr;
+    const model::Minion* minion_ = nullptr;
+    const model::Wizard* wizard_ = nullptr;
+    const model::Tree* tree_ = nullptr;
+};
+
 using FullCache = std::tuple<
     Cache<model::Bonus>,
     Cache<model::Building>,
@@ -105,6 +148,11 @@ inline const std::vector<model::Tree>& get_units(const model::World& world) {
 template <>
 inline const std::vector<model::Wizard>& get_units(const model::World& world) {
     return world.getWizards();
+}
+
+template <class T>
+const typename Cache<T>::Units& get_units(const FullCache& cache) {
+    return std::get<T>(cache).units();
 }
 
 }

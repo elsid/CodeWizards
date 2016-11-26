@@ -51,6 +51,8 @@ set(SOURCES
     world_graph.cpp
     context.cpp
     graph.cpp
+    move_mode.cpp
+    battle_mode.cpp
 )
 
 add_executable(cpp-cgdk

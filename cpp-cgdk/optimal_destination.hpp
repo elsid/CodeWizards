@@ -6,6 +6,7 @@
 
 namespace strategy {
 
+WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position);
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane);
 
 }

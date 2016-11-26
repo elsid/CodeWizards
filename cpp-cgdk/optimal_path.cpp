@@ -89,8 +89,8 @@ bool has_intersection_with_barriers(const Circle& barrier, const Point& final_po
 Path reconstruct_path(Point position, const std::map<Point, Point>& came_from) {
     Path result;
     result.reserve(came_from.size());
-    result.push_back(position);
     while (true) {
+        result.push_back(position);
         const auto prev = came_from.find(position);
         if (prev == came_from.end()) {
             break;
@@ -224,6 +224,8 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
         const StepState step_state = queue.top();
         queue.pop();
 
+        std::cout << step_state.tick() << " " << step_state.position() << " " << step_state.distance() << std::endl;
+
         const TickState& tick_state = ticks_states.at(step_state.tick());
 
         if (step_state.distance() <= tick_state.max_distance_error()) {
@@ -256,11 +258,11 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
                 continue;
             }
             const auto penalty = penalties[position] + length
-                    + get_distance_to_units_penalty(Line(step_state.position(), position));
+                    - get_distance_to_units_penalty(Line(step_state.position(), position));
             if (!opened.count(position)) {
                 queue.push(StepState(penalty, target.distance(position), tick, position));
                 opened.insert(step_state.position());
-            } else if (penalty > penalties[step_state.position()]) {
+            } else if (penalty > penalties[position]) {
                 continue;
             }
             came_from[position] = step_state.position();
