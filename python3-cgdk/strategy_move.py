@@ -6,7 +6,7 @@ from time import time
 
 from model.StatusType import StatusType
 
-from strategy_common import Point, Circle, normalize_angle
+from strategy_common import Point, Circle, normalize_angle, Line
 
 Movement = namedtuple('Movement', ('speed', 'strafe_speed', 'turn', 'step_size'))
 State = namedtuple('State', ('position', 'angle', 'path_length'))
@@ -105,7 +105,7 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
     )
     initial_position = position
     max_range = max(max_range, target.distance(position) / 2 + step_size)
-    barrier = Circle(position, radius + 1)
+    barrier = Circle(position, radius)
     initial_dynamic_barriers = {v.id: Circle(v.position, v.radius) for v in dynamic_units}
     static_occupier = next((v for v in chain(static_barriers)
                            if target.distance(v.position) < v.radius + barrier.radius), None)
@@ -119,14 +119,14 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
     dynamic_barriers = {0: initial_dynamic_barriers}
     closed = set()
     opened = {position}
-    queue = [(target.distance(position), 0, position)]
+    queue = [(0, target.distance(position), 0, position)]
     came_from = dict()
-    lengths = {position: 0}
+    sum_penalties = {position: 0}
     result = None
     min_distance = target.distance(position)
     closest_position = position
     while queue:
-        distance, ticks, position = heappop(queue)
+        _, distance, ticks, position = heappop(queue)
         if min_distance > distance:
             min_distance = distance
             closest_position = position
@@ -179,15 +179,20 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
                 has_intersection_with_borders(barrier, map_size) or
                 has_intersection_with_barriers(barrier, new_position, chain(static_barriers, barriers.values()))
             )
-            new_length = float('inf') if intersection else lengths[position] + length
+            if static_barriers or barriers:
+                penalty = min(Line(position, new_position).distance(v.position)
+                              for v in chain(static_barriers, barriers.values()))
+            else:
+                penalty = 0
+            sum_penalty = float('inf') if intersection else sum_penalties[position] - penalty + length
             if new_position not in opened:
                 if not intersection or position.distance(initial_position) > radius:
-                    heappush(queue, (new_distance, new_ticks, new_position))
+                    heappush(queue, (new_distance - penalty, new_distance, new_ticks, new_position))
                     opened.add(new_position)
-            elif new_length >= lengths[new_position]:
+            elif sum_penalty >= sum_penalties[new_position]:
                 continue
             came_from[new_position] = position
-            lengths[new_position] = new_length
+            sum_penalties[new_position] = sum_penalty
     if result is None:
         return None
     return reconstruct_path(came_from, result)
