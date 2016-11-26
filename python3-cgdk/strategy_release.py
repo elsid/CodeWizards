@@ -367,7 +367,9 @@ class Strategy(LazyInit):
     def __next_path_node(self, context: Context):
         if self.__next_node >= len(self.__path):
             return
-        if context.me.position.distance(self.__path[self.__next_node].position) > self.__graph.zone_size:
+        required_distance = 0.9 * (self.__graph.zone_size if self.__next_node > len(self.__path) - 2
+                                   else self.__path[self.__next_node + 1].position.distance(self.__path[self.__next_node].position))
+        if context.me.position.distance(self.__path[self.__next_node].position) > required_distance:
             return
         context.post_event(name='next_path_node', old=self.__next_node, new=self.__next_node + 1)
         self.__next_node += 1
