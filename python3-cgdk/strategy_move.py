@@ -123,10 +123,19 @@ def get_shortest_path(target, position, radius, step_size, map_size, static_barr
     came_from = dict()
     lengths = {position: 0}
     result = None
+    min_distance = target.distance(position)
+    closest_position = position
     while queue:
         distance, ticks, position = heappop(queue)
+        if min_distance > distance:
+            min_distance = distance
+            closest_position = position
         if max_time is not None and time() - start > max_time:
-            result = None
+            if occupiers[ticks] is None and target != closest_position and target not in came_from:
+                came_from[target] = closest_position
+                result = target
+            else:
+                result = closest_position
             break
         if distance <= max_distance_errors[ticks]:
             if occupiers[ticks] is None and target != position and target not in came_from and position in came_from:
