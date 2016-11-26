@@ -115,17 +115,17 @@ double get_distance_to_closest_unit(const std::vector<const T*>& units, const Li
 }
 
 Path get_optimal_path(const Context& context, const Point& target, double step_size) {
-    const auto initial_position = get_position(context.self);
+    const auto initial_position = get_position(context.self());
     const IsInMyRange is_in_my_range {context, 2 * target.distance(initial_position)};
 
     const auto initial_filter = [&] (const auto& units) {
         return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && is_in_my_range(unit); });
     };
 
-    const auto buildings = initial_filter(context.world.getBuildings());
-    const auto minions = initial_filter(context.world.getMinions());
-    const auto wizards = initial_filter(context.world.getWizards());
-    const auto trees = initial_filter(context.world.getTrees());
+    const auto buildings = initial_filter(context.world().getBuildings());
+    const auto minions = initial_filter(context.world().getMinions());
+    const auto wizards = initial_filter(context.world().getWizards());
+    const auto trees = initial_filter(context.world().getTrees());
 
     std::vector<Circle> static_barriers;
     static_barriers.reserve(buildings.size() + trees.size());
@@ -142,7 +142,7 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
         std::transform(minions.begin(), minions.end(), std::back_inserter(dynamic_barriers), make_circle);
         std::transform(wizards.begin(), wizards.end(), std::back_inserter(dynamic_barriers), make_circle);
 
-        const Circle barrier(get_position(context.self), context.self.getRadius());
+        const Circle barrier(get_position(context.self()), context.self().getRadius());
 
         const auto find_occupier = [&] (const auto& barriers) {
             return std::find_if(barriers.begin(), barriers.end(),
@@ -182,14 +182,14 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
         {0, make_tick_state(0)},
     });
 
-    const auto speed = (context.game.getWizardForwardSpeed() + context.game.getWizardBackwardSpeed()
-                        + 2 * context.game.getWizardStrafeSpeed()) / 4;
+    const auto speed = (context.game().getWizardForwardSpeed() + context.game().getWizardBackwardSpeed()
+                        + 2 * context.game().getWizardStrafeSpeed()) / 4;
 
     const auto has_intersection = [&] (const StepState& step_state, const TickState& tick_state, const Point& position) {
-        const Circle barrier(step_state.position(), context.self.getRadius());
+        const Circle barrier(step_state.position(), context.self().getRadius());
         return (step_state.position().distance(initial_position) > max_range
                 && step_state.position().distance(target) > max_range)
-                || has_intersection_with_borders(barrier, context.game.getMapSize())
+                || has_intersection_with_borders(barrier, context.game().getMapSize())
                 || has_intersection_with_barriers(barrier, position, static_barriers)
                 || has_intersection_with_barriers(barrier, position, tick_state.dynamic_barriers());
     };

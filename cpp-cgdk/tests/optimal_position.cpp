@@ -52,7 +52,8 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
         {} // Trees
     );
     model::Move move;
-    const Context context {WIZARD, world, GAME, move};
+    const Profiler profiler;
+    const Context context(WIZARD, world, GAME, move, profiler, Duration::max());
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000);
     EXPECT_LE(result.distance(get_position(target)) - (GAME.getWizardCastRange() + GAME.getMagicMissileRadius()), 1);

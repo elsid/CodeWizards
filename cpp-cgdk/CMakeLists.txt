@@ -42,12 +42,14 @@ set(SOURCES
 
     newuoa.cpp
     strategy.cpp
+    time_limited_strategy.cpp
     optimal_position.cpp
     optimal_target.cpp
     optimal_destination.cpp
     optimal_movement.cpp
     optimal_path.cpp
     world_graph.cpp
+    context.cpp
     graph.cpp
 )
 

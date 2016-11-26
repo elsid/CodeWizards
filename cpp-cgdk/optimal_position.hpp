@@ -45,7 +45,7 @@ struct GetAttackRange {
     }
 
     double operator ()(const model::Building& unit) const {
-        return context.self.getRadius() + unit.getAttackRange();
+        return context.self().getRadius() + unit.getAttackRange();
     }
 
     double operator ()(const model::Minion& unit) const {
@@ -53,10 +53,10 @@ struct GetAttackRange {
             case model::_MINION_UNKNOWN_:
                 break;
             case model::MINION_ORC_WOODCUTTER:
-                return context.self.getRadius() + context.game.getOrcWoodcutterAttackRange();
+                return context.self().getRadius() + context.game().getOrcWoodcutterAttackRange();
             case model::MINION_FETISH_BLOWDART:
-                return context.self.getRadius() + context.game.getFetishBlowdartAttackRange()
-                        + context.game.getDartRadius();
+                return context.self().getRadius() + context.game().getFetishBlowdartAttackRange()
+                        + context.game().getDartRadius();
             case model::_MINION_COUNT_:
                 break;
         }
@@ -64,7 +64,7 @@ struct GetAttackRange {
     }
 
     double operator ()(const model::Wizard& unit) const {
-        return context.self.getRadius() + unit.getCastRange() + context.game.getMagicMissileRadius();
+        return context.self().getRadius() + unit.getCastRange() + context.game().getMagicMissileRadius();
     }
 };
 
@@ -72,13 +72,13 @@ struct GetUnitIntersectionPenalty {
     const Context& context;
 
     double operator ()(const model::CircularUnit& unit) const {
-        return get_distance_penalty(get_position(context.self).distance(get_position(unit)),
-                                    1.1 * context.self.getRadius() + unit.getRadius());
+        return get_distance_penalty(get_position(context.self()).distance(get_position(unit)),
+                                    1.1 * context.self().getRadius() + unit.getRadius());
     }
 
     double operator ()(const model::Tree& unit) const {
-        return get_distance_penalty(get_position(context.self).distance(get_position(unit)),
-                                    2 * context.self.getRadius() + 2 * unit.getRadius());
+        return get_distance_penalty(get_position(context.self()).distance(get_position(unit)),
+                                    2 * context.self().getRadius() + 2 * unit.getRadius());
     }
 };
 
@@ -92,11 +92,11 @@ struct GetUnitDangerPenalty {
 
     template <class T>
     double operator ()(const T& unit, const Point& position, double damage_factor, double sum_enemy_damage) const {
-        return is_enemy(unit, context.self.getFaction()) ? get_common(unit, position, damage_factor, sum_enemy_damage) : 0;
+        return is_enemy(unit, context.self().getFaction()) ? get_common(unit, position, damage_factor, sum_enemy_damage) : 0;
     }
 
     double operator ()(const model::Minion& unit, const Point& position, double damage_factor, double sum_enemy_damage) const {
-        if (!is_enemy(unit, context.self.getFaction())) {
+        if (!is_enemy(unit, context.self().getFaction())) {
             return 0;
         }
         if (friend_units.empty()) {
@@ -107,7 +107,7 @@ struct GetUnitDangerPenalty {
             [&] (auto lhs, auto rhs) {
                 return unit_position.distance(get_position(*lhs)) < unit_position.distance(get_position(*rhs));
             });
-        if (unit_position.distance(get_position(**nearest_friend)) < unit_position.distance(get_position(context.self))) {
+        if (unit_position.distance(get_position(**nearest_friend)) < unit_position.distance(get_position(context.self()))) {
             return 0;
         }
         return get_common(unit, position, damage_factor, sum_enemy_damage);
@@ -117,9 +117,9 @@ struct GetUnitDangerPenalty {
     double get_common(const T& unit, const Point& position, double damage_factor, double sum_enemy_damage) const {
         const double add_damage = damage_factor * (get_damage(unit) - get_ranged_damage(unit, position));
         const double safe_distance = std::max(
-                context.self.getCastRange() + context.game.getMagicMissileRadius(),
-                (get_attack_range(unit) + 2 * context.self.getRadius())
-                    * std::min(1.0, 2 * (sum_enemy_damage + add_damage) / context.self.getLife())
+                context.self().getCastRange() + context.game().getMagicMissileRadius(),
+                (get_attack_range(unit) + 2 * context.self().getRadius())
+                    * std::min(1.0, 2 * (sum_enemy_damage + add_damage) / context.self().getLife())
         );
         return get_distance_penalty(position.distance(get_position(unit)), safe_distance);
     }
@@ -154,24 +154,24 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
         return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && !is_target(unit) && is_in_my_range(unit); });
     };
 
-    const auto buildings = initial_filter(context.world.getBuildings());
-    const auto minions = initial_filter(context.world.getMinions());
-    const auto wizards = initial_filter(context.world.getWizards());
-    const auto trees = initial_filter(context.world.getTrees());
-    const auto projectiles = initial_filter(context.world.getProjectiles());
-    const auto bonuses = initial_filter(context.world.getBonuses());
+    const auto buildings = initial_filter(context.world().getBuildings());
+    const auto minions = initial_filter(context.world().getMinions());
+    const auto wizards = initial_filter(context.world().getWizards());
+    const auto trees = initial_filter(context.world().getTrees());
+    const auto projectiles = initial_filter(context.world().getProjectiles());
+    const auto bonuses = initial_filter(context.world().getBonuses());
 
     const auto is_enemy_and_not_target = [&] (const auto& unit) {
-        return !is_target(unit) && is_enemy(unit, context.self.getFaction());
+        return !is_target(unit) && is_enemy(unit, context.self().getFaction());
     };
 
     const auto enemy_wizards = filter_units(wizards, is_enemy_and_not_target);
     const auto enemy_minions = filter_units(minions, is_enemy_and_not_target);
     const auto enemy_buildings = filter_units(buildings, is_enemy_and_not_target);
 
-    const auto friend_wizards = filter_friends(wizards, context.self.getFaction(), context.self.getId());
-    const auto friend_minions = filter_friends(minions, context.self.getFaction(), context.self.getId());
-    const auto friend_buildings = filter_friends(buildings, context.self.getFaction(), context.self.getId());
+    const auto friend_wizards = filter_friends(wizards, context.self().getFaction(), context.self().getId());
+    const auto friend_minions = filter_friends(minions, context.self().getFaction(), context.self().getId());
+    const auto friend_buildings = filter_friends(buildings, context.self().getFaction(), context.self().getId());
 
     std::vector<const model::CircularUnit*> friend_units;
     friend_units.reserve(friend_wizards.size() + friend_minions.size() + friend_buildings.size());
@@ -201,29 +201,29 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
     const auto get_bonus_penalty = [&] (const model::Bonus& unit, const Point& position) {
         const auto unit_position = get_position(unit);
         return 1 - get_distance_penalty(position.distance(unit_position),
-                                        get_position(context.self).distance(unit_position) + context.self.getRadius());
+                                        get_position(context.self()).distance(unit_position) + context.self().getRadius());
     };
 
     const auto get_projectile_penalty = [&] (const model::Projectile& unit, const Point& position) {
         const auto unit_speed = get_speed(unit);
         const auto unit_position = get_position(unit);
-        const auto safe_distance = 2 * context.self.getRadius() + unit.getRadius();
+        const auto safe_distance = 2 * context.self().getRadius() + unit.getRadius();
         const auto distance_to = Line(unit_position, unit_position + unit_speed).distance(position);
         return get_distance_penalty(distance_to, safe_distance);
     };
 
-    const auto damage_factor = 1.0 - is_shielded(context.self) * context.game.getShieldedDirectDamageAbsorptionFactor();
+    const auto damage_factor = 1.0 - is_shielded(context.self()) * context.game().getShieldedDirectDamageAbsorptionFactor();
 
     const auto get_friendly_fire_penalty = [&] (const model::CircularUnit& unit, const Point& position) {
         if (!target) {
             return 0.0;
         }
 
-        const auto my_position = get_position(context.self);
+        const auto my_position = get_position(context.self());
         const auto target_position = get_position(*target);
         const auto unit_position = get_position(unit);
         const auto has_intersection = Circle(unit_position, unit.getRadius())
-                .has_intersection_with_moving_circle(Circle(my_position, context.self.getRadius()),
+                .has_intersection_with_moving_circle(Circle(my_position, context.self().getRadius()),
                                                      target_position);
 
         if (!has_intersection) {
@@ -231,7 +231,7 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
         }
 
         const auto target_to_unit = unit_position - target_position;
-        const auto tangent_cos = (unit.getRadius() + context.game.getMagicMissileRadius())
+        const auto tangent_cos = (unit.getRadius() + context.game().getMagicMissileRadius())
                 / target_position.distance(unit_position);
         const auto tangent_angle = std::acos(std::min(1.0, std::max(-1.0, tangent_cos)));
         const auto tangent1_direction = target_to_unit.rotated(tangent_angle);
@@ -249,10 +249,10 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
                                         + projectiles.size() + trees.size() + wizards.size());
 
     const auto get_position_penalty = [&] (const Point& position) {
-        const bool is_out_of_borders = context.self.getRadius() >= position.x()
-                || position.x() >= context.game.getMapSize() - context.self.getRadius()
-                || context.self.getRadius() >= position.y()
-                || position.y() >= context.game.getMapSize() - context.self.getRadius();
+        const bool is_out_of_borders = context.self().getRadius() >= position.x()
+                || position.x() >= context.game().getMapSize() - context.self().getRadius()
+                || context.self().getRadius() >= position.y()
+                || position.y() >= context.game().getMapSize() - context.self().getRadius();
 
         if (is_out_of_borders) {
             return borders_penalty;
@@ -318,11 +318,11 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
             if (const auto bonus = dynamic_cast<const model::Bonus*>(target)) {
                 target_distance_penalty = get_bonus_penalty(*bonus, position);
             } else {
-                const auto max_cast_range = context.self.getCastRange() + context.game.getMagicMissileRadius();
+                const auto max_cast_range = context.self().getCastRange() + context.game().getMagicMissileRadius();
                 const auto distance = position.distance(get_position(*target));
                 double distance_penalty = 0;
                 if (distance > max_cast_range) {
-                    const auto safe_distance = std::max(context.self.getCastRange(), context.game.getMapSize());
+                    const auto safe_distance = std::max(context.self().getCastRange(), context.game().getMapSize());
                     distance_penalty = 1 - get_distance_penalty(distance - max_cast_range, safe_distance);
                 }
                 target_distance_penalty = std::max(get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage),
@@ -340,7 +340,7 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
                 + target_distance_penalty;
     };
 
-    return minimize(get_position_penalty, get_position(context.self), 100);
+    return minimize(get_position_penalty, get_position(context.self()), 100);
 }
 
 }

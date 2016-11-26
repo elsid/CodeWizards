@@ -8,34 +8,34 @@ Target get_optimal_target(const Context& context, double max_distance) {
     IsInMyRange is_in_my_range {context, max_distance};
 
     const auto is_enemy_and_in_my_range = [&] (const auto& unit) {
-        return is_enemy(unit, context.self.getFaction()) && is_in_my_range(unit);
+        return is_enemy(unit, context.self().getFaction()) && is_in_my_range(unit);
     };
 
-    const auto enemy_wizards = filter_units(context.world.getWizards(), is_enemy_and_in_my_range);
-    const auto enemy_minions = filter_units(context.world.getMinions(), is_enemy_and_in_my_range);
-    const auto enemy_buildings = filter_units(context.world.getBuildings(), is_enemy_and_in_my_range);
+    const auto enemy_wizards = filter_units(context.world().getWizards(), is_enemy_and_in_my_range);
+    const auto enemy_minions = filter_units(context.world().getMinions(), is_enemy_and_in_my_range);
+    const auto enemy_buildings = filter_units(context.world().getBuildings(), is_enemy_and_in_my_range);
 
-    const auto bonuses = filter_units(context.world.getBuildings(), is_in_my_range);
+    const auto bonuses = filter_units(context.world().getBuildings(), is_in_my_range);
 
     if (enemy_wizards.empty() && enemy_minions.empty() && enemy_wizards.empty() && bonuses.empty()) {
-        const double factor = get_speed(context.self).norm() < 1 ? 2 : 1.3;
-        const auto trees = filter_units(context.world.getTrees(),
+        const double factor = get_speed(context.self()).norm() < 1 ? 2 : 1.3;
+        const auto trees = filter_units(context.world().getTrees(),
             [&] (const auto& unit) {
-                return get_position(context.self).distance(get_position(unit))
-                        < factor * context.self.getRadius() + unit.getRadius();
+                return get_position(context.self()).distance(get_position(unit))
+                        < factor * context.self().getRadius() + unit.getRadius();
             });
         const auto less_by_distance = [&] (auto lhs, auto rhs) {
-            return get_position(*lhs).distance(get_position(context.self)) <
-                    get_position(*rhs).distance(get_position(context.self));
+            return get_position(*lhs).distance(get_position(context.self())) <
+                    get_position(*rhs).distance(get_position(context.self()));
         };
         if (!trees.empty()) {
             return *std::min_element(trees.begin(), trees.end(), less_by_distance);
         }
-        const auto neutral_minions = filter_units(context.world.getMinions(),
+        const auto neutral_minions = filter_units(context.world().getMinions(),
               [&] (const auto& unit) {
                   return unit.getFaction() == model::FACTION_NEUTRAL &&
-                          get_position(context.self).distance(get_position(unit))
-                          < factor * context.self.getRadius() + unit.getRadius();
+                          get_position(context.self()).distance(get_position(unit))
+                          < factor * context.self().getRadius() + unit.getRadius();
               });
         if (!neutral_minions.empty()) {
             return *std::min_element(neutral_minions.begin(), neutral_minions.end(), less_by_distance);
@@ -46,8 +46,8 @@ Target get_optimal_target(const Context& context, double max_distance) {
     if (!bonuses.empty()) {
         const auto target = std::min_element(bonuses.begin(), bonuses.end(),
             [&] (auto lhs, auto rhs) {
-                return get_position(*lhs).distance(get_position(context.self))
-                        < get_position(*rhs).distance(get_position(context.self));
+                return get_position(*lhs).distance(get_position(context.self()))
+                        < get_position(*rhs).distance(get_position(context.self()));
             });
         return *target;
     }
@@ -55,9 +55,9 @@ Target get_optimal_target(const Context& context, double max_distance) {
     const GetDamage get_damage {context};
 
     const auto get_target_penalty = [&] (const auto& unit) {
-        const auto distance = get_position(unit).distance(get_position(context.self));
-        return distance <= 2 * unit.getRadius() + context.self.getVisionRange()
-                ? distance * unit.getLife() / get_damage(context.self)
+        const auto distance = get_position(unit).distance(get_position(context.self()));
+        return distance <= 2 * unit.getRadius() + context.self().getVisionRange()
+                ? distance * unit.getLife() / get_damage(context.self())
                 : distance;
     };
 
@@ -66,7 +66,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
             [&] (auto lhs, auto rhs) { return get_target_penalty(*lhs) < get_target_penalty(*rhs); });
     };
 
-    IsInMyRange is_in_staff_range {context, context.game.getStaffRange()};
+    IsInMyRange is_in_staff_range {context, context.game().getStaffRange()};
 
     if (!enemy_wizards.empty()) {
         const auto in_staff_range = filter_units(enemy_wizards, is_in_staff_range);

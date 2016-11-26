@@ -48,16 +48,16 @@ static WorldGraph::Path get_path_to_nearest_node(const WorldGraph& graph, const 
 
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane) {
     const auto has_near_bonus = [&] (const auto& node) {
-        return has_near_units(node.second, context.world.getBonuses(), graph.zone_size());
+        return has_near_units(node.second, context.world().getBonuses(), graph.zone_size());
     };
 
     const auto is_enemy = [&] (const auto& unit) {
-        return strategy::is_enemy(unit, context.self.getFaction());
+        return strategy::is_enemy(unit, context.self().getFaction());
     };
 
-    const auto enemy_buildings = filter_units(context.world.getBuildings(), is_enemy);
-    const auto enemy_minions = filter_units(context.world.getMinions(), is_enemy);
-    const auto enemy_wizards = filter_units(context.world.getWizards(), is_enemy);
+    const auto enemy_buildings = filter_units(context.world().getBuildings(), is_enemy);
+    const auto enemy_minions = filter_units(context.world().getMinions(), is_enemy);
+    const auto enemy_wizards = filter_units(context.world().getWizards(), is_enemy);
 
     const auto has_near_enemy_buildings = [&] (const auto& node) {
         return has_near_units(node.second, enemy_buildings, graph.zone_size());
@@ -83,7 +83,7 @@ WorldGraph::Node get_optimal_destination(const Context& context, const WorldGrap
     const auto nodes_with_enemy = filter_nodes(graph.nodes(),
         [&] (const auto& node) { return at_target_lane(node) && has_near_enemy(node); });
 
-    const auto nearest_node = get_nearest_node(graph.nodes(), get_position(context.self)).first;
+    const auto nearest_node = get_nearest_node(graph.nodes(), get_position(context.self())).first;
 
     if (!nodes_with_bonuses.empty() && !nodes_with_enemy.empty()) {
         const auto with_enemy = get_nearest_node_by_path(graph, nodes_with_enemy, nearest_node).first;

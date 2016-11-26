@@ -13,30 +13,30 @@ int get_hastened_remaining_ticks(const model::LivingUnit& unit) {
 class Bounds {
 public:
     Bounds(const Context& context)
-        : context_(context), hastened_remaining_ticks_(get_hastened_remaining_ticks(context.self)) {}
+        : context_(context), hastened_remaining_ticks_(get_hastened_remaining_ticks(context.self())) {}
 
     double max_speed(double tick) const {
-        return context_.game.getWizardForwardSpeed() * movement_bonus_factor(tick);
+        return context_.game().getWizardForwardSpeed() * movement_bonus_factor(tick);
     }
 
     double min_speed(double tick) const {
-        return context_.game.getWizardBackwardSpeed() * movement_bonus_factor(tick);
+        return context_.game().getWizardBackwardSpeed() * movement_bonus_factor(tick);
     }
 
     double max_turn(double tick) const {
-        return context_.game.getWizardMaxTurnAngle() * rotation_bonus_factor(tick);
+        return context_.game().getWizardMaxTurnAngle() * rotation_bonus_factor(tick);
     }
 
     double min_turn(double tick) const {
-        return context_.game.getWizardMaxTurnAngle() * rotation_bonus_factor(tick);
+        return context_.game().getWizardMaxTurnAngle() * rotation_bonus_factor(tick);
     }
 
     double movement_bonus_factor(double tick) const {
-        return 1 + (tick < hastened_remaining_ticks_ ? context_.game.getHastenedMovementBonusFactor() : 0);
+        return 1 + (tick < hastened_remaining_ticks_ ? context_.game().getHastenedMovementBonusFactor() : 0);
     }
 
     double rotation_bonus_factor(double tick) const {
-        return 1 + (tick < hastened_remaining_ticks_ ? context_.game.getHastenedRotationBonusFactor() : 0);
+        return 1 + (tick < hastened_remaining_ticks_ ? context_.game().getHastenedRotationBonusFactor() : 0);
     }
 
     double limit_turn(double value, double tick) const {
@@ -92,7 +92,7 @@ std::pair<MovementState, Movement> get_next_state(const Point& target, const Mov
 
 std::pair<MovementsStates, Movements> get_optimal_movement(const Context& context, const Path& path, const OptPoint& look_target) {
     const Bounds bounds {context};
-    MovementsStates states({MovementState(0, get_position(context.self), context.self.getAngle())});
+    MovementsStates states({MovementState(0, get_position(context.self()), context.self().getAngle())});
     Movements movements;
 
     states.reserve(path.size());

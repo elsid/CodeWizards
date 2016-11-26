@@ -15,15 +15,20 @@
 
 namespace strategy {
 
-class Strategy {
+class IStrategy {
 public:
-    void apply(Context& context);
+    virtual ~IStrategy() = default;
+    virtual void apply(Context& context) = 0;
+};
+
+class Strategy : public IStrategy {
+public:
+    Strategy(const Context& context);
+
+    void apply(Context& context) override final;
 
 private:
-    bool initialized_ = false;
-    std::unique_ptr<WorldGraph> graph_;
-
-    void initialize(const Context& context);
+    WorldGraph graph_;
 };
 
 }

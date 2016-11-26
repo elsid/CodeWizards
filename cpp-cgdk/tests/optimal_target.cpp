@@ -16,7 +16,8 @@ TEST(get_optimal_target, for_all_default) {
     const model::World world;
     const model::Game game;
     model::Move move;
-    const Context context {wizard, world, game, move};
+    const Profiler profiler;
+    const Context context(wizard, world, game, move, profiler, Duration::max());
     EXPECT_FALSE(get_optimal_target(context, 0).has_value());
 }
 
@@ -61,7 +62,8 @@ TEST(get_optimal_target, for_me_and_enemy_wizard) {
         {} // Trees
     );
     model::Move move;
-    const Context context {WIZARD, world, GAME, move};
+    const Profiler profiler;
+    const Context context(WIZARD, world, GAME, move, profiler, Duration::max());
     const auto result = get_optimal_target(context, 1000);
     EXPECT_EQ(result.wizard(), &world.getWizards()[0]);
 }

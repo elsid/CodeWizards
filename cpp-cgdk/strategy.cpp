@@ -3,14 +3,11 @@
 
 namespace strategy {
 
-void Strategy::apply(Context &context) {
-    if (!initialized_) {
-        initialize(context);
-    }
+Strategy::Strategy(const Context& context)
+    : graph_(context.game()) {
 }
 
-void Strategy::initialize(const Context& context) {
-    graph_ = std::make_unique<WorldGraph>(context.game);
+void Strategy::apply(Context &context) {
 }
 
 }

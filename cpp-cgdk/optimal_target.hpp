@@ -73,7 +73,7 @@ struct IsInMyRange {
     const double max_distance;
 
     bool operator ()(const auto& unit) const {
-        return get_position(unit).distance(get_position(context.self)) <= max_distance;
+        return get_position(unit).distance(get_position(context.self())) <= max_distance;
     }
 };
 
@@ -97,11 +97,11 @@ struct GetDamage {
     }
 
     double operator ()(const model::Wizard& unit) const {
-        return get_factor(unit) * context.game.getMagicMissileDirectDamage();
+        return get_factor(unit) * context.game().getMagicMissileDirectDamage();
     }
 
     double get_factor(const model::LivingUnit& unit) const {
-        return 1 + is_empowered(unit) * context.game.getEmpoweredDamageFactor();
+        return 1 + is_empowered(unit) * context.game().getEmpoweredDamageFactor();
     }
 };
 

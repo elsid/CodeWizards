@@ -31,7 +31,8 @@ TEST(get_optimal_movement, only_for_me) {
         {} // Trees
     );
     model::Move move;
-    const Context context {WIZARD, world, GAME, move};
+    const Profiler profiler;
+    const Context context(WIZARD, world, GAME, move, profiler, Duration::max());
     const Path path({get_position(WIZARD), Point(2000, 2000)});
     const OptPoint look_target;
     const auto result = get_optimal_movement(context, path, look_target);
