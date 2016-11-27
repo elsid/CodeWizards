@@ -20,86 +20,14 @@ Strategy::Strategy(const Context& context)
 }
 
 void Strategy::apply(Context &context) {
-    Context context_with_cache(context.self(), context.world(), context.game(), context.move(),
-                               cache_, context.profiler(), context.time_limit());
-    update_cache(context_with_cache);
-    select_mode(context_with_cache);
-    apply_mode(context_with_cache);
-    update_movements(context_with_cache);
-    apply_move(context_with_cache);
-    apply_action(context_with_cache);
-}
-
-template <class T>
-struct CacheTtl {};
-
-template <>
-struct CacheTtl<model::Bonus> {
-    static constexpr const Tick value = 2500;
-};
-
-template <>
-struct CacheTtl<model::Building> {
-    static constexpr const Tick value = 2500;
-};
-
-template <>
-struct CacheTtl<model::Minion> {
-    static constexpr const Tick value = 30;
-};
-
-template <>
-struct CacheTtl<model::Projectile> {
-    static constexpr const Tick value = 10;
-};
-
-template <>
-struct CacheTtl<model::Tree> {
-    static constexpr const Tick value = 2500;
-};
-
-template <>
-struct CacheTtl<model::Wizard> {
-    static constexpr const Tick value = 30;
-};
-
-void Strategy::update_cache(const Context& context) {
-    strategy::update_cache(cache_, context.world());
-
-    const auto is_friend_or_me = [&] (const auto& unit) {
-        return unit.getFaction() == context.self().getFaction();
-    };
-
-    const auto buildings = filter_units(get_units<model::Building>(context.world()), is_friend_or_me);
-    const auto minions = filter_units(get_units<model::Minion>(context.world()), is_friend_or_me);
-    const auto wizards = filter_units(get_units<model::Wizard>(context.world()), is_friend_or_me);
-
-    const auto need_invalidate = [&] (const auto& unit) {
-        using Type = typename std::decay<decltype(unit.value())>::type;
-
-        if (context.world().getTickIndex() - unit.last_seen() > CacheTtl<Type>::value) {
-            return true;
-        }
-
-        const auto is_in_range = [&] (auto other) {
-            return unit.last_seen() < context.world().getTickIndex()
-                    && get_position(*other).distance(get_position(unit.value()))
-                    <= other->getVisionRange() - 2 * unit.value().getRadius();
-        };
-
-        return buildings.end() != std::find_if(buildings.begin(), buildings.end(), is_in_range)
-                || minions.end() != std::find_if(minions.begin(), minions.end(), is_in_range)
-                || wizards.end() != std::find_if(wizards.begin(), wizards.end(), is_in_range);
-    };
-
-    invalidate_cache(cache_, need_invalidate);
+    select_mode(context);
+    apply_mode(context);
+    update_movements(context);
+    apply_move(context);
+    apply_action(context);
 }
 
 void Strategy::select_mode(const Context& context) {
-//    if (context.world().getTickIndex() % 50 != 0) {
-//        return;
-//    }
-
     if (!context.self().getMessages().empty()) {
         return use_move_mode();
     }
@@ -124,10 +52,6 @@ void Strategy::select_mode(const Context& context) {
 }
 
 void Strategy::apply_mode(const Context& context) {
-//    if (context.world().getTickIndex() % 50 != 0) {
-//        return;
-//    }
-
     const auto result = mode_->apply(context);
 
     if (result.active()) {
@@ -159,7 +83,7 @@ void Strategy::apply_move(Context& context) {
 
 void Strategy::calculate_movements(const Context& context) {
     path_ = get_optimal_path(context, destination_, OPTIMAL_PATH_STEP_SIZE, OPTIMAL_PATH_MAX_TICKS, context.time_left());
-    if (const auto unit = target_.circular_unit(cache_)) {
+    if (const auto unit = target_.circular_unit(context.cache())) {
         std::tie(states_, movements_) = get_optimal_movement(context, path_, {true, get_position(*unit)});
     } else {
         std::tie(states_, movements_) = get_optimal_movement(context, path_, {false, Point()});
@@ -169,7 +93,7 @@ void Strategy::calculate_movements(const Context& context) {
 }
 
 void Strategy::apply_action(Context& context) {
-    if (const auto target = target_.circular_unit(cache_)) {
+    if (const auto target = target_.circular_unit(context.cache())) {
         const auto distance = get_position(*target).distance(get_position(context.self()));
 
         if (distance > context.self().getCastRange() + target->getRadius() + context.game().getMagicMissileRadius()) {

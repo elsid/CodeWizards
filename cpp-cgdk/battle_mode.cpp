@@ -22,8 +22,7 @@ void BattleMode::update_target(const Context& context) {
         if (!unit) {
             break;
         }
-        points_.clear();
-        destination_ = {true, get_optimal_position(context, target_, max_distance, &points_)};
+        destination_ = {true, get_optimal_position(context, target_, 1.3 * context.self().getVisionRange())};
         if (destination_.second.distance(get_position(*unit))
                 <= context.self().getCastRange() + context.game().getMagicMissileRadius() + unit->getRadius()) {
             break;

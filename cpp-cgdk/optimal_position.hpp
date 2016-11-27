@@ -32,54 +32,35 @@ std::vector<const T*> filter_friends(const std::vector<T>& units, model::Faction
 struct GetAttackRange {
     const Context& context;
 
-    double operator ()(const model::Unit&) const {
-        return 0.0;
-    }
-
-    double operator ()(const model::Building& unit) const {
-        return context.self().getRadius() + unit.getAttackRange();
-    }
-
-    double operator ()(const model::Minion& unit) const {
-        switch (unit.getType()) {
-            case model::_MINION_UNKNOWN_:
-                break;
-            case model::MINION_ORC_WOODCUTTER:
-                return context.self().getRadius() + context.game().getOrcWoodcutterAttackRange();
-            case model::MINION_FETISH_BLOWDART:
-                return context.self().getRadius() + context.game().getFetishBlowdartAttackRange()
-                        + context.game().getDartRadius();
-            case model::_MINION_COUNT_:
-                break;
-        }
-        throw std::logic_error("Invalid minion type: " + std::to_string(unit.getType()));
-    }
-
-    double operator ()(const model::Wizard& unit) const {
-        return context.self().getRadius() + unit.getCastRange() + context.game().getMagicMissileRadius();
-    }
+    double operator ()(const model::Unit&) const;
+    double operator ()(const model::Building& unit) const;
+    double operator ()(const model::Minion& unit) const;
+    double operator ()(const model::Wizard& unit) const;
 };
 
 struct GetUnitIntersectionPenalty {
     const Context& context;
 
-    double operator ()(const model::CircularUnit& unit) const {
-        return get_distance_penalty(get_position(context.self()).distance(get_position(unit)),
-                                    1.1 * context.self().getRadius() + unit.getRadius());
-    }
+    double operator ()(const model::CircularUnit& unit, const Point& position) const;
+    double operator ()(const model::Tree& unit, const Point& position) const;
+};
 
-    double operator ()(const model::Tree& unit) const {
-        return get_distance_penalty(get_position(context.self()).distance(get_position(unit)),
-                                    2 * context.self().getRadius() + 2 * unit.getRadius());
+struct GetRangedDamage {
+    const Context& context;
+
+    template <class Unit>
+    double operator ()(const Unit& unit, const Point& position) const {
+        const GetAttackRange get_attack_range {context};
+        const GetDamage get_damage {context};
+        const auto attack_range = get_attack_range(unit);
+        const auto distance = position.distance(get_position(unit));
+        const auto factor = attack_range >= distance ? 1 : get_distance_penalty(distance - attack_range, 0.5 * attack_range);
+        return factor * get_damage(unit);
     }
 };
 
-template <class GetRangedDamage>
 struct GetUnitDangerPenalty {
     const Context& context;
-    const GetDamage& get_damage;
-    const GetAttackRange& get_attack_range;
-    const GetRangedDamage& get_ranged_damage;
     const std::vector<const model::CircularUnit*>& friend_units;
 
     template <class T>
@@ -87,26 +68,13 @@ struct GetUnitDangerPenalty {
         return is_enemy(unit, context.self().getFaction()) ? get_common(unit, position, damage_factor, sum_enemy_damage) : 0;
     }
 
-    double operator ()(const model::Minion& unit, const Point& position, double damage_factor, double sum_enemy_damage) const {
-        if (!is_enemy(unit, context.self().getFaction())) {
-            return 0;
-        }
-        if (friend_units.empty()) {
-            return get_common(unit, position, damage_factor, sum_enemy_damage);
-        }
-        const auto unit_position = get_position(unit);
-        const auto nearest_friend = std::min_element(friend_units.begin(), friend_units.end(),
-            [&] (auto lhs, auto rhs) {
-                return unit_position.distance(get_position(*lhs)) < unit_position.distance(get_position(*rhs));
-            });
-        if (unit_position.distance(get_position(**nearest_friend)) < unit_position.distance(get_position(context.self()))) {
-            return 0;
-        }
-        return get_common(unit, position, damage_factor, sum_enemy_damage);
-    }
+    double operator ()(const model::Minion& unit, const Point& position, double damage_factor, double sum_enemy_damage) const;
 
     template <class T>
     double get_common(const T& unit, const Point& position, double damage_factor, double sum_enemy_damage) const {
+        const GetAttackRange get_attack_range {context};
+        const GetDamage get_damage {context};
+        const GetRangedDamage get_ranged_damage {context};
         const double add_damage = damage_factor * (get_damage(unit) - get_ranged_damage(unit, position));
         const double safe_distance = std::max(
                 context.self().getCastRange() + context.game().getMagicMissileRadius(),
@@ -135,124 +103,63 @@ struct IsTarget {
 bool is_me(const model::Wizard& unit);
 bool is_me(const model::Unit&);
 
-Point get_optimal_position(const Context& context, const Target& target, double max_distance,
-                           std::vector<std::pair<Point, double>>* points = nullptr);
+Point get_optimal_position(const Context& context, const Target& target, double max_distance);
 
 template <class T>
-Point get_optimal_position(const Context& context, const T* target, double max_distance,
-                           std::vector<std::pair<Point, double>>* points = nullptr) {
-    const IsInMyRange is_in_my_range {context, max_distance};
-    const IsTarget<T> is_target {target};
+class GetPositionPenalty {
+public:
+    using Target = T;
 
-    const auto initial_filter = [&] (const auto& units) {
-        return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && !is_target(unit) && is_in_my_range(unit); });
-    };
+    GetPositionPenalty(const Context& context, const Target* target, double max_distance)
+            : context(context),
+              target(target),
+              max_distance(max_distance) {
+        const IsInMyRange is_in_my_range {context, max_distance};
+        const IsTarget<T> is_target {target};
 
-    const auto buildings = initial_filter(context.world().getBuildings());
-    const auto minions = initial_filter(context.world().getMinions());
-    const auto wizards = initial_filter(context.world().getWizards());
-    const auto trees = initial_filter(context.world().getTrees());
-    const auto projectiles = initial_filter(context.world().getProjectiles());
-    const auto bonuses = initial_filter(context.world().getBonuses());
+        const auto initial_filter = [&] (const auto& units) {
+            return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && !is_target(unit) && is_in_my_range(unit); });
+        };
 
-    const auto is_enemy_and_not_target = [&] (const auto& unit) {
-        return !is_target(unit) && is_enemy(unit, context.self().getFaction());
-    };
+        buildings = initial_filter(get_units<model::Building>(context.cache()));
+        minions = initial_filter(get_units<model::Minion>(context.cache()));
+        wizards = initial_filter(get_units<model::Wizard>(context.cache()));
+        trees = initial_filter(get_units<model::Tree>(context.cache()));
+        projectiles = initial_filter(get_units<model::Projectile>(context.cache()));
+        bonuses = initial_filter(get_units<model::Bonus>(context.cache()));
 
-    const auto enemy_wizards = filter_units(wizards, is_enemy_and_not_target);
-    const auto enemy_minions = filter_units(minions, is_enemy_and_not_target);
-    const auto enemy_buildings = filter_units(buildings, is_enemy_and_not_target);
+        const auto is_enemy_and_not_target = [&] (const auto& unit) {
+            return !is_target(unit) && is_enemy(unit, context.self().getFaction());
+        };
 
-    const auto friend_wizards = filter_friends(wizards, context.self().getFaction(), context.self().getId());
-    const auto friend_minions = filter_friends(minions, context.self().getFaction(), context.self().getId());
-    const auto friend_buildings = filter_friends(buildings, context.self().getFaction(), context.self().getId());
+        enemy_wizards = filter_units(wizards, is_enemy_and_not_target);
+        enemy_minions = filter_units(minions, is_enemy_and_not_target);
+        enemy_buildings = filter_units(buildings, is_enemy_and_not_target);
 
-    std::vector<const model::CircularUnit*> friend_units;
-    friend_units.reserve(friend_wizards.size() + friend_minions.size() + friend_buildings.size());
-    std::copy(friend_wizards.begin(), friend_wizards.end(), std::back_inserter(friend_units));
-    std::copy(friend_minions.begin(), friend_minions.end(), std::back_inserter(friend_units));
-    std::copy(friend_buildings.begin(), friend_buildings.end(), std::back_inserter(friend_units));
+        const auto friend_wizards = filter_friends(wizards, context.self().getFaction(), context.self().getId());
+        const auto friend_minions = filter_friends(minions, context.self().getFaction(), context.self().getId());
+        const auto friend_buildings = filter_friends(buildings, context.self().getFaction(), context.self().getId());
 
-    const GetAttackRange get_attack_range {context};
-    const GetDamage get_damage {context};
-    const GetUnitIntersectionPenalty get_unit_collision_penalty {context};
+        friend_units.reserve(friend_wizards.size() + friend_minions.size() + friend_buildings.size());
+        std::copy(friend_wizards.begin(), friend_wizards.end(), std::back_inserter(friend_units));
+        std::copy(friend_minions.begin(), friend_minions.end(), std::back_inserter(friend_units));
+        std::copy(friend_buildings.begin(), friend_buildings.end(), std::back_inserter(friend_units));
 
-    const auto get_ranged_damage = [&] (const auto& unit, const Point& position) {
-        const auto attack_range = get_attack_range(unit);
-        const auto distance = position.distance(get_position(unit));
-        const auto factor = attack_range >= distance ? 1 : get_distance_penalty(distance - attack_range, 0.5 * attack_range);
-        return factor * get_damage(unit);
-    };
+        damage_factor = 1.0 - is_shielded(context.self()) * context.game().getShieldedDirectDamageAbsorptionFactor();
+        borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
+                                 + projectiles.size() + trees.size() + wizards.size()) * 1e3;
+    }
 
-    const GetUnitDangerPenalty<decltype(get_ranged_damage)> get_unit_danger_penalty {
-        context,
-        get_damage,
-        get_attack_range,
-        get_ranged_damage,
-        friend_units,
-    };
+    double operator ()(const Point& position) const {
+        const GetUnitIntersectionPenalty get_unit_collision_penalty {context};
+        const GetUnitDangerPenalty get_unit_danger_penalty {context, friend_units};
 
-    const auto get_bonus_penalty = [&] (const model::Bonus& unit, const Point& position) {
-        const auto unit_position = get_position(unit);
-        return 1 - get_distance_penalty(position.distance(unit_position),
-                                        get_position(context.self()).distance(unit_position) + context.self().getRadius());
-    };
-
-    const auto get_projectile_penalty = [&] (const model::Projectile& unit, const Point& position) {
-        const auto unit_speed = get_speed(unit);
-        const auto unit_position = get_position(unit);
-        const auto safe_distance = 2 * context.self().getRadius() + unit.getRadius();
-        const auto distance_to = Line(unit_position, unit_position + unit_speed).distance(position);
-        return get_distance_penalty(distance_to, safe_distance);
-    };
-
-    const auto damage_factor = 1.0 - is_shielded(context.self()) * context.game().getShieldedDirectDamageAbsorptionFactor();
-
-    const auto get_friendly_fire_penalty = [&] (const model::CircularUnit& unit, const Point& position) {
-        if (!target) {
-            return 0.0;
-        }
-
-        const auto my_position = get_position(context.self());
-        const auto target_position = get_position(*target);
-        const auto unit_position = get_position(unit);
-        const auto has_intersection = Circle(unit_position, unit.getRadius())
-                .has_intersection(Circle(my_position, context.self().getRadius()),
-                                                     target_position);
-
-        if (!has_intersection) {
-            return 0.0;
-        }
-
-        const auto target_to_unit = unit_position - target_position;
-        const auto tangent_cos = (unit.getRadius() + context.game().getMagicMissileRadius())
-                / target_position.distance(unit_position);
-        const auto tangent_angle = std::acos(std::min(1.0, std::max(-1.0, tangent_cos)));
-        const auto tangent1_direction = target_to_unit.rotated(tangent_angle);
-        const auto tangent2_direction = target_to_unit.rotated(-tangent_angle);
-        const auto tangent1 = target_position + tangent1_direction;
-        const auto tangent2 = target_position + tangent2_direction;
-        const auto tangent1_distance = Line(target_position, tangent1).distance(position);
-        const auto tangent2_distance = Line(target_position, tangent2).distance(position);
-        const auto max_distance = (tangent1_distance + tangent2_distance) * 0.5;
-        const auto distance_to_tangent = std::min(tangent1_distance, tangent2_distance);
-        return distance_to_tangent / max_distance;
-    };
-
-    const auto borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
-                                        + projectiles.size() + trees.size() + wizards.size());
-
-    const auto get_position_penalty = [&] (const Point& position) {
         const bool is_out_of_borders = context.self().getRadius() >= position.x()
                 || position.x() >= context.game().getMapSize() - context.self().getRadius()
                 || context.self().getRadius() >= position.y()
                 || position.y() >= context.game().getMapSize() - context.self().getRadius();
 
         if (is_out_of_borders) {
-            if (points) {
-                points->emplace_back(position, borders_penalty);
-            }
-
             return borders_penalty;
         }
 
@@ -276,7 +183,7 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
         const auto get_sum_wizards_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
                 [&] (auto sum, const model::Wizard* v) {
-                    return sum + std::max(get_unit_collision_penalty(*v),
+                    return sum + std::max(get_unit_collision_penalty(*v, position),
                                           get_unit_danger_penalty(*v, position, damage_factor, sum_enemy_damage));
                 });
         };
@@ -284,7 +191,7 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
         const auto get_sum_units_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
                 [&] (auto sum, auto v) {
-                    return sum + std::max(get_unit_collision_penalty(*v),
+                    return sum + std::max(get_unit_collision_penalty(*v, position),
                                           get_unit_danger_penalty(*v, position, damage_factor, sum_enemy_damage));
                 });
         };
@@ -328,7 +235,7 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
             }
         }
 
-        const auto result = get_sum_units_penalty(buildings, position)
+        return get_sum_units_penalty(buildings, position)
                 + get_sum_units_penalty(minions, position)
                 + get_sum_units_penalty(trees, position)
                 + get_sum_wizards_penalty(wizards, position)
@@ -336,14 +243,82 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
                 + get_sum_projectiles_penalty(projectiles, position)
                 + get_sum_friendly_fire_penalty(friend_units, position)
                 + target_distance_penalty;
+    }
 
-        if (points) {
-            points->emplace_back(position, result);
+private:
+    const Context& context;
+    const Target* const target;
+    const double max_distance;
+    std::vector<const model::Bonus*> bonuses;
+    std::vector<const model::Building*> buildings;
+    std::vector<const model::Minion*> minions;
+    std::vector<const model::Projectile*> projectiles;
+    std::vector<const model::Tree*> trees;
+    std::vector<const model::Wizard*> wizards;
+    std::vector<const model::Wizard*> enemy_wizards;
+    std::vector<const model::Minion*> enemy_minions;
+    std::vector<const model::Building*> enemy_buildings;
+    std::vector<const model::CircularUnit*> friend_units;
+    double borders_penalty = std::numeric_limits<double>::max();
+    double damage_factor = 1;
+
+    double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
+        const auto unit_position = get_position(unit);
+        return 1 - get_distance_penalty(position.distance(unit_position),
+                                        get_position(context.self()).distance(unit_position) + context.self().getRadius());
+    }
+
+    template <class Unit>
+    double get_ranged_damage(const Unit& unit, const Point& position) const {
+        const GetAttackRange get_attack_range {context};
+        const GetDamage get_damage {context};
+        const auto attack_range = get_attack_range(unit);
+        const auto distance = position.distance(get_position(unit));
+        const auto factor = attack_range >= distance ? 1 : get_distance_penalty(distance - attack_range, 0.5 * attack_range);
+        return factor * get_damage(unit);
+    }
+
+    double get_projectile_penalty(const model::Projectile& unit, const Point& position) const {
+        const auto unit_speed = get_speed(unit);
+        const auto unit_position = get_position(unit);
+        const auto safe_distance = 2 * context.self().getRadius() + unit.getRadius();
+        const auto distance_to = Line(unit_position, unit_position + unit_speed).distance(position);
+        return get_distance_penalty(distance_to, safe_distance);
+    }
+
+    double get_friendly_fire_penalty(const model::CircularUnit& unit, const Point& position) const {
+        if (!target) {
+            return 0.0;
         }
 
-        return result;
-    };
+        const auto target_position = get_position(*target);
+        const auto unit_position = get_position(unit);
+        const auto has_intersection = Circle(unit_position, unit.getRadius())
+                .has_intersection(Circle(get_position(context.self()), context.self().getRadius()), target_position);
 
+        if (!has_intersection) {
+            return 0.0;
+        }
+
+        const auto target_to_unit = unit_position - target_position;
+        const auto tangent_cos = (unit.getRadius() + context.game().getMagicMissileRadius())
+                / target_position.distance(unit_position);
+        const auto tangent_angle = std::acos(std::min(1.0, std::max(-1.0, tangent_cos)));
+        const auto tangent1_direction = target_to_unit.rotated(tangent_angle);
+        const auto tangent2_direction = target_to_unit.rotated(-tangent_angle);
+        const auto tangent1 = target_position + tangent1_direction;
+        const auto tangent2 = target_position + tangent2_direction;
+        const auto tangent1_distance = Line(target_position, tangent1).distance(position);
+        const auto tangent2_distance = Line(target_position, tangent2).distance(position);
+        const auto max_distance = (tangent1_distance + tangent2_distance) * 0.5;
+        const auto distance_to_tangent = std::min(tangent1_distance, tangent2_distance);
+        return distance_to_tangent / max_distance;
+    }
+};
+
+template <class T>
+Point get_optimal_position(const Context& context, const T* target, double max_distance) {
+    const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
     return minimize(get_position_penalty, get_position(context.self()), 100);
 }
 

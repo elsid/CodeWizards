@@ -53,7 +53,7 @@ void DebugStrategy::visualize(const Context& context) {
     Post post(debug_);
     visualize_graph(context);
     visualize_graph_path(context);
-    visualize_points(context);
+    visualize_positions_penalties(context);
     visualize_path(context);
     visualize_destination(context);
 //    visualize_states(context);
@@ -93,38 +93,17 @@ void DebugStrategy::visualize_path(const Context& context) {
     }
 }
 
-std::int32_t get_color(double red, double green, double blue) {
-    const auto int_red = std::int32_t(std::round(0xFF * red)) << 16;
-    const auto int_green = std::int32_t(std::round(0xFF * green)) << 8;
-    const auto int_blue = std::int32_t(std::round(0xFF * blue));
-    return int_red | int_green | int_blue;
-}
-
-std::int32_t get_color(double heat) {
-    if (heat < 0.25) {
-        return get_color(0, 4 * heat, 1);
-    } else if (heat < 0.5) {
-        return get_color(0, 1, 1 - 4 * (heat - 0.5));
-    } else if (heat < 0.75) {
-        return get_color(4 * (heat - 0.5), 1, 0);
-    } else {
-        return get_color(1, 1 - 4 * (heat - 0.75), 0);
-    }
-}
-
-void DebugStrategy::visualize_points(const Context& context) {
-    const auto& battle_mode = base_->battle_mode();
-    if (battle_mode.points().empty()) {
-        return;
-    }
-    const auto min_max = std::minmax_element(battle_mode.points().begin(), battle_mode.points().end(),
-        [] (const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
-    const auto min = min_max.first->second;
-    const auto max = min_max.second->second;
-    const auto norm = max != min ? std::abs(max - min) : 1;
-    for (const auto& point : battle_mode.points()) {
-        const auto normalized = (point.second - min) / norm;
-        debug_.fillCircle(base_->destination().x(), base_->destination().y(), 7, get_color(normalized));
+void DebugStrategy::visualize_positions_penalties(const Context& context) {
+    if (const auto target = base_->target().unit<model::Bonus>(context.cache())) {
+        visualize_positions_penalties(context, target);
+    } else if (const auto target = base_->target().unit<model::Building>(context.cache())) {
+        visualize_positions_penalties(context, target);
+    } else if (const auto target = base_->target().unit<model::Minion>(context.cache())) {
+        visualize_positions_penalties(context, target);
+    } else if (const auto target = base_->target().unit<model::Wizard>(context.cache())) {
+        visualize_positions_penalties(context, target);
+    } else if (const auto target = base_->target().unit<model::Tree>(context.cache())) {
+        visualize_positions_penalties(context, target);
     }
 }
 
@@ -144,8 +123,27 @@ void DebugStrategy::visualize_states(const Context& context) {
 }
 
 void DebugStrategy::visualize_target(const Context& context) {
-    if (const auto target = base_->target().circular_unit(base_->cache())) {
+    if (const auto target = base_->target().circular_unit(context.cache())) {
         debug_.circle(target->getX(), target->getY(), target->getRadius() + 20, 0xFF00000);
+    }
+}
+
+std::int32_t get_color(double red, double green, double blue) {
+    const auto int_red = std::int32_t(std::round(0xFF * red)) << 16;
+    const auto int_green = std::int32_t(std::round(0xFF * green)) << 8;
+    const auto int_blue = std::int32_t(std::round(0xFF * blue));
+    return int_red | int_green | int_blue;
+}
+
+std::int32_t get_color(double heat) {
+    if (heat < 0.25) {
+        return get_color(0, 4 * heat, 1);
+    } else if (heat < 0.5) {
+        return get_color(0, 1, 1 - 4 * (heat - 0.5));
+    } else if (heat < 0.75) {
+        return get_color(4 * (heat - 0.5), 1, 0);
+    } else {
+        return get_color(1, 1 - 4 * (heat - 0.75), 0);
     }
 }
 

@@ -3,8 +3,6 @@
 #include "newuoa.h"
 #include "point.hpp"
 
-#include <cassert>
-
 namespace strategy {
 
 template <class F>
@@ -21,7 +19,7 @@ template <class F>
 Point minimize(const F& function, const Point& initial, long max_function_calls_count) {
     const long variables_count = 2;
     const int number_of_interpolation_conditions = variables_count + 2;
-//    const long number_of_interpolation_conditions = (variables_count + 1)*(variables_count + 2)/2;
+//    const long number_of_interpolation_conditions = (variables_count + 1) * (variables_count + 2) / 2;
     double variables_values[] = {initial.x(), initial.y()};
     const double initial_trust_region_radius = 1;
     const double final_trust_region_radius = 1e3;

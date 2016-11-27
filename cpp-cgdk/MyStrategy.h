@@ -11,7 +11,10 @@ public:
     void move(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move) override;
 
 private:
+    strategy::FullCache cache_;
     std::unique_ptr<strategy::IStrategy> strategy_;
+
+    void update_cache(const model::Wizard& self, const model::World& world);
 };
 
 #endif

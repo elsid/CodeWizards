@@ -25,10 +25,6 @@ public:
         return graph_;
     }
 
-    const FullCache& cache() const {
-        return cache_;
-    }
-
     const Path& path() const {
         return path_;
     }
@@ -57,7 +53,6 @@ public:
 
 private:
     WorldGraph graph_;
-    FullCache cache_;
     const std::shared_ptr<BattleMode> battle_mode_;
     const std::shared_ptr<MoveMode> move_mode_;
     std::shared_ptr<Mode> mode_;
@@ -69,7 +64,6 @@ private:
     MovementsStates::const_iterator state_;
     Movements::const_iterator movement_;
 
-    void update_cache(const Context& context);
     void select_mode(const Context& context);
     void apply_mode(const Context& context);
     void update_movements(const Context& context);

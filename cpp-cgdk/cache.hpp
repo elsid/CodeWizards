@@ -18,7 +18,7 @@ public:
     CachedUnit(const Value& value, Tick tick)
         : value_(value), last_seen_(tick) {}
 
-    const auto& value() const {
+    const Value& value() const {
         return value_;
     }
 

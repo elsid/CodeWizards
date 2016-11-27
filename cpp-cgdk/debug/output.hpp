@@ -55,7 +55,10 @@ inline std::ostream& operator <<(std::ostream& stream, model::Faction value) {
         case model::_FACTION_COUNT_:
             return stream << "model::_FACTION_COUNT_";
     }
-    throw std::logic_error("Invalid model::Faction value: " + std::to_string(value));
+    std::ostringstream error;
+    error << "Invalid model::Faction value:: " << int(value)
+          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+    throw std::logic_error(error.str());
 }
 
 inline std::ostream& operator <<(std::ostream& stream, const model::World& value) {

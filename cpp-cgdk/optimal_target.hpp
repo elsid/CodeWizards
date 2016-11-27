@@ -16,28 +16,46 @@ bool is_shielded(const model::LivingUnit& unit);
 
 bool is_enemy(const model::Unit& unit, model::Faction my_faction);
 
+template <class T>
+struct FilterUnits {
+    template <class Units, class Predicate>
+    static std::vector<const T*> perform(const Units& units, const Predicate& predicate) {
+        std::vector<const T*> result;
+        result.reserve(units.size());
+        for (const auto& v : units) {
+            if (predicate(get_unit(v))) {
+                result.push_back(&get_unit(v));
+            }
+        }
+        return result;
+    }
+
+    static const T& get_unit(const std::pair<const UnitId, CachedUnit<T>>& value) {
+        return value.second.value();
+    }
+
+    static const T& get_unit(const T& value) {
+        return value;
+    }
+
+    static const T& get_unit(const T* value) {
+        return *value;
+    }
+};
+
 template <class T, class Predicate>
 std::vector<const T*> filter_units(const std::vector<T>& units, const Predicate& predicate) {
-    std::vector<const T*> result;
-    result.reserve(units.size());
-    for (const auto& unit : units) {
-        if (predicate(unit)) {
-            result.push_back(&unit);
-        }
-    }
-    return result;
+    return FilterUnits<T>::perform(units, predicate);
 }
 
 template <class T, class Predicate>
 std::vector<const T*> filter_units(const std::vector<const T*>& units, const Predicate& predicate) {
-    std::vector<const T*> result;
-    result.reserve(units.size());
-    for (auto unit : units) {
-        if (predicate(*unit)) {
-            result.push_back(unit);
-        }
-    }
-    return result;
+    return FilterUnits<T>::perform(units, predicate);
+}
+
+template <class T, class Predicate>
+std::vector<const T*> filter_units(const std::unordered_map<UnitId, CachedUnit<T>>& units, const Predicate& predicate) {
+    return FilterUnits<T>::perform(units, predicate);
 }
 
 struct IsInMyRange {
