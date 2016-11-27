@@ -7,7 +7,7 @@ namespace strategy {
 BattleMode::Result BattleMode::apply(const Context& context) {
     update_target(context);
 
-    return target_.has_value() ? Result(target_, destination_) : Result();
+    return target_.is_some() && destination_.first ? Result(target_, destination_.second) : Result();
 }
 
 void BattleMode::update_target(const Context& context) {
@@ -16,13 +16,15 @@ void BattleMode::update_target(const Context& context) {
         context.self().getCastRange() + context.game().getMagicMissileRadius(),
     };
     for (const auto max_distance : max_distances) {
+        destination_.first = false;
         target_ = get_optimal_target(context, max_distance);
-        const auto unit = target_.unit();
+        const auto unit = target_.circular_unit(context.cache());
         if (!unit) {
             break;
         }
-        destination_ = get_optimal_position(context, target_, max_distance);
-        if (destination_.distance(get_position(*unit))
+        points_.clear();
+        destination_ = {true, get_optimal_position(context, target_, max_distance, &points_)};
+        if (destination_.second.distance(get_position(*unit))
                 <= context.self().getCastRange() + context.game().getMagicMissileRadius() + unit->getRadius()) {
             break;
         }

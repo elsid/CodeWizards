@@ -40,8 +40,11 @@ set(SOURCES
     RemoteProcessClient.cpp
     Strategy.cpp
 
+    russian-ai-cup-visual/Debug.cpp
+
     newuoa.cpp
     strategy.cpp
+    debug_strategy.cpp
     time_limited_strategy.cpp
     optimal_position.cpp
     optimal_target.cpp
@@ -49,7 +52,6 @@ set(SOURCES
     optimal_movement.cpp
     optimal_path.cpp
     world_graph.cpp
-    context.cpp
     graph.cpp
     move_mode.cpp
     battle_mode.cpp

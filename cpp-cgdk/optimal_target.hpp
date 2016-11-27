@@ -44,7 +44,8 @@ struct IsInMyRange {
     const Context& context;
     const double max_distance;
 
-    bool operator ()(const auto& unit) const {
+    template <class T>
+    bool operator ()(const T& unit) const {
         return get_position(unit).distance(get_position(context.self())) <= max_distance;
     }
 };

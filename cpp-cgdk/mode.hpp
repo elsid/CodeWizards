@@ -11,7 +11,7 @@ public:
         Result() = default;
 
         Result(const Target& target, const Point& destination)
-            : target_(target), destination_(destination) {}
+            : active_(true), target_(target), destination_(destination) {}
 
         bool active() const {
             return active_;

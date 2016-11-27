@@ -99,7 +99,7 @@ TEST(get_optimal_path, with_static_barriers) {
     const auto result = get_optimal_path(context, target, step_size);
     ASSERT_FALSE(result.empty());
     EXPECT_EQ(result.back(), target);
-    EXPECT_EQ(result.size(), 48);
+    EXPECT_EQ(result.size(), 29);
 }
 
 }

@@ -43,11 +43,11 @@ private:
 
 class StepState {
 public:
-    StepState(double penalty, double distance, double tick, Point position)
-        : penalty_(penalty), distance_(distance), tick_(tick), position_(position) {}
+    StepState(double penalty, double distance, double tick, PointInt position)
+        : priority_(penalty), distance_(distance), tick_(tick), position_(position) {}
 
-    double penalty() const {
-        return penalty_;
+    double priority() const {
+        return priority_;
     }
 
     double distance() const {
@@ -58,19 +58,19 @@ public:
         return tick_;
     }
 
-    const Point& position() const {
+    const PointInt& position() const {
         return position_;
     }
 
 private:
-    double penalty_;
+    double priority_;
     double distance_;
     double tick_;
-    Point position_;
+    PointInt position_;
 };
 
 bool operator <(const StepState& lhs, const StepState& rhs) {
-    return lhs.penalty() < rhs.penalty();
+    return lhs.priority() > rhs.priority();
 }
 
 bool has_intersection_with_borders(const Circle& circle, double map_size) {
@@ -86,15 +86,15 @@ bool has_intersection_with_barriers(const Circle& barrier, const Point& final_po
         [&] (const Circle& v) { return v.has_intersection_with_moving_circle(barrier, final_position); });
 }
 
-Path reconstruct_path(Point position, const std::map<Point, Point>& came_from) {
+Path reconstruct_path(PointInt position, const std::map<PointInt, PointInt>& came_from, const Point& shift) {
     Path result;
     result.reserve(came_from.size());
     while (true) {
-        result.push_back(position);
         const auto prev = came_from.find(position);
         if (prev == came_from.end()) {
             break;
         }
+        result.push_back(position.to_double() + shift);
         position = prev->second;
     }
     std::reverse(result.begin(), result.end());
@@ -114,8 +114,16 @@ double get_distance_to_closest_unit(const std::vector<const T*>& units, const Li
     return path.distance(get_position(**get_closest_unit(units, path)));
 }
 
-Path get_optimal_path(const Context& context, const Point& target, double step_size) {
+Path get_optimal_path(const Context& context, const Point& target, int step_size, int max_ticks, Duration max_duration) {
+    const auto start = Clock::now();
     const auto initial_position = get_position(context.self());
+    const auto initial_position_int = initial_position.to_int();
+    Point global_shift = initial_position_int.to_double() - initial_position;
+
+    const auto shifted = [&] (const PointInt& point) {
+        return point.to_double() + global_shift;
+    };
+
     const IsInMyRange is_in_my_range {context, 2 * target.distance(initial_position)};
 
     const auto initial_filter = [&] (const auto& units) {
@@ -165,18 +173,18 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
         return TickState(std::move(dynamic_barriers), occupier, max_distance_error);
     };
 
-    std::vector<Point> shifts = {
-        Point(-step_size, -step_size),
-        Point(-step_size, 0),
-        Point(-step_size, step_size),
-        Point(0, -step_size),
-        Point(0, step_size),
-        Point(step_size, -step_size),
-        Point(step_size, 0),
-        Point(step_size, step_size),
+    std::vector<PointInt> shifts = {
+        PointInt(step_size, 0),
+        PointInt(step_size, step_size),
+        PointInt(0, step_size),
+        PointInt(-step_size, 0),
+        PointInt(-step_size, -step_size),
+        PointInt(0, -step_size),
+        PointInt(step_size, -step_size),
+        PointInt(-step_size, step_size),
     };
 
-    const auto max_range = target.distance(initial_position) / 2 + step_size;
+    const auto max_range = target.distance(initial_position) + step_size;
 
     std::unordered_map<double, TickState> ticks_states({
         {0, make_tick_state(0)},
@@ -185,13 +193,13 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
     const auto speed = (context.game().getWizardForwardSpeed() + context.game().getWizardBackwardSpeed()
                         + 2 * context.game().getWizardStrafeSpeed()) / 4;
 
-    const auto has_intersection = [&] (const StepState& step_state, const TickState& tick_state, const Point& position) {
-        const Circle barrier(step_state.position(), context.self().getRadius());
-        return (step_state.position().distance(initial_position) > max_range
-                && step_state.position().distance(target) > max_range)
+    const auto has_intersection = [&] (const StepState& step_state, const TickState& tick_state, const PointInt& position) {
+        const Circle barrier(shifted(step_state.position()), context.self().getRadius());
+        return (shifted(step_state.position()).distance(initial_position) > max_range
+                && shifted(step_state.position()).distance(target) > max_range)
                 || has_intersection_with_borders(barrier, context.game().getMapSize())
-                || has_intersection_with_barriers(barrier, position, static_barriers)
-                || has_intersection_with_barriers(barrier, position, tick_state.dynamic_barriers());
+                || has_intersection_with_barriers(barrier, shifted(position), static_barriers)
+                || has_intersection_with_barriers(barrier, shifted(position), tick_state.dynamic_barriers());
     };
 
     const auto get_distance_to_units_penalty = [&] (const Line& path) {
@@ -208,34 +216,45 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
         if (!trees.empty()) {
             result = std::min(result, get_distance_to_closest_unit(trees, path));
         }
-        return result;
+        return -result;
     };
 
-    std::set<Point> closed;
-    std::set<Point> opened({initial_position});
-    std::map<Point, Point> came_from;
-    std::map<Point, double> penalties;
+    const auto target_int = target.to_int();
+    std::set<PointInt> closed;
+    std::set<PointInt> opened({initial_position_int});
+    std::map<PointInt, PointInt> came_from;
+    std::map<PointInt, double> penalties;
     std::priority_queue<StepState, std::deque<StepState>> queue;
-    Point final_position;
+    PointInt final_position;
+    PointInt best_position = initial_position_int;
+    double min_priority = std::numeric_limits<double>::max();
 
-    queue.push(StepState(0, target.distance(initial_position), 0, initial_position));
+    queue.push(StepState(0, target.distance(initial_position), 0, initial_position_int));
 
     while (!queue.empty()) {
         const StepState step_state = queue.top();
         queue.pop();
 
-        std::cout << step_state.tick() << " " << step_state.position() << " " << step_state.distance() << std::endl;
+        if (min_priority > step_state.priority()) {
+            min_priority = step_state.priority();
+            best_position = step_state.position();
+        }
 
         const TickState& tick_state = ticks_states.at(step_state.tick());
 
         if (step_state.distance() <= tick_state.max_distance_error()) {
-            if (!tick_state.occupier().first && target != step_state.position()
-                    && !came_from.count(target) && !came_from.count(step_state.position())) {
-                came_from[target] = came_from[step_state.position()];
-                final_position = target;
+            if (!tick_state.occupier().first && target_int != step_state.position()
+                    && !came_from.count(target_int) && !came_from.count(step_state.position())) {
+                came_from[target_int] = came_from[step_state.position()];
+                final_position = target_int;
             } else {
                 final_position = step_state.position();
             }
+            break;
+        }
+
+        if (Clock::now() - start > max_duration || step_state.tick() > max_ticks) {
+            final_position = best_position;
             break;
         }
 
@@ -243,7 +262,7 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
         closed.insert(step_state.position());
 
         for (std::size_t i = 0; i < shifts.size() + 1; ++i) {
-            const auto shift = i == 0 ? target - step_state.position() : shifts[i - 1];
+            const auto shift = i == 0 ? target_int - step_state.position() : shifts[i - 1];
             const auto position = step_state.position() + shift;
             if (i != 0 && closed.count(position)) {
                 continue;
@@ -257,10 +276,12 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
             if (has_intersection(step_state, tick_state->second, position)) {
                 continue;
             }
-            const auto penalty = penalties[position] + length
-                    - get_distance_to_units_penalty(Line(step_state.position(), position));
+            const auto distance_to_units_penalty = get_distance_to_units_penalty(Line(shifted(step_state.position()),
+                                                                                      shifted(position)));
+            const auto penalty = penalties[position] + length + distance_to_units_penalty;
             if (!opened.count(position)) {
-                queue.push(StepState(penalty, target.distance(position), tick, position));
+                const auto distance = target.distance(shifted(position));
+                queue.push(StepState(distance + distance_to_units_penalty, distance, tick, position));
                 opened.insert(step_state.position());
             } else if (penalty > penalties[position]) {
                 continue;
@@ -270,7 +291,7 @@ Path get_optimal_path(const Context& context, const Point& target, double step_s
         }
     }
 
-    return reconstruct_path(final_position, came_from);
+    return reconstruct_path(final_position, came_from, global_shift);
 }
 
 }

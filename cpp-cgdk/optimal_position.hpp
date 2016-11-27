@@ -143,10 +143,12 @@ struct IsTarget {
 bool is_me(const model::Wizard& unit);
 bool is_me(const model::Unit&);
 
-Point get_optimal_position(const Context& context, const Target& target, double max_distance);
+Point get_optimal_position(const Context& context, const Target& target, double max_distance,
+                           std::vector<std::pair<Point, double>>* points = nullptr);
 
 template <class T>
-Point get_optimal_position(const Context& context, const T* target, double max_distance) {
+Point get_optimal_position(const Context& context, const T* target, double max_distance,
+                           std::vector<std::pair<Point, double>>* points = nullptr) {
     const IsInMyRange is_in_my_range {context, max_distance};
     const IsTarget<T> is_target {target};
 
@@ -255,6 +257,10 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
                 || position.y() >= context.game().getMapSize() - context.self().getRadius();
 
         if (is_out_of_borders) {
+            if (points) {
+                points->emplace_back(position, borders_penalty);
+            }
+
             return borders_penalty;
         }
 
@@ -330,7 +336,7 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
             }
         }
 
-        return get_sum_units_penalty(buildings, position)
+        const auto result = get_sum_units_penalty(buildings, position)
                 + get_sum_units_penalty(minions, position)
                 + get_sum_units_penalty(trees, position)
                 + get_sum_wizards_penalty(wizards, position)
@@ -338,6 +344,12 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
                 + get_sum_projectiles_penalty(projectiles, position)
                 + get_sum_friendly_fire_penalty(friend_units, position)
                 + target_distance_penalty;
+
+        if (points) {
+            points->emplace_back(position, result);
+        }
+
+        return result;
     };
 
     return minimize(get_position_penalty, get_position(context.self()), 100);

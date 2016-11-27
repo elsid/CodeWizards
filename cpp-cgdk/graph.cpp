@@ -36,10 +36,10 @@ Graph::Path Graph::get_shortest_path(Node src, Node dst) const {
 
 std::vector<Graph::Node> Graph::reconstruct_path(Node node, const std::vector<Node>& came_from) const {
     std::vector<Node> nodes;
-    nodes.push_back(node);
+    nodes.reserve(came_from.size());
     while (node != size_) {
-        node = came_from[node];
         nodes.push_back(node);
+        node = came_from[node];
     }
     std::reverse(nodes.begin(), nodes.end());
     return nodes;

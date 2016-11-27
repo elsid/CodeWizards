@@ -10,7 +10,7 @@ class TimeLimitedStrategy : public IStrategy {
 public:
     TimeLimitedStrategy(std::unique_ptr<Strategy> base) : base_(std::move(base)), sum_time_(0) {}
 
-    void apply(Context& context);
+    void apply(Context& context) override final;
 
 private:
     std::unique_ptr<Strategy> base_;

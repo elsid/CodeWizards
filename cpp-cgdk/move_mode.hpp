@@ -9,6 +9,14 @@ class MoveMode : public Mode {
 public:
     MoveMode(const WorldGraph& graph);
 
+    const std::vector<WorldGraph::Node>& path() const {
+        return path_;
+    }
+
+    const std::vector<WorldGraph::Node>::const_iterator& path_node() const {
+        return path_node_;
+    }
+
     Result apply(const Context& context) override final;
 
 private:

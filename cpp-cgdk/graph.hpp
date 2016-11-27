@@ -41,7 +41,11 @@ public:
         arcs_.set(src, dst, weight);
     }
 
-    Path get_shortest_path(Node src, Node dst) const ;
+    const Matrix& arcs() const {
+        return arcs_;
+    }
+
+    Path get_shortest_path(Node src, Node dst) const;
 
 private:
     std::size_t size_;

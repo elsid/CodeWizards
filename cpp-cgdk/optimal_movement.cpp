@@ -58,12 +58,17 @@ std::pair<MovementState, Movement> get_next_state(const Point& target, const Mov
 }
 
 std::pair<MovementsStates, Movements> get_optimal_movement(const Context& context, const Path& path, const OptPoint& look_target) {
-    const Bounds bounds {context};
     MovementsStates states({MovementState(0, get_position(context.self()), context.self().getAngle())});
     Movements movements;
 
+    if (path.empty()) {
+        return {states, movements};
+    }
+
     states.reserve(path.size());
     movements.reserve(path.size() - 1);
+
+    const Bounds bounds {context};
 
     for (const auto& path_position : path) {
         while (path_position.distance(states.back().position()) > bounds.max_speed(states.back().tick())) {
@@ -73,11 +78,9 @@ std::pair<MovementsStates, Movements> get_optimal_movement(const Context& contex
         }
     }
 
-    if (!path.empty()) {
-        const auto next = get_next_state(path.back(), states.back(), look_target, bounds);
-        states.push_back(next.first);
-        movements.push_back(next.second);
-    }
+    const auto next = get_next_state(path.back(), states.back(), look_target, bounds);
+    states.push_back(next.first);
+    movements.push_back(next.second);
 
     return {states, movements};
 }

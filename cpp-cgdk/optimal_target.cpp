@@ -15,7 +15,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
     const auto enemy_minions = filter_units(context.world().getMinions(), is_enemy_and_in_my_range);
     const auto enemy_buildings = filter_units(context.world().getBuildings(), is_enemy_and_in_my_range);
 
-    const auto bonuses = filter_units(context.world().getBuildings(), is_in_my_range);
+    const auto bonuses = filter_units(context.world().getBonuses(), is_in_my_range);
 
     if (enemy_wizards.empty() && enemy_minions.empty() && enemy_wizards.empty() && bonuses.empty()) {
         const double factor = get_speed(context.self()).norm() < 1 ? 2 : 1.3;
@@ -29,7 +29,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
                     get_position(*rhs).distance(get_position(context.self()));
         };
         if (!trees.empty()) {
-            return *std::min_element(trees.begin(), trees.end(), less_by_distance);
+            return get_id(**std::min_element(trees.begin(), trees.end(), less_by_distance));
         }
         const auto neutral_minions = filter_units(context.world().getMinions(),
               [&] (const auto& unit) {
@@ -38,7 +38,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
                           < factor * context.self().getRadius() + unit.getRadius();
               });
         if (!neutral_minions.empty()) {
-            return *std::min_element(neutral_minions.begin(), neutral_minions.end(), less_by_distance);
+            return get_id(**std::min_element(neutral_minions.begin(), neutral_minions.end(), less_by_distance));
         }
         return Target();
     }
@@ -49,7 +49,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
                 return get_position(*lhs).distance(get_position(context.self()))
                         < get_position(*rhs).distance(get_position(context.self()));
             });
-        return *target;
+        return get_id(**target);
     }
 
     const GetDamage get_damage {context};
@@ -71,27 +71,27 @@ Target get_optimal_target(const Context& context, double max_distance) {
     if (!enemy_wizards.empty()) {
         const auto in_staff_range = filter_units(enemy_wizards, is_in_staff_range);
         if (!in_staff_range.empty()) {
-            return *get_with_min_penalty(in_staff_range);
+            return get_id(**get_with_min_penalty(in_staff_range));
         }
     }
 
     if (!enemy_minions.empty()) {
         const auto in_staff_range = filter_units(enemy_minions, is_in_staff_range);
         if (!in_staff_range.empty()) {
-            return *get_with_min_penalty(in_staff_range);
+            return get_id(**get_with_min_penalty(in_staff_range));
         }
     }
 
     if (!enemy_wizards.empty()) {
-        return *get_with_min_penalty(enemy_wizards);
+        return get_id(**get_with_min_penalty(enemy_wizards));
     }
 
     if (!enemy_minions.empty()) {
-        return *get_with_min_penalty(enemy_minions);
+        return get_id(**get_with_min_penalty(enemy_minions));
     }
 
     if (!enemy_buildings.empty()) {
-        return *get_with_min_penalty(enemy_buildings);
+        return get_id(**get_with_min_penalty(enemy_buildings));
     }
 
     return Target();

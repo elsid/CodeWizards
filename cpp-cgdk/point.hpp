@@ -7,78 +7,105 @@
 
 namespace strategy {
 
-class Point {
+template <class T>
+class BasicPoint {
 public:
-    Point(double x = 0, double y = 0) : x_(x), y_(y) {}
+    using Value = T;
 
-    double x() const { return x_; }
-    double y() const { return y_; }
+    BasicPoint(Value x = 0, Value y = 0) : x_(x), y_(y) {}
 
-    double distance(const Point& other) const {
-        return std::hypot(other.x_ - x_, other.y_ - y_);
+    Value x() const { return x_; }
+    Value y() const { return y_; }
+
+    double distance(const BasicPoint& other) const {
+        return std::hypot(other.x() - x(), other.y() - y());
     }
 
     double square() const {
-        return x_ * x_ + y_ * y_;
+        return x() * x() + y() * y();
     }
 
-    double dot(const Point& other) const {
-        return x_ * other.x_ + y_ * other.y_;
+    double dot(const BasicPoint& other) const {
+        return x() * other.x() + y() * other.y();
     }
 
-    Point rotated(double angle) const {
+    BasicPoint rotated(double angle) const {
         const double cos = std::cos(angle);
         const double sin = std::sin(angle);
-        return Point(x_ * cos - y_ * sin, y_ * cos + x_ * sin);
+        return BasicPoint(x() * cos - y() * sin, y() * cos + x() * sin);
     }
 
     double norm() const {
-        return hypot(x_, y_);
+        return hypot(x(), y());
     }
 
-    double cos(const Point& other) const {
+    double cos(const BasicPoint& other) const {
         return dot(other) / (norm() * other.norm());
     }
 
     double absolute_rotation() const {
-        return std::atan2(y_, x_);
+        return std::atan2(y(), x());
     }
 
-    Point left_orthogonal() const {
-        return Point(-y_, x_);
+    BasicPoint left_orthogonal() const {
+        return BasicPoint(-y(), x());
+    }
+
+    BasicPoint<int> to_int() const {
+        return BasicPoint<int>(int(std::round(x())), int(std::round(y())));
+    }
+
+    BasicPoint<double> to_double() const {
+        return BasicPoint<double>(double(x()), double(y()));
     }
 
 private:
-    double x_;
-    double y_;
+    Value x_;
+    Value y_;
 };
 
-inline bool operator ==(const Point& lhs, const Point& rhs) {
+using Point = BasicPoint<double>;
+using PointInt = BasicPoint<int>;
+
+template <class T>
+inline bool operator ==(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
     return lhs.x() == rhs.x() && lhs.y() == rhs.y();
 }
 
-inline bool operator !=(const Point& lhs, const Point& rhs) {
+template <class T>
+inline bool operator !=(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
     return !(lhs == rhs);
 }
 
-inline Point operator *(const Point& lhs, const double rhs) {
-    return Point(lhs.x() * rhs, lhs.y() * rhs);
+template <class T>
+inline BasicPoint<T> operator *(const BasicPoint<T>& lhs, const double rhs) {
+    return BasicPoint<T>(lhs.x() * rhs, lhs.y() * rhs);
 }
 
-inline Point operator /(const Point& lhs, const double rhs) {
-    return Point(lhs.x() / rhs, lhs.y() / rhs);
+template <class T>
+inline BasicPoint<T> operator /(const BasicPoint<T>& lhs, const double rhs) {
+    return BasicPoint<T>(lhs.x() / rhs, lhs.y() / rhs);
 }
 
-inline Point operator +(const Point& lhs, const Point& rhs) {
-    return Point(lhs.x() + rhs.x(), lhs.y() + rhs.y());
+template <class T>
+inline BasicPoint<T> operator +(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
+    return BasicPoint<T>(lhs.x() + rhs.x(), lhs.y() + rhs.y());
 }
 
-inline Point operator -(const Point& lhs, const Point& rhs) {
-    return Point(lhs.x() - rhs.x(), lhs.y() - rhs.y());
+template <class T>
+inline BasicPoint<T> operator -(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
+    return BasicPoint<T>(lhs.x() - rhs.x(), lhs.y() - rhs.y());
 }
 
-inline bool operator <(const Point& lhs, const Point& rhs) {
+template <class T>
+inline bool operator <(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
     return lhs.x() < rhs.x() || (lhs.x() == rhs.x() && lhs.y() < rhs.y());
 }
+
+template <class T>
+inline bool operator >(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
+    return lhs.x() > rhs.x() || (lhs.x() == rhs.x() && lhs.y() > rhs.y());
+}
+
 
 }

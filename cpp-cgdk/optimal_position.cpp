@@ -14,17 +14,18 @@ double get_distance_penalty(double value, double safe) {
     return std::min(1.0, std::max(0.0, (safe - value) / safe));
 }
 
-Point get_optimal_position(const Context& context, const Target& target, double max_distance) {
-    if (const auto unit = target.bonus()) {
-        return get_optimal_position(context, unit, max_distance);
-    } else if (const auto unit = target.building()) {
-        return get_optimal_position(context, unit, max_distance);
-    } else if (const auto unit = target.minion()) {
-        return get_optimal_position(context, unit, max_distance);
-    } else if (const auto unit = target.wizard()) {
-        return get_optimal_position(context, unit, max_distance);
-    } else if (const auto unit = target.tree()) {
-        return get_optimal_position(context, unit, max_distance);
+Point get_optimal_position(const Context& context, const Target& target, double max_distance,
+                           std::vector<std::pair<Point, double>>* points) {
+    if (const auto unit = target.unit<model::Bonus>(context.cache())) {
+        return get_optimal_position(context, unit, max_distance, points);
+    } else if (const auto unit = target.unit<model::Building>(context.cache())) {
+        return get_optimal_position(context, unit, max_distance, points);
+    } else if (const auto unit = target.unit<model::Minion>(context.cache())) {
+        return get_optimal_position(context, unit, max_distance, points);
+    } else if (const auto unit = target.unit<model::Wizard>(context.cache())) {
+        return get_optimal_position(context, unit, max_distance, points);
+    } else if (const auto unit = target.unit<model::Tree>(context.cache())) {
+        return get_optimal_position(context, unit, max_distance, points);
     }
     throw std::logic_error("Target has no value in " + std::string(__FUNCTION__));
 }

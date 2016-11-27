@@ -239,17 +239,17 @@ TEST(get_optimal_movement, with_static_barriers) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(WIZARD, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(wizard, world, GAME, move, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto path = get_optimal_path(context, target, step_size);
-    EXPECT_EQ(path.size(), 12);
+    EXPECT_EQ(path.size(), 29);
     const OptPoint look_target;
     const auto result = get_optimal_movement(context, path, look_target);
     ASSERT_FALSE(result.first.empty());
-    EXPECT_EQ(result.first.size(), 55);
-    EXPECT_EQ(result.second.size(), 54);
-    EXPECT_EQ(result.first.back(), MovementState(54, Point(1197.4881797289916, 1197.4430315284412), 0.79430502634533551));
+    EXPECT_EQ(result.first.size(), 80);
+    EXPECT_EQ(result.second.size(), 79);
+    EXPECT_EQ(result.first.back(), MovementState(79, Point(1200, 1200), 0.98120377803346293));
 }
 
 }

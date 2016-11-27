@@ -23,6 +23,7 @@ public:
     WorldGraph(const model::Game& game);
 
     const Nodes& nodes() const { return nodes_; }
+    const Matrix& arcs() const { return graph_.arcs(); }
     const LanesNodes& lanes_nodes() const { return lanes_nodes_; }
     double zone_size() const { return zone_size_; }
     Node center() const { return center_; }

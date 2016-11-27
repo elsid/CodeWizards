@@ -27,7 +27,7 @@ bool has_near_units(const Point& position, const std::vector<const T*>& units, d
 
 WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position) {
     return *std::min_element(nodes.begin(), nodes.end(),
-        [&] (const auto& lhs, const auto& rhs) { return position.distance(lhs.first) < position.distance(rhs.first); });
+        [&] (const auto& lhs, const auto& rhs) { return position.distance(lhs.second) < position.distance(rhs.second); });
 }
 
 static WorldGraph::Pair get_nearest_node_by_path(const WorldGraph& graph, const std::vector<WorldGraph::Pair>& nodes, const WorldGraph::Node node) {

@@ -2,6 +2,7 @@
 
 #include <point.hpp>
 #include <optimal_movement.hpp>
+#include <graph.hpp>
 
 #include "model/World.h"
 #include "model/Game.h"
@@ -12,12 +13,25 @@
 
 namespace strategy {
 
-inline std::ostream& operator <<(std::ostream& stream, const std::vector<int>& values) {
+template <class T>
+inline std::ostream& write(std::ostream& stream, const std::vector<T>& values) {
     stream << "{";
     for (const auto& v : values) {
         stream << v << ", ";
     }
     return stream << "}";
+}
+
+inline std::ostream& operator <<(std::ostream& stream, const std::vector<int>& values) {
+    return write(stream, values);
+}
+
+inline std::ostream& operator <<(std::ostream& stream, const std::vector<Point>& values) {
+    return write(stream, values);
+}
+
+inline std::ostream& operator <<(std::ostream& stream, const std::vector<Graph::Node>& values) {
+    return write(stream, values);
 }
 
 template <class T>

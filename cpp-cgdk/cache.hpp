@@ -13,7 +13,9 @@ class CachedUnit {
 public:
     using Value = T;
 
-    CachedUnit(const Value& value, int tick)
+    CachedUnit() = default;
+
+    CachedUnit(const Value& value, Tick tick)
         : value_(value), last_seen_(tick) {}
 
     const auto& value() const {
@@ -26,7 +28,7 @@ public:
 
 private:
     Value value_;
-    Tick last_seen_;
+    Tick last_seen_ = 0;
 };
 
 template <class T>
@@ -44,8 +46,20 @@ public:
     }
 
     void update(const std::vector<T>& units, Tick tick) {
-        std::transform(units.begin(), units.end(), std::inserter(units_, units_.end()),
-                       [&] (const auto& unit) { return std::make_pair(unit.getId(), make_cached(unit, tick)); });
+        for (const auto& unit : units) {
+            units_[unit.getId()] = make_cached(unit, tick);
+        }
+    }
+
+    template <class Predicate>
+    void invalidate(const Predicate& predicate) {
+        for (auto it = units_.begin(); it != units_.end();) {
+            if (predicate(it->second)) {
+                it = units_.erase(it);
+            } else {
+                ++it;
+            }
+        }
     }
 
 private:
