@@ -8,7 +8,7 @@
 namespace strategy {
 namespace tests {
 
-static const model::Wizard WIZARD(
+static const model::Wizard SELF(
     1, // Id
     1000, // X
     1000, // Y
@@ -21,7 +21,7 @@ static const model::Wizard WIZARD(
     100, // MaxLife
     {}, // Statuses
     1, // OwnerPlayerId
-    1, // Me
+    true, // Me
     100, // Mana
     100, // MaxMana
     600, // VisionRange
@@ -31,7 +31,7 @@ static const model::Wizard WIZARD(
     {}, // Skills
     0, // RemainingActionCooldownTicks
     {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
-    1, // Master
+    true, // Master
     {} // Messages
 );
 

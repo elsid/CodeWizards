@@ -10,14 +10,6 @@
 #include <numeric>
 #include <type_traits>
 
-#ifdef STRATEGY_DEBUG
-
-#include <debug/output.hpp>
-
-#include <iostream>
-
-#endif
-
 namespace strategy {
 
 bool is_enemy(const model::Unit& unit, model::Faction my_faction);
@@ -225,7 +217,7 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
         const auto target_position = get_position(*target);
         const auto unit_position = get_position(unit);
         const auto has_intersection = Circle(unit_position, unit.getRadius())
-                .has_intersection_with_moving_circle(Circle(my_position, context.self().getRadius()),
+                .has_intersection(Circle(my_position, context.self().getRadius()),
                                                      target_position);
 
         if (!has_intersection) {

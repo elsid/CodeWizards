@@ -4,16 +4,10 @@
 #include "move_mode.hpp"
 #include "optimal_position.hpp"
 #include "world_graph.hpp"
+#include "optimal_path.hpp"
+#include "optimal_movement.hpp"
 
 #include <memory>
-
-#ifdef STRATEGY_DEBUG
-
-#include "debug/output.hpp"
-
-#include <iostream>
-
-#endif
 
 namespace strategy {
 

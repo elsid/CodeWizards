@@ -16,7 +16,7 @@ TEST(get_optimal_destination, for_all_default) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(WIZARD, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
     WorldGraph graph(GAME);
     EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_), 19);
 }

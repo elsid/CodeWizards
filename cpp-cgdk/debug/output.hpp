@@ -1,9 +1,5 @@
 #pragma once
 
-#include <point.hpp>
-#include <optimal_movement.hpp>
-#include <graph.hpp>
-
 #include "model/World.h"
 #include "model/Game.h"
 
@@ -14,48 +10,34 @@
 namespace strategy {
 
 template <class T>
-inline std::ostream& write(std::ostream& stream, const std::vector<T>& values) {
-    stream << "{";
-    for (const auto& v : values) {
-        stream << v << ", ";
-    }
-    return stream << "}";
+std::ostream& operator <<(std::ostream& stream, const std::vector<T>& values);
+
+inline std::ostream& operator <<(std::ostream& stream, const model::Bonus& value) {
+    return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const std::vector<int>& values) {
-    return write(stream, values);
+inline std::ostream& operator <<(std::ostream& stream, const model::Minion& value) {
+    return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const std::vector<Point>& values) {
-    return write(stream, values);
+inline std::ostream& operator <<(std::ostream& stream, const model::Projectile& value) {
+    return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const std::vector<Graph::Node>& values) {
-    return write(stream, values);
+inline std::ostream& operator <<(std::ostream& stream, const model::Player& value) {
+    return stream;
 }
 
-template <class T>
-inline std::ostream& operator <<(std::ostream& stream, const std::vector<T>&) {
-    stream << "{";
-//    for (const auto& v : values) {
-//        stream << v << ", ";
-//    }
-    return stream << "}";
+inline std::ostream& operator <<(std::ostream& stream, const model::Status& value) {
+    return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const Point& value) {
-    return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
-                  << "Point(" << value.x() << ", " << value.y() << ")";
+inline std::ostream& operator <<(std::ostream& stream, const model::Message& value) {
+    return stream;
 }
 
-inline std::ostream&operator <<(std::ostream& stream, const MovementState& value) {
-    return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
-                  << "MovementState(" << value.tick() << ", " << value.position() << ", " << value.angle() << ")";
-}
-
-inline std::ostream&operator <<(std::ostream& stream, const Movement& value) {
-    return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
-                  << "Movement(" << value.speed() << ", " << value.strafe_speed() << ", " << value.turn() << ")";
+inline std::ostream& operator <<(std::ostream& stream, const model::Building& value) {
+    return stream;
 }
 
 inline std::ostream& operator <<(std::ostream& stream, model::Faction value) {
@@ -122,7 +104,7 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Wizard& valu
     stream << "    " << value.getMaxLife() << ", // MaxLife\n";
     stream << "    " << value.getStatuses() << ", // Statuses\n";
     stream << "    " << value.getOwnerPlayerId() << ", // OwnerPlayerId\n";
-    stream << "    " << value.isMe() << ", // Me\n";
+    stream << "    " << std::boolalpha << value.isMe() << ", // Me\n";
     stream << "    " << value.getMana() << ", // Mana\n";
     stream << "    " << value.getMaxMana() << ", // MaxMana\n";
     stream << "    " << value.getVisionRange() << ", // VisionRange\n";
@@ -132,7 +114,7 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Wizard& valu
     stream << "    " << value.getSkills() << ", // Skills\n";
     stream << "    " << value.getRemainingActionCooldownTicks() << ", // RemainingActionCooldownTicks\n";
     stream << "    " << value.getRemainingCooldownTicksByAction() << ", // RemainingCooldownTicksByAction\n";
-    stream << "    " << value.isMaster() << ", // Master\n";
+    stream << "    " << std::boolalpha << value.isMaster() << ", // Master\n";
     stream << "    " << value.getMessages() << " // Messages\n";
     return stream << ")";
 }
@@ -142,8 +124,8 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Game& value)
     stream << "    " << value.getRandomSeed() << ", // RandomSeed\n";
     stream << "    " << value.getTickCount() << ", // TickCount\n";
     stream << "    " << value.getMapSize() << ", // MapSize\n";
-    stream << "    " << value.isSkillsEnabled() << ", // SkillsEnabled\n";
-    stream << "    " << value.isRawMessagesEnabled() << ", // RawMessagesEnabled\n";
+    stream << "    " << std::boolalpha << value.isSkillsEnabled() << ", // SkillsEnabled\n";
+    stream << "    " << std::boolalpha << value.isRawMessagesEnabled() << ", // RawMessagesEnabled\n";
     stream << "    " << value.getFriendlyFireDamageFactor() << ", // FriendlyFireDamageFactor\n";
     stream << "    " << value.getBuildingDamageScoreFactor() << ", // BuildingDamageScoreFactor\n";
     stream << "    " << value.getBuildingEliminationScoreFactor() << ", // BuildingEliminationScoreFactor\n";
@@ -251,6 +233,20 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Game& value)
     stream << "    " << value.getMovementBonusFactorPerSkillLevel() << ", // MovementBonusFactorPerSkillLevel\n";
     stream << "    " << value.getMagicalDamageAbsorptionPerSkillLevel() << " // MagicalDamageAbsorptionPerSkillLevel\n";
     return stream << ")";
+}
+
+template <class T>
+std::ostream& write(std::ostream& stream, const std::vector<T>& values) {
+    stream << "{";
+    for (const auto& v : values) {
+        stream << v << ", ";
+    }
+    return stream << "}";
+}
+
+template <class T>
+std::ostream& operator <<(std::ostream& stream, const std::vector<T>& values) {
+    return write(stream, values);
 }
 
 } // namespace strategy

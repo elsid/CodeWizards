@@ -3,6 +3,14 @@
 
 #include <algorithm>
 
+#ifdef STRATEGY_DEBUG
+
+#include "debug/output.hpp"
+
+#include <iostream>
+
+#endif
+
 namespace strategy {
 
 template <class Predicate>

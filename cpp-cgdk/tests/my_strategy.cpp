@@ -18,7 +18,7 @@ TEST(MyStrategy, simple) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {enemy, WIZARD}, // Wizards
+        {enemy, SELF}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -26,7 +26,7 @@ TEST(MyStrategy, simple) {
         {} // Trees
     );
     model::Move move;
-    MyStrategy().move(WIZARD, world, GAME, move);
+    MyStrategy().move(SELF, world, GAME, move);
 }
 
 }

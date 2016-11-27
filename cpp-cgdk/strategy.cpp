@@ -1,6 +1,14 @@
 #include "strategy.hpp"
 #include "optimal_destination.hpp"
 
+#ifdef STRATEGY_DEBUG
+
+#include "debug/output.hpp"
+
+#include <iostream>
+
+#endif
+
 namespace strategy {
 
 Strategy::Strategy(const Context& context)
@@ -132,7 +140,7 @@ void Strategy::apply_mode(const Context& context) {
 }
 
 void Strategy::update_movements(const Context& context) {
-    const auto error = state_->position().distance(get_position(context.self())) - context.self().getRadius();
+    const auto error = state_->position().distance(get_position(context.self())) - context.game().getWizardForwardSpeed();
     if (movement_ == movements_.end() || error > 0) {
         return calculate_movements(context);
     }

@@ -1,9 +1,10 @@
 #pragma once
 
-#define PI 3.14159265358979323846
-#define _USE_MATH_DEFINES
+#include "math.hpp"
 
-#include <cmath>
+#include <ostream>
+#include <limits>
+#include <iomanip>
 
 namespace strategy {
 
@@ -30,8 +31,8 @@ public:
     }
 
     BasicPoint rotated(double angle) const {
-        const double cos = std::cos(angle);
-        const double sin = std::sin(angle);
+        const double cos = math::cos(angle);
+        const double sin = math::sin(angle);
         return BasicPoint(x() * cos - y() * sin, y() * cos + x() * sin);
     }
 
@@ -57,6 +58,10 @@ public:
 
     BasicPoint<double> to_double() const {
         return BasicPoint<double>(double(x()), double(y()));
+    }
+
+    double det(const BasicPoint& other) const {
+        return x() * other.y() - y() * other.x();
     }
 
 private:
@@ -107,5 +112,10 @@ inline bool operator >(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
     return lhs.x() > rhs.x() || (lhs.x() == rhs.x() && lhs.y() > rhs.y());
 }
 
+template <class T>
+inline std::ostream& operator <<(std::ostream& stream, const BasicPoint<T>& value) {
+    return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
+                  << "BasicPoint(" << value.x() << ", " << value.y() << ")";
+}
 
 }

@@ -27,10 +27,10 @@ TEST(get_shift, all) {
     EXPECT_EQ(get_shift(MovementState(0, Point(), 0), Movement(-1, 0, 0)), Point(-1, 0));
     EXPECT_EQ(get_shift(MovementState(0, Point(), 0), Movement(0, -1, 0)), Point(0, -1));
     EXPECT_EQ(get_shift(MovementState(0, Point(), 0), Movement(0, 0, 1)), Point());
-    EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(1, 0, 0)), Point(6.123233995736766e-17, 1));
-    EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(0, 1, 0)), Point(-1, 6.123233995736766e-17));
-    EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(-1, 0, 0)), Point(-6.123233995736766e-17, -1));
-    EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(0, -1, 0)), Point(1, -6.123233995736766e-17));
+    EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(1, 0, 0)), Point(0, 1));
+    EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(0, 1, 0)), Point(-1, 0));
+    EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(-1, 0, 0)), Point(0, -1));
+    EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(0, -1, 0)), Point(1, 0));
 }
 
 TEST(normalize_angle, all) {
@@ -49,7 +49,7 @@ TEST(get_next_movement, all) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {WIZARD}, // Wizards
+        {SELF}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -59,20 +59,20 @@ TEST(get_next_movement, all) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(WIZARD, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
     EXPECT_EQ(get_next_movement(Point(), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 0, 0));
     EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(1, 0, 0));
-    EXPECT_EQ(get_next_movement(Point(0, 1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(8.1643119943156876e-17, 1, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(8.1643119943156876e-17, -1, -0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(-1, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(-1, 1.224646799147353e-16, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(0, -1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(8.1643119943156876e-17, -1, -0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(0, -1), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(-1, -1.224646799147353e-16, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(0, 1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 1, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(0, -1, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(-1, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(-1, 0, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(0, -1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, -1, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(0, -1), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(-1, -0, -0.10471999999999999));
     EXPECT_EQ(get_next_movement(Point(1, 1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(1.1313708498984762, 0.84852813742385702, 0.10471999999999999));
     EXPECT_EQ(get_next_movement(Point(10, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(4, 0, 0));
-    EXPECT_EQ(get_next_movement(Point(0, 10), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(2.4492935982947064e-16, 3, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(10, 0), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(2.4492935982947064e-16, -3, -0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(-10, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(-3, 3.6739403974420594e-16, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(0, -10), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(-3, -3.6739403974420594e-16, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(0, 10), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 3, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(10, 0), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(0, -3, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(-10, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(-3, 0, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(0, -10), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(-3, -0, -0.10471999999999999));
     EXPECT_EQ(get_next_movement(Point(10, 10), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(2.8284271247461903, 2.1213203435596424, 0.10471999999999999));
 }
 
@@ -83,7 +83,7 @@ TEST(get_optimal_movement, only_for_me) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {WIZARD}, // Wizards
+        {SELF}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -93,14 +93,47 @@ TEST(get_optimal_movement, only_for_me) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(WIZARD, world, GAME, move, cache, profiler, Duration::max());
-    const Path path({get_position(WIZARD), Point(1200, 1200)});
+    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
+    const Point target(1200, 1200);
+    const Path path({get_position(SELF), target});
     const OptPoint look_target;
-    const auto result = get_optimal_movement(context, path, look_target);
-    ASSERT_FALSE(result.first.empty());
-    EXPECT_EQ(result.first.size(), 72);
-    EXPECT_EQ(result.second.size(), 71);
-    EXPECT_EQ(result.first.back(), MovementState(71, Point(1200, 1200), 0.78539816339744828));
+    MovementsStates states;
+    Movements movements;
+    std::tie(states, movements) = get_optimal_movement(context, path, look_target);
+    ASSERT_FALSE(states.empty());
+    EXPECT_EQ(states.front(), MovementState(0, get_position(SELF), SELF.getAngle()));
+    EXPECT_EQ(states.back(), MovementState(71, target, 0.78539816339744828));
+    ASSERT_EQ(movements.size(), 71);
+    EXPECT_EQ(movements.front(), Movement(4, 0, 0));
+    EXPECT_EQ(movements.back(), Movement(2.8427124746167487, 0, 0));
+}
+
+TEST(get_optimal_movement, only_for_me_to_my_position) {
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {SELF}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    const FullCache cache;
+    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
+    const Point target(1200, 1200);
+    const Path path({get_position(SELF)});
+    const OptPoint look_target;
+    MovementsStates states;
+    Movements movements;
+    std::tie(states, movements) = get_optimal_movement(context, path, look_target);
+    EXPECT_EQ(states, MovementsStates({MovementState(0, get_position(SELF), SELF.getAngle())}));
+    EXPECT_EQ(movements, Movements());
 }
 
 TEST(get_optimal_movement, only_for_me_not_direct) {
@@ -110,7 +143,7 @@ TEST(get_optimal_movement, only_for_me_not_direct) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {WIZARD}, // Wizards
+        {SELF}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -120,18 +153,23 @@ TEST(get_optimal_movement, only_for_me_not_direct) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(WIZARD, world, GAME, move, cache, profiler, Duration::max());
-    const Path path({get_position(WIZARD), Point(1100, 1200), Point(1200, 1100)});
+    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
+    const Point final_target(1200, 1100);
+    const Path path({get_position(SELF), Point(1100, 1200), final_target});
     const OptPoint look_target;
-    const auto result = get_optimal_movement(context, path, look_target);
-    ASSERT_FALSE(result.first.empty());
-    EXPECT_EQ(result.first.size(), 94);
-    EXPECT_EQ(result.second.size(), 93);
-    EXPECT_EQ(result.first.back(), MovementState(93, Point(1200, 1100), -0.80858386837138518));
+    MovementsStates states;
+    Movements movements;
+    std::tie(states, movements) = get_optimal_movement(context, path, look_target);
+    ASSERT_EQ(states.size(), 94);
+    EXPECT_EQ(states.front(), MovementState(0, get_position(SELF), SELF.getAngle()));
+    EXPECT_EQ(states.back(), MovementState(93, final_target, -0.80858386837138296));
+    ASSERT_EQ(movements.size(), 93);
+    EXPECT_EQ(movements.front(), Movement(3.7947331922020551, 0.94868329805051366, 0.10471999999999999));
+    EXPECT_EQ(movements.back(), Movement(3.329085623670311, 4.435233012416854e-15, 1.7763568394002505e-15));
 }
 
 TEST(get_optimal_movement, only_for_me_with_hastened) {
-    const model::Wizard wizard(
+    const model::Wizard self(
         1, // Id
         1000, // X
         1000, // Y
@@ -144,7 +182,7 @@ TEST(get_optimal_movement, only_for_me_with_hastened) {
         100, // MaxLife
         {model::Status(0, model::STATUS_HASTENED, 0, 0, 100)}, // Statuses
         1, // OwnerPlayerId
-        1, // Me
+        true, // Me
         100, // Mana
         100, // MaxMana
         600, // VisionRange
@@ -154,7 +192,7 @@ TEST(get_optimal_movement, only_for_me_with_hastened) {
         {}, // Skills
         0, // RemainingActionCooldownTicks
         {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
-        1, // Master
+        true, // Master
         {} // Messages
     );
     const model::World world(
@@ -163,7 +201,7 @@ TEST(get_optimal_movement, only_for_me_with_hastened) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {wizard}, // Wizards
+        {self}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -173,18 +211,23 @@ TEST(get_optimal_movement, only_for_me_with_hastened) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(wizard, world, GAME, move, cache, profiler, Duration::max());
-    const Path path({get_position(wizard), Point(1200, 1200)});
+    const Context context(self, world, GAME, move, cache, profiler, Duration::max());
+    const Point target(1200, 1200);
+    const Path path({get_position(self), target});
     const OptPoint look_target;
-    const auto result = get_optimal_movement(context, path, look_target);
-    ASSERT_FALSE(result.first.empty());
-    EXPECT_EQ(result.first.size(), 56);
-    EXPECT_EQ(result.second.size(), 55);
-    EXPECT_EQ(result.first.back(), MovementState(55, Point(1200, 1200), 0.78539816339744828));
+    MovementsStates states;
+    Movements movements;
+    std::tie(states, movements) = get_optimal_movement(context, path, look_target);
+    ASSERT_EQ(states.size(), 56);
+    EXPECT_EQ(states.front(), MovementState(0, get_position(self), self.getAngle()));
+    EXPECT_EQ(states.back(), MovementState(55, target, 0.78539816339744828));
+    ASSERT_EQ(movements.size(), 55);
+    EXPECT_EQ(movements.front(), Movement(5.2000000000000002, 0, 0));
+    EXPECT_EQ(movements.back(), Movement(2.042712474626196, 0, 0));
 }
 
 TEST(get_optimal_movement, with_static_barriers) {
-    const model::Wizard wizard(
+    const model::Wizard self(
         1, // Id
         1000, // X
         1000, // Y
@@ -197,7 +240,7 @@ TEST(get_optimal_movement, with_static_barriers) {
         100, // MaxLife
         {}, // Statuses
         1, // OwnerPlayerId
-        1, // Me
+        true, // Me
         100, // Mana
         100, // MaxMana
         600, // VisionRange
@@ -207,7 +250,7 @@ TEST(get_optimal_movement, with_static_barriers) {
         {}, // Skills
         0, // RemainingActionCooldownTicks
         {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
-        1, // Master
+        true, // Master
         {} // Messages
     );
     const model::Tree tree(
@@ -229,7 +272,7 @@ TEST(get_optimal_movement, with_static_barriers) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {wizard}, // Wizards
+        {self}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -239,17 +282,20 @@ TEST(get_optimal_movement, with_static_barriers) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(wizard, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(self, world, GAME, move, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto path = get_optimal_path(context, target, step_size);
-    EXPECT_EQ(path.size(), 29);
     const OptPoint look_target;
-    const auto result = get_optimal_movement(context, path, look_target);
-    ASSERT_FALSE(result.first.empty());
-    EXPECT_EQ(result.first.size(), 80);
-    EXPECT_EQ(result.second.size(), 79);
-    EXPECT_EQ(result.first.back(), MovementState(79, Point(1200, 1200), 0.98120377803346293));
+    MovementsStates states;
+    Movements movements;
+    std::tie(states, movements) = get_optimal_movement(context, path, look_target);
+    ASSERT_EQ(states.size(), 80);
+    EXPECT_EQ(states.front(), MovementState(0, get_position(self), self.getAngle()));
+    EXPECT_EQ(states.back(), MovementState(79, target, 0.98120377803346293));
+    ASSERT_EQ(movements.size(), 79);
+    EXPECT_EQ(movements.front(), Movement(2.8284271247461903, 2.1213203435596424, 0.10471999999999999));
+    EXPECT_EQ(movements.back(), Movement(3.5373936406645727, -2.3858322392197627e-14, -8.992806499463768e-15));
 }
 
 }

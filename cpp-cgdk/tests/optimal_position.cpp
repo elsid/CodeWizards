@@ -25,7 +25,7 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
         100, // MaxLife
         {}, // Statuses
         1, // OwnerPlayerId
-        1, // Me
+        false, // Me
         100, // Mana
         100, // MaxMana
         600, // VisionRange
@@ -35,7 +35,7 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
         {}, // Skills
         0, // RemainingActionCooldownTicks
         {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
-        1, // Master
+        true, // Master
         {} // Messages
     );
     const model::World world(
@@ -44,7 +44,7 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {enemy, WIZARD}, // Wizards
+        {enemy, SELF}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -54,7 +54,7 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(WIZARD, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000);
     EXPECT_LE(result.distance(get_position(target)) - (GAME.getWizardCastRange() + GAME.getMagicMissileRadius()), 1);

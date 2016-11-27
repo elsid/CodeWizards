@@ -129,10 +129,10 @@ void DebugStrategy::visualize_points(const Context& context) {
 }
 
 void DebugStrategy::visualize_destination(const Context& context) {
-    debug_.line(base_->destination().x() - 10, base_->destination().y() - 10,
-                base_->destination().x() + 10, base_->destination().y() + 10, 0x0000FF);
-    debug_.line(base_->destination().x() + 10, base_->destination().y() - 10,
-                base_->destination().x() - 10, base_->destination().y() + 10, 0x0000FF);
+    debug_.line(base_->destination().x() - 50, base_->destination().y() - 50,
+                base_->destination().x() + 50, base_->destination().y() + 50, 0x0000FF);
+    debug_.line(base_->destination().x() + 50, base_->destination().y() - 50,
+                base_->destination().x() - 50, base_->destination().y() + 50, 0x0000FF);
 }
 
 void DebugStrategy::visualize_states(const Context& context) {

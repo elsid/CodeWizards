@@ -110,4 +110,14 @@ Movement get_next_movement(const Point& target, const MovementState& state, cons
 Point get_shift(const MovementState& state, const Movement& movement);
 std::pair<MovementState, Movement> get_next_state(const Point& target, const MovementState& state, const OptPoint& look_target, const Bounds& bounds);
 
+inline std::ostream&operator <<(std::ostream& stream, const MovementState& value) {
+    return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
+                  << "MovementState(" << value.tick() << ", " << value.position() << ", " << value.angle() << ")";
+}
+
+inline std::ostream&operator <<(std::ostream& stream, const Movement& value) {
+    return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
+                  << "Movement(" << value.speed() << ", " << value.strafe_speed() << ", " << value.turn() << ")";
+}
+
 }

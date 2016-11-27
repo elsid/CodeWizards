@@ -2,6 +2,14 @@
 
 #include <algorithm>
 
+#ifdef STRATEGY_DEBUG
+
+#include "debug/output.hpp"
+
+#include <iostream>
+
+#endif
+
 namespace strategy {
 
 Target get_optimal_target(const Context& context, double max_distance) {

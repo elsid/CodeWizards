@@ -7,6 +7,8 @@
 
 #include "debug/output.hpp"
 
+#include <iostream>
+
 #endif
 
 namespace strategy {
@@ -18,10 +20,10 @@ int get_hastened_remaining_ticks(const model::LivingUnit& unit) {
 
 double normalize_angle(double value) {
     if (value > M_PI) {
-        return value - std::round(value / (2.0 * M_PI)) * 2.0 * M_PI;
+        return value - std::round(value * 0.5 * M_1_PI) * 2.0 * M_PI;
     }
     if (value < -M_PI) {
-        return value + std::round(std::abs(value) / (2.0 * M_PI)) * 2.0 * M_PI;
+        return value + std::round(std::abs(value) * 0.5 * M_1_PI) * 2.0 * M_PI;
     }
     return value;
 }
@@ -33,9 +35,9 @@ Movement get_next_movement(const Point& target, const MovementState& state, cons
         return Movement(0, 0, 0);
     }
     const auto angle_to = normalize_angle(direction.absolute_rotation() - state.angle());
-    const auto speed = std::cos(angle_to)
+    const auto speed = math::cos(angle_to)
             * (std::abs(angle_to) <= M_PI_2 ? bounds.max_speed(state.tick()) : -bounds.min_speed(state.tick()));
-    const auto strafe_speed = bounds.max_strafe_speed(state.tick()) * std::sin(angle_to);
+    const auto strafe_speed = bounds.max_strafe_speed(state.tick()) * math::sin(angle_to);
     const auto speed_factor = std::min(1.0, norm / std::hypot(speed, strafe_speed));
     const auto turn = look_target.first
             ? normalize_angle((look_target.second - state.position()).absolute_rotation() - state.angle())
@@ -70,17 +72,21 @@ std::pair<MovementsStates, Movements> get_optimal_movement(const Context& contex
 
     const Bounds bounds {context};
 
+    Point prev_path_position = path.front();
     for (const auto& path_position : path) {
-        while (path_position.distance(states.back().position()) > bounds.max_speed(states.back().tick())) {
+        prev_path_position = path_position;
+        while (path_position.distance(states.back().position()) > bounds.max_speed(std::floor(states.back().tick()))) {
             const auto next = get_next_state(path_position, states.back(), look_target, bounds);
             states.push_back(next.first);
             movements.push_back(next.second);
         }
     }
 
-    const auto next = get_next_state(path.back(), states.back(), look_target, bounds);
-    states.push_back(next.first);
-    movements.push_back(next.second);
+    if (path.back() != states.back().position()) {
+        const auto next = get_next_state(path.back(), states.back(), look_target, bounds);
+        states.push_back(next.first);
+        movements.push_back(next.second);
+    }
 
     return {states, movements};
 }

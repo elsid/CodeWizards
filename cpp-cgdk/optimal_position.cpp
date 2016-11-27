@@ -1,5 +1,13 @@
 #include "optimal_position.hpp"
 
+#ifdef STRATEGY_DEBUG
+
+#include "debug/output.hpp"
+
+#include <iostream>
+
+#endif
+
 namespace strategy {
 
 bool is_friend(const model::Unit& unit, model::Faction my_faction, UnitId) {

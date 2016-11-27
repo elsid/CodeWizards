@@ -55,6 +55,7 @@ set(SOURCES
     graph.cpp
     move_mode.cpp
     battle_mode.cpp
+    circle.cpp
 )
 
 add_executable(cpp-cgdk

@@ -1,14 +1,6 @@
 #include "move_mode.hpp"
 #include "optimal_destination.hpp"
 
-#ifdef STRATEGY_DEBUG
-
-#include "debug/output.hpp"
-
-#include <iostream>
-
-#endif
-
 namespace strategy {
 
 MoveMode::MoveMode(const WorldGraph& graph)

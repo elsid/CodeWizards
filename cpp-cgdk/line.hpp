@@ -2,7 +2,7 @@
 
 #include "point.hpp"
 
-#include <cmath>
+#include <utility>
 
 namespace strategy {
 
@@ -49,6 +49,19 @@ public:
             return true;
         }
         return std::abs(1 + to_begin.cos(to_end)) <= max_error;
+    }
+
+    std::pair<bool, Point> intersection(const Line& other) const {
+        const Point x_diff(begin().x() - end().x(), other.begin().x() - other.end().x());
+        const Point y_diff(begin().y() - end().y(), other.begin().y() - other.end().y());
+        const auto div = x_diff.det(y_diff);
+        if (div == 0) {
+            return {false, Point()};
+        }
+        const Point d(begin().det(end()), other.begin().det(other.end()));
+        const auto x = d.det(x_diff) / div;
+        const auto y = d.det(y_diff) / div;
+        return {true, Point(x, y)};
     }
 
 private:
