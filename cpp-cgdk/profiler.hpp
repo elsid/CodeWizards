@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_PROFILER
+#define STRATEGY_PROFILER
 
 #include <chrono>
 
@@ -21,3 +22,5 @@ private:
 };
 
 }
+
+#endif

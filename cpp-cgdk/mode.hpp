@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_MODE
+#define STRATEGY_MODE
 
 #include "context.hpp"
 
@@ -36,3 +37,5 @@ public:
 };
 
 }
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_CACHE
+#define STRATEGY_CACHE
 
 #include "common.hpp"
 
@@ -45,9 +46,13 @@ public:
         return units_;
     }
 
+    void update(const T& unit, Tick tick) {
+        units_[unit.getId()] = make_cached(unit, tick);
+    }
+
     void update(const std::vector<T>& units, Tick tick) {
         for (const auto& unit : units) {
-            units_[unit.getId()] = make_cached(unit, tick);
+            update(unit, tick);
         }
     }
 
@@ -67,3 +72,5 @@ private:
 };
 
 }
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_MATH
+#define STRATEGY_MATH
 
 #define _USE_MATH_DEFINES
 
@@ -41,3 +42,5 @@ inline double sin(double angle) {
 
 }
 }
+
+#endif

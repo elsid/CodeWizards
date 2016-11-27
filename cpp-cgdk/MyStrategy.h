@@ -15,6 +15,7 @@ private:
     std::unique_ptr<strategy::IStrategy> strategy_;
 
     void update_cache(const model::Wizard& self, const model::World& world);
+    void add_fake_bonuses(const model::World& world);
 };
 
 #endif

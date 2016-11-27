@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_OPTIMAL_MOVEMENT
+#define STRATEGY_OPTIMAL_MOVEMENT
 
 #include "point.hpp"
 #include "context.hpp"
@@ -121,3 +122,5 @@ inline std::ostream&operator <<(std::ostream& stream, const Movement& value) {
 }
 
 }
+
+#endif

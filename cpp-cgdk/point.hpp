@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_POINT
+#define STRATEGY_POINT
 
 #include "math.hpp"
 
@@ -31,8 +32,8 @@ public:
     }
 
     BasicPoint rotated(double angle) const {
-        const double cos = math::cos(angle);
-        const double sin = math::sin(angle);
+        double cos = math::cos(angle);
+        double sin = math::sin(angle);
         return BasicPoint(x() * cos - y() * sin, y() * cos + x() * sin);
     }
 
@@ -83,17 +84,17 @@ inline bool operator !=(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
 }
 
 template <class T>
-inline BasicPoint<T> operator *(const BasicPoint<T>& lhs, const double rhs) {
+inline BasicPoint<T> operator *(const BasicPoint<T>& lhs, double rhs) {
     return BasicPoint<T>(lhs.x() * rhs, lhs.y() * rhs);
 }
 
 template <class T>
-inline BasicPoint<T> operator *(const double lhs, const BasicPoint<T>& rhs) {
+inline BasicPoint<T> operator *(double lhs, const BasicPoint<T>& rhs) {
     return BasicPoint<T>(lhs * rhs.x(), lhs * rhs.y());
 }
 
 template <class T>
-inline BasicPoint<T> operator /(const BasicPoint<T>& lhs, const double rhs) {
+inline BasicPoint<T> operator /(const BasicPoint<T>& lhs, double rhs) {
     return BasicPoint<T>(lhs.x() / rhs, lhs.y() / rhs);
 }
 
@@ -117,6 +118,10 @@ inline bool operator >(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
     return lhs.x() > rhs.x() || (lhs.x() == rhs.x() && lhs.y() > rhs.y());
 }
 
+inline BasicPoint<int> operator %(const BasicPoint<int>& lhs, int rhs) {
+    return BasicPoint<int>(lhs.x() % rhs, lhs.y() % rhs);
+}
+
 template <class T>
 inline std::ostream& operator <<(std::ostream& stream, const BasicPoint<T>& value) {
     return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
@@ -124,3 +129,5 @@ inline std::ostream& operator <<(std::ostream& stream, const BasicPoint<T>& valu
 }
 
 }
+
+#endif

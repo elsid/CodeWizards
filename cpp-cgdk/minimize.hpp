@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_MINIMIZE
+#define STRATEGY_MINIMIZE
 
 #include "newuoa.h"
 #include "point.hpp"
@@ -46,3 +47,5 @@ Point minimize(const F& function, const Point& initial, long max_function_calls_
 }
 
 }
+
+#endif

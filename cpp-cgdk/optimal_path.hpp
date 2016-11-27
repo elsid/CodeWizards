@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_OPTIMAL_PATH
+#define STRATEGY_OPTIMAL_PATH
 
 #include "circle.hpp"
 #include "point.hpp"
@@ -20,3 +21,5 @@ bool has_intersection_with_barriers(const Circle& barrier, const Point& final_po
 Circle make_circle(const model::CircularUnit* unit);
 
 }
+
+#endif

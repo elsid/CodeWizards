@@ -12,8 +12,18 @@ namespace strategy {
 template <class T>
 std::ostream& operator <<(std::ostream& stream, const std::vector<T>& values);
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Bonus& /* value */) {
-    return stream;
+inline std::ostream& operator <<(std::ostream& stream, const model::Bonus& value) {
+    stream << "model::Bonus(\n";
+    stream << "    " << value.getId() << ", // Id\n";
+    stream << "    " << value.getX() << ", // X\n";
+    stream << "    " << value.getY() << ", // Y\n";
+    stream << "    " << value.getSpeedX() << ", // SpeedX\n";
+    stream << "    " << value.getSpeedY() << ", // SpeedY\n";
+    stream << "    " << value.getAngle() << ", // Angle\n";
+    stream << "    " << value.getFaction() << ", // Faction\n";
+    stream << "    " << value.getRadius() << ", // Radius\n";
+    stream << "    " << value.getType() << " // Type\n";
+    return stream << ")";
 }
 
 inline std::ostream& operator <<(std::ostream& stream, const model::Minion& /* value */) {

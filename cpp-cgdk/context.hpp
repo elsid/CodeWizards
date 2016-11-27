@@ -22,8 +22,18 @@ using FullCache = std::tuple<
 >;
 
 template <class T>
+Cache<T>& get_cache(FullCache& cache) {
+    return std::get<Cache<T>>(cache);
+}
+
+template <class T>
+const Cache<T>& get_cache(const FullCache& cache) {
+    return std::get<Cache<T>>(cache);
+}
+
+template <class T>
 const typename Cache<T>::Units& get_units(const FullCache& cache) {
-    return std::get<Cache<T>>(cache).units();
+    return get_cache<T>(cache).units();
 }
 
 template <class T>
@@ -115,6 +125,9 @@ public:
         : self_(self), world_(world), game_(game), move_(move),
           cache_(cache), profiler_(profiler), time_limit_(time_limit) {}
 
+    Context(const Context&) = delete;
+    Context(Context&&) = delete;
+
     const model::Wizard& self() const {
         return self_;
     }
@@ -146,7 +159,6 @@ public:
     Duration time_limit() const {
         return time_limit_;
     }
-
 
 private:
     const model::Wizard& self_;

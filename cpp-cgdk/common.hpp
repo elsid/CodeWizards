@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_COMMON
+#define STRATEGY_COMMON
 
 namespace strategy {
 
@@ -25,3 +26,5 @@ const int OPTIMAL_PATH_STEP_SIZE = 20;
 const int OPTIMAL_PATH_MAX_TICKS = 100;
 
 }
+
+#endif

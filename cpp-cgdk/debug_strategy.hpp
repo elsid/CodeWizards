@@ -44,13 +44,16 @@ private:
         std::vector<std::pair<Point, double>> penalties;
         penalties.reserve(max_distance * max_distance * 4);
 
-        const double step = 2 * context.self().getRadius();
+        const int step = 2 * context.self().getRadius();
         const int count = std::round(max_distance / step);
+        const auto origin = self_position.to_int() + self_position.to_int() % step;
 
         for (int x = -count; x < count; ++x) {
             for (int y = -count; y < count; ++y) {
-                const auto position = self_position + PointInt(x, y).to_double() * step;
-                penalties.emplace_back(position, get_position_penalty(position));
+                const auto position = (origin + PointInt(x, y) * step).to_double();
+                if (position.distance(self_position) <= max_distance) {
+                    penalties.emplace_back(position, get_position_penalty(position));
+                }
             }
         }
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_GRAPH
+#define STRATEGY_GRAPH
 
 #include <limits>
 #include <queue>
@@ -55,3 +56,5 @@ private:
 };
 
 }
+
+#endif

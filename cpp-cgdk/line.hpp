@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_LINE
+#define STRATEGY_LINE
 
 #include "point.hpp"
 
@@ -70,3 +71,5 @@ private:
 };
 
 }
+
+#endif

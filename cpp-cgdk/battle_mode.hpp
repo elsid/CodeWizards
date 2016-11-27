@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_BATTLE_MODE
+#define STRATEGY_BATTLE_MODE
 
 #include "mode.hpp"
 
@@ -16,3 +17,5 @@ private:
 };
 
 }
+
+#endif

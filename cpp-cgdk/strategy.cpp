@@ -9,6 +9,8 @@
 
 #endif
 
+#include <iostream>
+
 namespace strategy {
 
 Strategy::Strategy(const Context& context)

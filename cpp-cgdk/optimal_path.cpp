@@ -11,8 +11,6 @@
 
 #include "debug/output.hpp"
 
-#include <iostream>
-
 #endif
 
 namespace strategy {

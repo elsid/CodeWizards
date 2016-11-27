@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_OPTIMAL_TARGET
+#define STRATEGY_OPTIMAL_TARGET
 
 #include "context.hpp"
 
@@ -97,3 +98,5 @@ struct GetDamage {
 };
 
 }
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_OPTIMAL_POSITION
+#define STRATEGY_OPTIMAL_POSITION
 
 #include "context.hpp"
 #include "minimize.hpp"
@@ -147,7 +148,7 @@ public:
 
         damage_factor = 1.0 - is_shielded(context.self()) * context.game().getShieldedDirectDamageAbsorptionFactor();
         borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
-                                 + projectiles.size() + trees.size() + wizards.size()) * 1e3;
+                                 + projectiles.size() + trees.size() + wizards.size());
     }
 
     double operator ()(const Point& position) const {
@@ -322,3 +323,5 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
 }
 
 }
+
+#endif

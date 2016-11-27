@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_STRATEGY
+#define STRATEGY_STRATEGY
 
 #include "battle_mode.hpp"
 #include "move_mode.hpp"
@@ -79,3 +80,5 @@ private:
 };
 
 }
+
+#endif

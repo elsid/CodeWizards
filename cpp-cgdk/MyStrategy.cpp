@@ -21,6 +21,7 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
     try {
 #endif
         strategy::Profiler profiler;
+        add_fake_bonuses(world);
         update_cache(self, world);
         strategy::Context context(self, world, game, move, cache_, profiler, strategy::Duration::max());
         if (!strategy_) {
@@ -32,6 +33,9 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
 #endif
         }
         strategy_->apply(context);
+        if (move.getSpeed() == 0) {
+            abort();
+        }
 #ifndef STRATEGY_DEBUG
     } catch (const std::exception& exception) {
         strategy_.reset();
@@ -74,6 +78,30 @@ struct CacheTtl<model::Wizard> {
     static constexpr const Tick value = 30;
 };
 
+static const model::Bonus FAKE_TOP_BONUS(
+    -1, // Id
+    1200, // X
+    1200, // Y
+    0, // SpeedX
+    0, // SpeedY
+    0, // Angle
+    model::FACTION_OTHER, // Faction
+    0, // Radius
+    model::BONUS_EMPOWER // Type
+);
+
+static const model::Bonus FAKE_BOTTOM_BONUS(
+    -2, // Id
+    2800, // X
+    2800, // Y
+    0, // SpeedX
+    0, // SpeedY
+    0, // Angle
+    model::FACTION_OTHER, // Faction
+    0, // Radius
+    model::BONUS_EMPOWER // Type
+);
+
 }
 
 void MyStrategy::update_cache(const model::Wizard& self, const model::World& world) {
@@ -108,4 +136,12 @@ void MyStrategy::update_cache(const model::Wizard& self, const model::World& wor
     };
 
     invalidate_cache(cache_, need_invalidate);
+}
+
+void MyStrategy::add_fake_bonuses(const model::World& world) {
+    if (world.getTickIndex() == 0 || world.getTickIndex() % 2500 != 0) {
+        return;
+    }
+    strategy::get_cache<model::Bonus>(cache_).update(strategy::FAKE_TOP_BONUS, world.getTickIndex());
+    strategy::get_cache<model::Bonus>(cache_).update(strategy::FAKE_BOTTOM_BONUS, world.getTickIndex());
 }
