@@ -41,11 +41,6 @@ struct Abs {
 
 void DebugStrategy::apply(Context& context) {
     base_->apply(context);
-
-//    std::cout << " tick: " << context.world().getTickIndex()
-//              << " destination: " << base_->destination()
-//              << " position: " << get_position(context.self()) << std::endl;
-
     visualize(context);
 }
 
@@ -56,31 +51,42 @@ void DebugStrategy::visualize(const Context& context) {
     visualize_positions_penalties(context);
     visualize_path(context);
     visualize_destination(context);
-//    visualize_states(context);
     visualize_target(context);
 }
 
-void DebugStrategy::visualize_graph(const Context& context) {
-    for (const auto& node : base_->graph().nodes()) {
+void DebugStrategy::visualize_graph(const Context& /*context*/) {
+    const auto& nodes = base_->graph().nodes();
+    for (const auto& node : nodes) {
         debug_.fillCircle(node.second.x(), node.second.y(), 10, 0xAAAAAA);
+        debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
     }
     const auto& arcs = base_->graph().arcs();
-    for (const auto& src : base_->graph().nodes()) {
-        for (const auto& dst : base_->graph().nodes()) {
+    for (const auto& src : nodes) {
+        for (const auto& dst : nodes) {
             if (arcs.get(src.first, dst.first) != std::numeric_limits<double>::max()) {
                 debug_.line(src.second.x(), src.second.y(), dst.second.x(), dst.second.y(), 0xAAAAAA);
             }
         }
     }
+    const auto friend_base = nodes.at(base_->graph().friend_base());
+    debug_.fillCircle(friend_base.x(), friend_base.y(), 20, 0x00AA00);
+    const auto enemy_base = nodes.at(base_->graph().enemy_base());
+    debug_.fillCircle(enemy_base.x(), enemy_base.y(), 20, 0xAA0000);
 }
 
 void DebugStrategy::visualize_graph_path(const Context& context) {
     Point prev = get_position(context.self());
+    const auto& nodes = base_->graph().nodes();
     for (auto node = base_->move_mode().path_node(); node != base_->move_mode().path().end(); ++node) {
-        const auto position = base_->graph().nodes().at(*node);
+        const auto position = nodes.at(*node);
         debug_.line(prev.x(), prev.y(), position.x(), position.y(), 0x222222);
         debug_.fillCircle(position.x(), position.y(), 10, 0x222222);
         prev = position;
+    }
+    const auto& destination = base_->move_mode().destination();
+    if (destination.first) {
+        const auto& position = nodes.at(destination.second);
+        debug_.circle(position.x(), position.y(), 30, 0x222222);
     }
 }
 
@@ -107,19 +113,11 @@ void DebugStrategy::visualize_positions_penalties(const Context& context) {
     }
 }
 
-void DebugStrategy::visualize_destination(const Context& context) {
-    debug_.line(base_->destination().x() - 50, base_->destination().y() - 50,
-                base_->destination().x() + 50, base_->destination().y() + 50, 0x0000FF);
-    debug_.line(base_->destination().x() + 50, base_->destination().y() - 50,
-                base_->destination().x() - 50, base_->destination().y() + 50, 0x0000FF);
-}
-
-void DebugStrategy::visualize_states(const Context& context) {
-    auto prev = get_position(context.self());
-    for (const auto& state : base_->states()) {
-        debug_.line(prev.x(), prev.y(), state.position().x(), state.position().y(), 0x009900);
-        prev = state.position();
-    }
+void DebugStrategy::visualize_destination(const Context& /*context*/) {
+    debug_.line(base_->destination().x() - 35, base_->destination().y() - 35,
+                base_->destination().x() + 35, base_->destination().y() + 35, 0x0000FF);
+    debug_.line(base_->destination().x() + 35, base_->destination().y() - 35,
+                base_->destination().x() - 35, base_->destination().y() + 35, 0x0000FF);
 }
 
 void DebugStrategy::visualize_target(const Context& context) {

@@ -33,7 +33,6 @@ private:
     void visualize_positions_penalties(const Context& context);
     void visualize_path(const Context& context);
     void visualize_destination(const Context& context);
-    void visualize_states(const Context& context);
     void visualize_target(const Context& context);
 
     template <class T>

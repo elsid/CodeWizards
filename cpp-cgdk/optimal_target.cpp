@@ -1,4 +1,5 @@
 #include "optimal_target.hpp"
+#include "optimal_position.hpp"
 
 #include <algorithm>
 
@@ -14,6 +15,7 @@ namespace strategy {
 
 Target get_optimal_target(const Context& context, double max_distance) {
     IsInMyRange is_in_my_range {context, max_distance};
+    GetAttackRange get_attack_range {context};
 
     const auto is_enemy_and_in_my_range = [&] (const auto& unit) {
         return is_enemy(unit, context.self().getFaction()) && is_in_my_range(unit);
@@ -25,7 +27,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
 
     const auto bonuses = filter_units(context.world().getBonuses(), is_in_my_range);
 
-    if (enemy_wizards.empty() && enemy_minions.empty() && enemy_wizards.empty() && bonuses.empty()) {
+    if (enemy_wizards.empty() && enemy_minions.empty() && enemy_buildings.empty() && bonuses.empty()) {
         const double factor = get_speed(context.self()).norm() < 1 ? 2 : 1.3;
         const auto trees = filter_units(context.world().getTrees(),
             [&] (const auto& unit) {
@@ -76,30 +78,52 @@ Target get_optimal_target(const Context& context, double max_distance) {
 
     IsInMyRange is_in_staff_range {context, context.game().getStaffRange()};
 
+    const auto is_in_range_of_my_or_optimal_position = [&] (const auto& unit) {
+        const auto optimal_position = get_optimal_position(context, &unit, 2 * context.self().getVisionRange());
+        const auto min = std::min(get_position(context.self()).distance(get_position(unit)),
+                                  optimal_position.distance(get_position(unit)));
+        return min <= get_attack_range(context.self()) + unit.getRadius();
+    };
+
     if (!enemy_wizards.empty()) {
         const auto in_staff_range = filter_units(enemy_wizards, is_in_staff_range);
         if (!in_staff_range.empty()) {
-            return get_id(**get_with_min_penalty(in_staff_range));
+            const auto& unit = **get_with_min_penalty(in_staff_range);
+            if (is_in_range_of_my_or_optimal_position(unit)) {
+                return get_id(unit);
+            }
         }
     }
 
     if (!enemy_minions.empty()) {
         const auto in_staff_range = filter_units(enemy_minions, is_in_staff_range);
         if (!in_staff_range.empty()) {
-            return get_id(**get_with_min_penalty(in_staff_range));
+            const auto& unit = **get_with_min_penalty(in_staff_range);
+            if (is_in_range_of_my_or_optimal_position(unit)) {
+                return get_id(unit);
+            }
         }
     }
 
     if (!enemy_wizards.empty()) {
-        return get_id(**get_with_min_penalty(enemy_wizards));
+        const auto& unit = **get_with_min_penalty(enemy_wizards);
+        if (is_in_range_of_my_or_optimal_position(unit)) {
+            return get_id(unit);
+        }
     }
 
     if (!enemy_minions.empty()) {
-        return get_id(**get_with_min_penalty(enemy_minions));
+        const auto& unit = **get_with_min_penalty(enemy_minions);
+        if (is_in_range_of_my_or_optimal_position(unit)) {
+            return get_id(unit);
+        }
     }
 
     if (!enemy_buildings.empty()) {
-        return get_id(**get_with_min_penalty(enemy_buildings));
+        const auto& unit = **get_with_min_penalty(enemy_buildings);
+        if (is_in_range_of_my_or_optimal_position(unit)) {
+            return get_id(unit);
+        }
     }
 
     return Target();

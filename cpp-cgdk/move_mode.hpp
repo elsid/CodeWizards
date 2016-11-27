@@ -17,12 +17,15 @@ public:
         return path_node_;
     }
 
+    const std::pair<bool, WorldGraph::Node>& destination() const {
+        return destination_;
+    }
+
     Result apply(const Context& context) override final;
 
 private:
     const WorldGraph& graph_;
     std::pair<bool, WorldGraph::Node> destination_;
-    std::pair<bool, WorldGraph::Node> departure_;
     model::LaneType target_lane_ = model::_LANE_UNKNOWN_;
     Tick last_message_ = 0;
     std::vector<WorldGraph::Node> path_;

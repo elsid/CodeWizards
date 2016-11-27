@@ -16,7 +16,9 @@ Strategy::Strategy(const Context& context)
           battle_mode_(std::make_shared<BattleMode>()),
           move_mode_(std::make_shared<MoveMode>(graph_)),
           mode_(move_mode_),
-          destination_(get_position(context.self())) {
+          destination_(get_position(context.self())),
+          state_(states_.end()),
+          movement_(movements_.end()) {
 }
 
 void Strategy::apply(Context &context) {
@@ -32,16 +34,25 @@ void Strategy::select_mode(const Context& context) {
         return use_move_mode();
     }
 
-    IsInMyRange is_in_my_range {context, context.self().getVisionRange()};
+    const IsInMyRange is_in_my_range {context, 0.95 * context.self().getVisionRange()};
+
+    const auto bonuses = get_units<model::Bonus>(context.world());
+    const auto has_near_bonuses = bonuses.end() != std::find_if(bonuses.begin(), bonuses.end(), is_in_my_range);
+
+    if (has_near_bonuses) {
+        return use_battle_mode();
+    }
 
     const auto is_enemy_in_node_range = [&] (const auto& unit) {
         return is_enemy(unit, context.self().getFaction()) && is_in_my_range(unit);
     };
 
+    const auto& buildings = get_units<model::Building>(context.world());
     const auto& minions = get_units<model::Minion>(context.world());
     const auto& wizards = get_units<model::Wizard>(context.world());
 
-    const auto has_near_enemies = minions.end() != std::find_if(minions.begin(), minions.end(), is_enemy_in_node_range)
+    const auto has_near_enemies = buildings.end() != std::find_if(buildings.begin(), buildings.end(), is_enemy_in_node_range)
+        || minions.end() != std::find_if(minions.begin(), minions.end(), is_enemy_in_node_range)
         || wizards.end() != std::find_if(wizards.begin(), wizards.end(), is_enemy_in_node_range);
 
     if (has_near_enemies) {
@@ -64,12 +75,15 @@ void Strategy::apply_mode(const Context& context) {
 }
 
 void Strategy::update_movements(const Context& context) {
-    const auto error = state_->position().distance(get_position(context.self())) - context.game().getWizardForwardSpeed();
-    if (movement_ == movements_.end() || error > 0) {
-        return calculate_movements(context);
+    if (movement_ != movements_.end() && state_ != states_.end()) {
+        const auto error = state_->position().distance(get_position(context.self())) - context.game().getWizardForwardSpeed();
+        if (error <= 0) {
+            ++movement_;
+            ++state_;
+            return;
+        }
     }
-    ++movement_;
-    ++state_;
+    calculate_movements(context);
 }
 
 void Strategy::apply_move(Context& context) {

@@ -88,6 +88,11 @@ inline BasicPoint<T> operator *(const BasicPoint<T>& lhs, const double rhs) {
 }
 
 template <class T>
+inline BasicPoint<T> operator *(const double lhs, const BasicPoint<T>& rhs) {
+    return BasicPoint<T>(lhs * rhs.x(), lhs * rhs.y());
+}
+
+template <class T>
 inline BasicPoint<T> operator /(const BasicPoint<T>& lhs, const double rhs) {
     return BasicPoint<T>(lhs.x() / rhs, lhs.y() / rhs);
 }

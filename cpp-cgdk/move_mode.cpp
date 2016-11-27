@@ -6,7 +6,7 @@ namespace strategy {
 MoveMode::MoveMode(const WorldGraph& graph)
         : graph_(graph),
           destination_(false, WorldGraph::Node()),
-          departure_(false, WorldGraph::Node()) {
+          path_node_(path_.end())  {
 }
 
 MoveMode::Result MoveMode::apply(const Context& context) {
@@ -27,16 +27,15 @@ void MoveMode::handle_messages(const Context& context) {
 }
 
 void MoveMode::update_path(const Context& context) {
-    if (destination_.first) {
+    if (destination_.first && path_node_ != path_.end() && last_message_ != context.world().getTickIndex()) {
         return;
     }
     const auto destination = get_optimal_destination(context, graph_, target_lane_);
-    const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(context.self())).first;
-    if (departure_.first && nearest_node == departure_.second) {
+    if (destination_.first && destination_.second == destination) {
         return;
     }
     destination_ = {true, destination};
-    departure_ = {true, nearest_node};
+    const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(context.self())).first;
     path_ = graph_.get_shortest_path(nearest_node, destination).nodes;
     path_node_ = path_.begin();
 }
@@ -46,11 +45,9 @@ void MoveMode::next_path_node(const Context& context) {
         return;
     }
 
-    const auto required_distance = 0.9 * (
-        path_.end() - path_node_ > 2
-        ? graph_.nodes().at(*path_node_).distance(graph_.nodes().at(*(path_node_ + 1)))
-        : graph_.zone_size()
-    );
+    const auto required_distance = path_.end() - path_node_ > 2
+            ? context.self().getVisionRange() * 0.5
+            : context.self().getVisionRange();
 
     const auto distance = graph_.nodes().at(*path_node_).distance(get_position(context.self()));
 

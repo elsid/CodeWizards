@@ -43,7 +43,7 @@ static WorldGraph::Pair get_nearest_node_by_path(const WorldGraph& graph, const 
     std::transform(nodes.begin(), nodes.end(), std::inserter(path_lengths, path_lengths.end()),
         [&] (const auto& v) { return std::make_pair(v.first, graph.get_shortest_path(node, v.first).length); });
     return *std::min_element(nodes.begin(), nodes.end(),
-        [&] (const auto& lhs, const auto& rhs) { return path_lengths[lhs.first] < path_lengths[rhs.first]; });
+        [&] (const auto& lhs, const auto& rhs) { return path_lengths.at(lhs.first) < path_lengths.at(rhs.first); });
 }
 
 static WorldGraph::Path get_path_to_nearest_node(const WorldGraph& graph, const std::vector<WorldGraph::Pair>& nodes, const WorldGraph::Node node) {
@@ -84,7 +84,7 @@ WorldGraph::Node get_optimal_destination(const Context& context, const WorldGrap
     };
 
     const auto at_target_lane = [&] (const auto& node) {
-        return target_lane != model::_LANE_UNKNOWN_ && graph.lanes_nodes().at(target_lane).count(node.first);
+        return target_lane == model::_LANE_UNKNOWN_ || graph.lanes_nodes().at(target_lane).count(node.first);
     };
 
     const auto nodes_with_bonuses = filter_nodes(graph.nodes(), has_near_bonus);

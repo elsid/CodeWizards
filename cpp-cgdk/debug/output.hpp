@@ -12,31 +12,31 @@ namespace strategy {
 template <class T>
 std::ostream& operator <<(std::ostream& stream, const std::vector<T>& values);
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Bonus& value) {
+inline std::ostream& operator <<(std::ostream& stream, const model::Bonus& /* value */) {
     return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Minion& value) {
+inline std::ostream& operator <<(std::ostream& stream, const model::Minion& /* value */) {
     return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Projectile& value) {
+inline std::ostream& operator <<(std::ostream& stream, const model::Projectile& /* value */) {
     return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Player& value) {
+inline std::ostream& operator <<(std::ostream& stream, const model::Player& /* value */) {
     return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Status& value) {
+inline std::ostream& operator <<(std::ostream& stream, const model::Status& /* value */) {
     return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Message& value) {
+inline std::ostream& operator <<(std::ostream& stream, const model::Message& /* value */) {
     return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Building& value) {
+inline std::ostream& operator <<(std::ostream& stream, const model::Building& /* value */) {
     return stream;
 }
 

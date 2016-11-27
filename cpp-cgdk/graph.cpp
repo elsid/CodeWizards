@@ -6,10 +6,11 @@ namespace strategy {
 
 Graph::Path Graph::get_shortest_path(Node src, Node dst) const {
     std::vector<double> lengths(size_, std::numeric_limits<double>::max());
+    lengths[src] = 0;
     const auto less_priority = [&] (Node lhs, Node rhs) {
-        return lengths[lhs] < lengths[rhs];
+        return lengths[lhs] > lengths[rhs];
     };
-    std::priority_queue<Node, std::deque<Node>, decltype(less_priority)> queue(less_priority);
+    std::priority_queue<Node, std::vector<Node>, decltype(less_priority)> queue(less_priority);
     std::vector<bool> visited(size_, false);
     std::vector<Node> came_from(size_, size_);
     queue.push(src);
@@ -39,7 +40,7 @@ std::vector<Graph::Node> Graph::reconstruct_path(Node node, const std::vector<No
     nodes.reserve(came_from.size());
     while (node != size_) {
         nodes.push_back(node);
-        node = came_from[node];
+        node = came_from.at(node);
     }
     std::reverse(nodes.begin(), nodes.end());
     return nodes;
