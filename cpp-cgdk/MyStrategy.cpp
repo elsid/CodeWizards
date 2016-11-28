@@ -35,7 +35,7 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
         strategy_->apply(context);
 #ifndef STRATEGY_DEBUG
     } catch (const std::exception& exception) {
-        std::cerr << exception.what() << std::endl;
+        std::cerr << "[" << world.getTickIndex() << "] " << exception.what() << std::endl;
         strategy_.reset();
     }
 #endif
