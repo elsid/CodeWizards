@@ -1,5 +1,5 @@
-#ifndef STRATEGY_COMMON
-#define STRATEGY_COMMON
+#ifndef STRATEGY_COMMON_HPP
+#define STRATEGY_COMMON_HPP
 
 namespace strategy {
 

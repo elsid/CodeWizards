@@ -1,5 +1,5 @@
-#ifndef STRATEGY_BATTLE_MODE
-#define STRATEGY_BATTLE_MODE
+#ifndef STRATEGY_BATTLE_MODE_HPP
+#define STRATEGY_BATTLE_MODE_HPP
 
 #include "mode.hpp"
 

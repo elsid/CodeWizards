@@ -1,5 +1,5 @@
-#ifndef STRATEGY_MODE
-#define STRATEGY_MODE
+#ifndef STRATEGY_MODE_HPP
+#define STRATEGY_MODE_HPP
 
 #include "context.hpp"
 

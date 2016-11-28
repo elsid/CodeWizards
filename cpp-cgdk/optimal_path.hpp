@@ -1,5 +1,5 @@
-#ifndef STRATEGY_OPTIMAL_PATH
-#define STRATEGY_OPTIMAL_PATH
+#ifndef STRATEGY_OPTIMAL_PATH_HPP
+#define STRATEGY_OPTIMAL_PATH_HPP
 
 #include "circle.hpp"
 #include "point.hpp"

@@ -1,5 +1,5 @@
-#ifndef STRATEGY_OPTIMAL_MOVEMENT
-#define STRATEGY_OPTIMAL_MOVEMENT
+#ifndef STRATEGY_OPTIMAL_MOVEMENT_HPP
+#define STRATEGY_OPTIMAL_MOVEMENT_HPP
 
 #include "point.hpp"
 #include "context.hpp"

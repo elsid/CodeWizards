@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRATEGY_CONTEXT_HPP
+#define STRATEGY_CONTEXT_HPP
 
 #include "point.hpp"
 #include "profiler.hpp"
@@ -259,3 +260,5 @@ inline void invalidate_cache(FullCache& cache, const Predicate& predicate) {
 }
 
 }
+
+#endif

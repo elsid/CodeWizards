@@ -1,5 +1,5 @@
-#ifndef STRATEGY_MOVE_MODE
-#define STRATEGY_MOVE_MODE
+#ifndef STRATEGY_MOVE_MODE_HPP
+#define STRATEGY_MOVE_MODE_HPP
 
 #include "mode.hpp"
 #include "world_graph.hpp"

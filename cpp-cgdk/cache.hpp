@@ -1,5 +1,5 @@
-#ifndef STRATEGY_CACHE
-#define STRATEGY_CACHE
+#ifndef STRATEGY_CACHE_HPP
+#define STRATEGY_CACHE_HPP
 
 #include "common.hpp"
 

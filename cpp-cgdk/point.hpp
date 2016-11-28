@@ -1,5 +1,5 @@
-#ifndef STRATEGY_POINT
-#define STRATEGY_POINT
+#ifndef STRATEGY_POINT_HPP
+#define STRATEGY_POINT_HPP
 
 #include "math.hpp"
 

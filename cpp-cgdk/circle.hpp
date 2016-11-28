@@ -1,5 +1,5 @@
-#ifndef STRATEGY_CIRCLE
-#define STRATEGY_CIRCLE
+#ifndef STRATEGY_CIRCLE_HPP
+#define STRATEGY_CIRCLE_HPP
 
 #include "point.hpp"
 #include "line.hpp"

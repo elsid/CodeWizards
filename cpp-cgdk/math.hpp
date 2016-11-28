@@ -1,5 +1,5 @@
-#ifndef STRATEGY_MATH
-#define STRATEGY_MATH
+#ifndef STRATEGY_MATH_HPP
+#define STRATEGY_MATH_HPP
 
 #define _USE_MATH_DEFINES
 

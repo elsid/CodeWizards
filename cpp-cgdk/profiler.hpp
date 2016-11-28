@@ -1,5 +1,5 @@
-#ifndef STRATEGY_PROFILER
-#define STRATEGY_PROFILER
+#ifndef STRATEGY_PROFILER_HPP
+#define STRATEGY_PROFILER_HPP
 
 #include <chrono>
 

@@ -1,5 +1,5 @@
-#ifndef STRATEGY_GRAPH
-#define STRATEGY_GRAPH
+#ifndef STRATEGY_GRAPH_HPP
+#define STRATEGY_GRAPH_HPP
 
 #include <limits>
 #include <queue>

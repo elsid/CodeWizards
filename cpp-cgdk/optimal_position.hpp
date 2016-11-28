@@ -1,5 +1,5 @@
-#ifndef STRATEGY_OPTIMAL_POSITION
-#define STRATEGY_OPTIMAL_POSITION
+#ifndef STRATEGY_OPTIMAL_POSITION_HPP
+#define STRATEGY_OPTIMAL_POSITION_HPP
 
 #include "context.hpp"
 #include "minimize.hpp"

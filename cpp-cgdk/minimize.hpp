@@ -1,5 +1,5 @@
-#ifndef STRATEGY_MINIMIZE
-#define STRATEGY_MINIMIZE
+#ifndef STRATEGY_MINIMIZE_HPP
+#define STRATEGY_MINIMIZE_HPP
 
 #include "newuoa.h"
 #include "point.hpp"

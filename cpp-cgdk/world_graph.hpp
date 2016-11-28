@@ -1,5 +1,5 @@
-#ifndef STRATEGY_WORLD_GRAPH
-#define STRATEGY_WORLD_GRAPH
+#ifndef STRATEGY_WORLD_GRAPH_HPP
+#define STRATEGY_WORLD_GRAPH_HPP
 
 #include "graph.hpp"
 #include "point.hpp"

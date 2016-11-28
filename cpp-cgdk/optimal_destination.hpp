@@ -1,5 +1,5 @@
-#ifndef STRATEGY_OPTIMAL_DESTINATION
-#define STRATEGY_OPTIMAL_DESTINATION
+#ifndef STRATEGY_OPTIMAL_DESTINATION_HPP
+#define STRATEGY_OPTIMAL_DESTINATION_HPP
 
 #include "world_graph.hpp"
 #include "context.hpp"
