@@ -162,7 +162,7 @@ public:
         std::copy(friend_buildings.begin(), friend_buildings.end(), std::back_inserter(friend_units));
 
         damage_factor = 1.0 - is_shielded(context.self()) * context.game().getShieldedDirectDamageAbsorptionFactor();
-        borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
+        max_borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
                                  + projectiles.size() + trees.size() + wizards.size());
     }
 
@@ -179,7 +179,7 @@ public:
                 || position.y() >= context.game().getMapSize() - context.self().getRadius();
 
         if (is_out_of_borders) {
-            return borders_penalty;
+            return max_borders_penalty;
         }
 
         const double enemy_wizards_damage = std::accumulate(
@@ -254,7 +254,7 @@ public:
             }
         }
 
-        return get_sum_units_penalty(buildings, position)
+        const auto except_borders = get_sum_units_penalty(buildings, position)
                 + get_sum_units_penalty(minions, position)
                 + get_sum_units_penalty(trees, position)
                 + get_sum_wizards_penalty(wizards, position)
@@ -262,6 +262,13 @@ public:
                 + get_sum_projectiles_penalty(projectiles, position)
                 + get_sum_friendly_fire_penalty(friend_units, position)
                 + target_distance_penalty;
+
+        const auto borders_distance_penalty = get_border_distance_penalty(position.x(), max_borders_penalty - except_borders)
+                + get_border_distance_penalty(context.game().getMapSize() - position.x(), max_borders_penalty - except_borders)
+                + get_border_distance_penalty(position.y(), max_borders_penalty - except_borders)
+                + get_border_distance_penalty(context.game().getMapSize() - position.y(), max_borders_penalty - except_borders);
+
+        return except_borders + borders_distance_penalty;
     }
 
 private:
@@ -278,7 +285,7 @@ private:
     std::vector<const model::Minion*> enemy_minions;
     std::vector<const model::Building*> enemy_buildings;
     std::vector<const model::CircularUnit*> friend_units;
-    double borders_penalty = std::numeric_limits<double>::max();
+    double max_borders_penalty = std::numeric_limits<double>::max();
     double damage_factor = 1;
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
@@ -331,6 +338,15 @@ private:
         const auto max_distance = (tangent1_distance + tangent2_distance) * 0.5;
         const auto distance_to_tangent = std::min(tangent1_distance, tangent2_distance);
         return distance_to_tangent / max_distance;
+    }
+
+    double get_border_distance_penalty(double distance, double max_penalty) const {
+        const auto safe_distance = 4 * context.self().getRadius();
+        if (distance < 0.5 * safe_distance) {
+            return max_penalty * get_distance_penalty(distance, safe_distance);
+        } else {
+            return max_penalty * 0.5 * get_distance_penalty(distance, 2 * safe_distance);
+        }
     }
 };
 
