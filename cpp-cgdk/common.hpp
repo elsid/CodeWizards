@@ -23,7 +23,7 @@ private:
 
 const Tick MESSAGE_TICKS = 500;
 const int OPTIMAL_PATH_STEP_SIZE = 20;
-const int OPTIMAL_PATH_MAX_TICKS = 100;
+const Tick OPTIMAL_PATH_MAX_TICKS = 100;
 
 }
 
