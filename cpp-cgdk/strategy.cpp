@@ -1,5 +1,6 @@
 #include "strategy.hpp"
 #include "optimal_destination.hpp"
+#include "optimal_position.hpp"
 
 #ifdef STRATEGY_DEBUG
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "optimal_position.hpp"
 #include "strategy.hpp"
 
 #include "russian-ai-cup-visual/Debug.h"

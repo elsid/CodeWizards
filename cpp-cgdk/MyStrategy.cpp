@@ -1,5 +1,6 @@
 #include "MyStrategy.h"
 
+#include "optimal_target.hpp"
 #include "cache.hpp"
 
 #ifdef STRATEGY_DEBUG
