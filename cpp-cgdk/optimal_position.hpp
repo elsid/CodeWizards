@@ -18,7 +18,12 @@ bool is_enemy(const model::Unit& unit, model::Faction my_faction);
 bool is_friend(const model::Unit& unit, model::Faction my_faction, UnitId my_id);
 bool is_friend(const model::Wizard& unit, model::Faction my_faction, UnitId my_id);
 
+bool is_me(const model::Wizard& unit);
+bool is_me(const model::Unit&);
+
 double get_distance_penalty(double value, double safe);
+
+Point get_optimal_position(const Context& context, const Target& target, double max_distance);
 
 template <class T>
 std::vector<const T*> filter_friends(const std::vector<const T*>& units, model::Faction my_faction, UnitId my_id) {
@@ -60,6 +65,27 @@ struct GetRangedDamage {
     }
 };
 
+struct GetUnitAttackAbility {
+    const Context& context;
+
+    template <class Unit>
+    bool operator ()(const Unit&) const {
+        return false;
+    }
+
+    bool operator ()(const model::Building& unit) const {
+        return unit.getRemainingActionCooldownTicks() > unit.getCooldownTicks() / 2;
+    }
+
+    bool operator ()(const model::Minion& unit) const {
+        return unit.getRemainingActionCooldownTicks() > unit.getCooldownTicks() / 2;
+    }
+
+    bool operator ()(const model::Wizard& unit) const {
+        return unit.getRemainingActionCooldownTicks() > context.game().getWizardActionCooldownTicks() / 2;
+    }
+};
+
 struct GetUnitDangerPenalty {
     const Context& context;
     const std::vector<const model::CircularUnit*>& friend_units;
@@ -76,10 +102,11 @@ struct GetUnitDangerPenalty {
         const GetAttackRange get_attack_range {context};
         const GetDamage get_damage {context};
         const GetRangedDamage get_ranged_damage {context};
+        const GetUnitAttackAbility get_attack_ability {context};
         const double add_damage = damage_factor * (get_damage(unit) - get_ranged_damage(unit, position));
         const double safe_distance = std::max(
                 context.self().getCastRange() + context.game().getMagicMissileRadius(),
-                (get_attack_range(unit) + 2 * context.self().getRadius())
+                get_attack_ability(unit) * (get_attack_range(unit) + 2 * context.self().getRadius())
                     * std::min(1.0, 2 * (sum_enemy_damage + add_damage) / context.self().getLife())
         );
         return get_distance_penalty(position.distance(get_position(unit)), safe_distance);
@@ -100,11 +127,6 @@ struct IsTarget {
         return false;
     }
 };
-
-bool is_me(const model::Wizard& unit);
-bool is_me(const model::Unit&);
-
-Point get_optimal_position(const Context& context, const Target& target, double max_distance);
 
 template <class T>
 class GetPositionPenalty {
@@ -229,8 +251,8 @@ public:
                 const auto distance = position.distance(get_position(*target));
                 double distance_penalty = 0;
                 if (distance > max_cast_range) {
-                    const auto safe_distance = std::max(context.self().getCastRange(), context.game().getMapSize());
-                    distance_penalty = 1 - get_distance_penalty(distance - max_cast_range, safe_distance);
+                    const auto safe_distance = std::max(context.self().getCastRange(), 2 * context.self().getVisionRange());
+                    distance_penalty = 1.0 - get_distance_penalty(distance - max_cast_range, safe_distance);
                 }
                 target_distance_penalty = std::max(get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage),
                                                    distance_penalty);
