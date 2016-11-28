@@ -2,8 +2,6 @@
 #include "optimal_target.hpp"
 #include "optimal_position.hpp"
 
-#include <cassert>
-
 namespace strategy {
 
 BattleMode::Result BattleMode::apply(const Context& context) {

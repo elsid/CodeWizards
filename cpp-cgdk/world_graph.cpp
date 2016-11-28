@@ -1,7 +1,6 @@
 #include "world_graph.hpp"
 
 #include <algorithm>
-#include <cassert>
 
 #ifdef STRATEGY_DEBUG
 
