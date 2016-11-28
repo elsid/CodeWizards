@@ -1,5 +1,5 @@
-#ifndef STRATEGY_STRATEGY_HPP
-#define STRATEGY_STRATEGY_HPP
+#ifndef STRATEGY_BASE_STRATEGY_HPP
+#define STRATEGY_BASE_STRATEGY_HPP
 
 #include "battle_mode.hpp"
 #include "move_mode.hpp"
@@ -10,15 +10,15 @@
 
 namespace strategy {
 
-class IStrategy {
+class Strategy {
 public:
-    virtual ~IStrategy() = default;
+    virtual ~Strategy() = default;
     virtual void apply(Context& context) = 0;
 };
 
-class Strategy : public IStrategy {
+class BaseStrategy : public Strategy {
 public:
-    Strategy(const Context& context);
+    BaseStrategy(const Context& context);
 
     const WorldGraph& graph() const {
         return graph_;
@@ -51,7 +51,7 @@ public:
     void apply(Context& context) override final;
 
 private:
-    WorldGraph graph_;
+    const WorldGraph graph_;
     const std::shared_ptr<BattleMode> battle_mode_;
     const std::shared_ptr<MoveMode> move_mode_;
     std::shared_ptr<Mode> mode_;

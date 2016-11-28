@@ -44,7 +44,7 @@ set(SOURCES
     russian-ai-cup-visual/Debug.cpp
 
     newuoa.cpp
-    strategy.cpp
+    base_strategy.cpp
     debug_strategy.cpp
     time_limited_strategy.cpp
     optimal_position.cpp

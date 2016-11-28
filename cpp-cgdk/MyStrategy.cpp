@@ -26,7 +26,7 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
         update_cache(self, world);
         strategy::Context context(self, world, game, move, cache_, profiler, strategy::Duration::max());
         if (!strategy_) {
-            auto base = std::make_unique<strategy::Strategy>(context);
+            auto base = std::make_unique<strategy::BaseStrategy>(context);
 #ifdef STRATEGY_DEBUG
             strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(base));
 #else

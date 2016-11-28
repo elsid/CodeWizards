@@ -153,4 +153,4 @@ static const model::Game GAME(
 }
 }
 
-#endif STRATEGY_COMMON
+#endif

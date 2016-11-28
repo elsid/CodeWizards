@@ -1,13 +1,13 @@
 #ifndef STRATEGY_TIME_LIMITED_STRATEGY_HPP
 #define STRATEGY_TIME_LIMITED_STRATEGY_HPP
 
-#include "strategy.hpp"
+#include "base_strategy.hpp"
 
 #include <memory>
 
 namespace strategy {
 
-class TimeLimitedStrategy : public IStrategy {
+class TimeLimitedStrategy : public Strategy {
 public:
     TimeLimitedStrategy(std::unique_ptr<Strategy> base) : base_(std::move(base)), sum_time_(0) {}
 
@@ -21,7 +21,6 @@ private:
     Duration get_full_time_limit(int tick, bool is_master) const;
     static int get_base_time_limit_per_tick(bool is_master);
 };
-
 
 }
 

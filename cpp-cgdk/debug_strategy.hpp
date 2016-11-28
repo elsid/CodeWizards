@@ -1,7 +1,7 @@
 #pragma once
 
 #include "optimal_position.hpp"
-#include "strategy.hpp"
+#include "base_strategy.hpp"
 
 #include "russian-ai-cup-visual/Debug.h"
 
@@ -18,14 +18,14 @@ namespace strategy {
 std::int32_t get_color(double red, double green, double blue);
 std::int32_t get_color(double heat);
 
-class DebugStrategy : public IStrategy {
+class DebugStrategy : public Strategy {
 public:
-    DebugStrategy(std::unique_ptr<Strategy> base) : base_(std::move(base)) {}
+    DebugStrategy(std::unique_ptr<BaseStrategy> base) : base_(std::move(base)) {}
 
     void apply(Context& context) override final;
 
 private:
-    std::unique_ptr<Strategy> base_;
+    std::unique_ptr<BaseStrategy> base_;
     Debug debug_;
 
     void visualize(const Context& context);

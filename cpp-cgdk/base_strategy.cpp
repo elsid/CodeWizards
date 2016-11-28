@@ -1,4 +1,4 @@
-#include "strategy.hpp"
+#include "base_strategy.hpp"
 #include "optimal_destination.hpp"
 #include "optimal_position.hpp"
 
@@ -12,7 +12,7 @@
 
 namespace strategy {
 
-Strategy::Strategy(const Context& context)
+BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
           battle_mode_(std::make_shared<BattleMode>()),
           move_mode_(std::make_shared<MoveMode>(graph_)),
@@ -22,7 +22,7 @@ Strategy::Strategy(const Context& context)
           movement_(movements_.end()) {
 }
 
-void Strategy::apply(Context &context) {
+void BaseStrategy::apply(Context &context) {
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     select_mode(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
@@ -36,7 +36,7 @@ void Strategy::apply(Context &context) {
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 }
 
-void Strategy::select_mode(const Context& context) {
+void BaseStrategy::select_mode(const Context& context) {
     if (!context.self().getMessages().empty()) {
         return use_move_mode();
     }
@@ -69,7 +69,7 @@ void Strategy::select_mode(const Context& context) {
     }
 }
 
-void Strategy::apply_mode(const Context& context) {
+void BaseStrategy::apply_mode(const Context& context) {
     const auto result = mode_->apply(context);
 
     if (result.active()) {
@@ -81,7 +81,7 @@ void Strategy::apply_mode(const Context& context) {
     }
 }
 
-void Strategy::update_movements(const Context& context) {
+void BaseStrategy::update_movements(const Context& context) {
     if (movement_ != movements_.end() && state_ != states_.end()) {
         const auto error = state_->position().distance(get_position(context.self())) - context.game().getWizardForwardSpeed();
         if (error <= 0) {
@@ -93,7 +93,7 @@ void Strategy::update_movements(const Context& context) {
     calculate_movements(context);
 }
 
-void Strategy::apply_move(Context& context) {
+void BaseStrategy::apply_move(Context& context) {
     if (movement_ == movements_.end()) {
         return;
     }
@@ -102,7 +102,7 @@ void Strategy::apply_move(Context& context) {
     context.move().setTurn(movement_->turn());
 }
 
-void Strategy::calculate_movements(const Context& context) {
+void BaseStrategy::calculate_movements(const Context& context) {
     path_ = get_optimal_path(context, destination_, OPTIMAL_PATH_STEP_SIZE, OPTIMAL_PATH_MAX_TICKS);
     if (const auto unit = target_.circular_unit(context.cache())) {
         std::tie(states_, movements_) = get_optimal_movement(context, path_, {true, get_position(*unit)});
@@ -113,7 +113,7 @@ void Strategy::calculate_movements(const Context& context) {
     movement_ = movements_.begin();
 }
 
-void Strategy::apply_action(Context& context) {
+void BaseStrategy::apply_action(Context& context) {
     if (const auto target = target_.circular_unit(context.cache())) {
         const auto distance = get_position(*target).distance(get_position(context.self()));
 
@@ -148,21 +148,21 @@ void Strategy::apply_action(Context& context) {
     }
 }
 
-void Strategy::use_move_mode() {
+void BaseStrategy::use_move_mode() {
     mode_ = move_mode_;
 }
 
-void Strategy::use_battle_mode() {
+void BaseStrategy::use_battle_mode() {
     mode_ = battle_mode_;
 }
 
-bool Strategy::need_apply_staff(const Context& context, const model::CircularUnit& target) {
+bool BaseStrategy::need_apply_staff(const Context& context, const model::CircularUnit& target) {
     const auto distance = get_position(target).distance(get_position(context.self()));
     const auto lethal_area = target.getRadius() + context.game().getStaffRange();
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_STAFF] == 0 && distance < lethal_area;
 }
 
-bool Strategy::need_apply_magic_missile(const Context& context, const model::CircularUnit& target, double turn) {
+bool BaseStrategy::need_apply_magic_missile(const Context& context, const model::CircularUnit& target, double turn) {
     if (context.self().getRemainingCooldownTicksByAction()[model::ACTION_MAGIC_MISSILE] != 0) {
         return false;
     }
