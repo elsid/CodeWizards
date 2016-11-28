@@ -104,6 +104,29 @@ double GetNodePenalty::operator ()(WorldGraph::Node node) const {
             + distance_to_enemy_base_penalty * DISTANCE_TO_ENEMY_BASE_PENALTY_WEIGHT;
 }
 
+struct NodeInfo {
+    bool has_bonus = false;
+    bool has_enemy = false;
+};
+
+struct SetNodesInfo {
+    model::Faction my_faction;
+    const WorldGraph::Nodes& nodes;
+    std::vector<NodeInfo>& nodes_info;
+
+    void operator ()(const model::Bonus& unit) {
+        const auto nearest_node = get_nearest_node(nodes, get_position(unit)).first;
+        nodes_info[nearest_node].has_bonus = true;
+    }
+
+    void operator ()(const model::LivingUnit& unit) {
+        if (is_enemy(unit, my_faction)) {
+            const auto nearest_node = get_nearest_node(nodes, get_position(unit)).first;
+            nodes_info[nearest_node].has_enemy = true;
+        }
+    }
+};
+
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane) {
 //    GetNodePenalty get_node_penalty(context, graph, target_lane);
 //    std::vector<double> penalties;
@@ -112,32 +135,27 @@ WorldGraph::Node get_optimal_destination(const Context& context, const WorldGrap
 //        [&] (const auto& v) { return get_node_penalty(v.first); });
 //    return WorldGraph::Node(std::min_element(penalties.begin(), penalties.end()) - penalties.begin());
 
+    std::vector<NodeInfo> nodes_info(graph.nodes().size());
+    SetNodesInfo set_nodes_info {context.self().getFaction(), graph.nodes(), nodes_info};
+
+    const auto fill_nodes_info = [&] (const auto& units) {
+        for (const auto& v : units) {
+            const auto& unit = v.second.value();
+            set_nodes_info(unit);
+        }
+    };
+
+    fill_nodes_info(get_units<model::Bonus>(context.cache()));
+    fill_nodes_info(get_units<model::Building>(context.cache()));
+    fill_nodes_info(get_units<model::Minion>(context.cache()));
+    fill_nodes_info(get_units<model::Wizard>(context.cache()));
+
     const auto has_near_bonus = [&] (const auto& node) {
-        return has_near_units(node.second, context.world().getBonuses(), graph.zone_size());
-    };
-
-    const auto is_enemy = [&] (const auto& unit) {
-        return strategy::is_enemy(unit, context.self().getFaction());
-    };
-
-    const auto enemy_buildings = filter_units(context.world().getBuildings(), is_enemy);
-    const auto enemy_minions = filter_units(context.world().getMinions(), is_enemy);
-    const auto enemy_wizards = filter_units(context.world().getWizards(), is_enemy);
-
-    const auto has_near_enemy_buildings = [&] (const auto& node) {
-        return has_near_units(node.second, enemy_buildings, graph.zone_size());
-    };
-
-    const auto has_near_enemy_minions = [&] (const auto& node) {
-        return has_near_units(node.second, enemy_minions, graph.zone_size());
-    };
-
-    const auto has_near_enemy_wizards = [&] (const auto& node) {
-        return has_near_units(node.second, enemy_wizards, graph.zone_size());
+        return nodes_info[node.first].has_bonus;
     };
 
     const auto has_near_enemy = [&] (const auto& node) {
-        return has_near_enemy_buildings(node) || has_near_enemy_minions(node) || has_near_enemy_wizards(node);
+        return nodes_info[node.first].has_enemy;
     };
 
     const auto at_target_lane = [&] (const auto& node) {
