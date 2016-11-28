@@ -166,6 +166,8 @@ public:
     }
 
     double operator ()(const Point& position) const {
+        context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+
         const GetUnitIntersectionPenalty get_unit_collision_penalty {context};
         const GetUnitDangerPenalty get_unit_danger_penalty {context, friend_units};
         const GetRangedDamage get_ranged_damage {context};

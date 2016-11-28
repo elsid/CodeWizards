@@ -242,6 +242,8 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
     queue.push(StepState(0, target.distance(initial_position), 0, initial_position_int));
 
     while (!queue.empty()) {
+        context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+
         const StepState step_state = queue.top();
         queue.pop();
 

@@ -23,11 +23,17 @@ Strategy::Strategy(const Context& context)
 }
 
 void Strategy::apply(Context &context) {
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     select_mode(context);
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     apply_mode(context);
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     update_movements(context);
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     apply_move(context);
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     apply_action(context);
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 }
 
 void Strategy::select_mode(const Context& context) {

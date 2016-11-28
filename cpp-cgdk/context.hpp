@@ -133,32 +133,26 @@ public:
     Context(Context&&) = delete;
 
     const model::Wizard& self() const {
-        check_timeout("Context::self()");
         return self_;
     }
 
     const model::World& world() const {
-        check_timeout("Context::world()");
         return world_;
     }
 
     const model::Game& game() const {
-        check_timeout("Context::game()");
         return game_;
     }
 
     const model::Move& move() const {
-        check_timeout("Context::move() const");
         return move_;
     }
 
     model::Move& move() {
-        check_timeout("Context::move()");
         return move_;
     }
 
     const FullCache& cache() const {
-        check_timeout("Context::cache()");
         return cache_;
     }
 
@@ -174,11 +168,11 @@ public:
         time_limit_ = value;
     }
 
-    void check_timeout(const std::string& entrypoint) const {
+    void check_timeout(const char* function, const char* file, int line) const {
         using Ms = std::chrono::duration<double, std::milli>;
         if (profiler().duration() > time_limit()) {
             std::ostringstream message;
-            message << "Timeout in " << entrypoint << ": limit " << Ms(time_limit()).count()
+            message << "Timeout in " << function << " (" << file << ":" << line << "): limit " << Ms(time_limit()).count()
                     << "ms, elapsed " << Ms(profiler_.duration()).count() << "ms";
             throw Timeout(message.str());
         }
