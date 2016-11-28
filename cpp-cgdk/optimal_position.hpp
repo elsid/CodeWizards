@@ -342,7 +342,7 @@ private:
 template <class T>
 Point get_optimal_position(const Context& context, const T* target, double max_distance) {
     const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
-    return minimize(get_position_penalty, get_position(context.self()), 100);
+    return minimize(get_position_penalty, get_position(context.self()), OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
 }
 
 template <>
