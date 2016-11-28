@@ -147,6 +147,11 @@ public:
         return game_;
     }
 
+    const model::Move& move() const {
+        check_timeout("Context::move() const");
+        return move_;
+    }
+
     model::Move& move() {
         check_timeout("Context::move()");
         return move_;

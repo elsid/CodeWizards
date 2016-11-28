@@ -34,6 +34,7 @@ private:
     void visualize_path(const Context& context);
     void visualize_destination(const Context& context);
     void visualize_target(const Context& context);
+    void visualize_self(const Context& context);
 
     template <class T>
     void visualize_positions_penalties(const Context& context, const T* target) {

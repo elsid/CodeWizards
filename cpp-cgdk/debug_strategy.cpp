@@ -52,6 +52,7 @@ void DebugStrategy::visualize(const Context& context) {
     visualize_path(context);
     visualize_destination(context);
     visualize_target(context);
+    visualize_self(context);
 }
 
 void DebugStrategy::visualize_graph(const Context& /*context*/) {
@@ -122,8 +123,27 @@ void DebugStrategy::visualize_destination(const Context& /*context*/) {
 
 void DebugStrategy::visualize_target(const Context& context) {
     if (const auto target = base_->target().circular_unit(context.cache())) {
-        debug_.circle(target->getX(), target->getY(), target->getRadius() + 20, 0xFF00000);
+        debug_.circle(target->getX(), target->getY(), target->getRadius() + 20, 0xAA0000);
     }
+}
+
+void DebugStrategy::visualize_self(const Context& context) {
+    debug_.circle(context.self().getX(), context.self().getY(), context.self().getVisionRange(), 0x44FF44);
+    debug_.circle(context.self().getX(), context.self().getY(), context.self().getCastRange(), 0xFF4444);
+    debug_.circle(context.self().getX(), context.self().getY(), context.game().getStaffRange(), 0xFF2222);
+    const auto missile_direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + context.move().getCastAngle()));
+    const auto missile_min_target = get_position(context.self()) + missile_direction * context.move().getMinCastDistance();
+    const auto missile_max_target = get_position(context.self())
+            + missile_direction * std::min(context.self().getCastRange(), context.move().getMaxCastDistance());
+    debug_.line(missile_min_target.x(), missile_min_target.y(), missile_max_target.x(), missile_max_target.y(), 0xFF4444);
+    debug_.circle(missile_min_target.x(), missile_min_target.y(), context.game().getMagicMissileRadius(), 0xFF4444);
+    debug_.circle(missile_max_target.x(), missile_max_target.y(), context.game().getMagicMissileRadius(), 0xFF4444);
+    debug_.text(context.self().getX() + 35, context.self().getY() + 35,
+                std::to_string(context.self().getRemainingActionCooldownTicks()).c_str(), 0x444444);
+    debug_.text(context.self().getX() + 70, context.self().getY() + 35,
+                std::to_string(context.self().getRemainingCooldownTicksByAction()[model::ACTION_MAGIC_MISSILE]).c_str(), 0x440000);
+    debug_.text(context.self().getX() + 105, context.self().getY() + 35,
+                std::to_string(context.self().getRemainingCooldownTicksByAction()[model::ACTION_STAFF]).c_str(), 0x004400);
 }
 
 std::int32_t get_color(double red, double green, double blue) {
