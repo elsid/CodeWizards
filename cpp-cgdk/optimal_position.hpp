@@ -323,6 +323,11 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
     return minimize(get_position_penalty, get_position(context.self()), 100);
 }
 
+template <>
+inline Point get_optimal_position(const Context& /*context*/, const model::Bonus* target, double /*max_distance*/) {
+    return get_position(*target);
+}
+
 }
 
 #endif
