@@ -10,6 +10,7 @@ namespace strategy {
 class TimeLimitedStrategy : public IStrategy {
 public:
     TimeLimitedStrategy(std::unique_ptr<Strategy> base) : base_(std::move(base)), sum_time_(0) {}
+    ~TimeLimitedStrategy();
 
     void apply(Context& context) override final;
 
