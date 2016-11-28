@@ -5,6 +5,7 @@
 #include "minimize.hpp"
 #include "circle.hpp"
 #include "optimal_target.hpp"
+#include "optimal_movement.hpp"
 
 #include <stdexcept>
 #include <algorithm>
@@ -336,7 +337,18 @@ private:
 template <class T>
 Point get_optimal_position(const Context& context, const T* target, double max_distance) {
     const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
-    return minimize(get_position_penalty, get_position(context.self()), OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
+    std::vector<std::pair<double, Point>> points;
+    points.reserve(OPTIMAL_POSITION_INITIAL_POINTS_COUNT + 1);
+    points.emplace_back(minimize(get_position_penalty, get_position(context.self()), OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS));
+    std::size_t step = 0;
+    std::generate_n(std::back_inserter(points), OPTIMAL_POSITION_INITIAL_POINTS_COUNT - 1,
+        [&] {
+            const auto angle = normalize_angle(2.0 * M_PI * double(step++) / double(OPTIMAL_POSITION_INITIAL_POINTS_COUNT));
+            const auto initial = get_position(context.self()) + Point(1, 0).rotated(angle) * 0.25 * context.self().getVisionRange();
+            return minimize(get_position_penalty, initial, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
+        });
+    return std::min_element(points.begin(), points.end(),
+        [] (const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; })->second;
 }
 
 template <>

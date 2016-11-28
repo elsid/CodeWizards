@@ -58,7 +58,7 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000);
     EXPECT_LE(result.distance(get_position(target)) - (GAME.getWizardCastRange() + GAME.getMagicMissileRadius()), 1);
-    EXPECT_EQ(result, Point(725.63289138193977, 753.84054794592942));
+    EXPECT_EQ(result, Point(608.45310618402505, 1235.8658192206483));
 }
 
 }

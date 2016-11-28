@@ -17,7 +17,7 @@ NewuoaClosureConst make_closure(F &function) {
 }
 
 template <class F>
-Point minimize(const F& function, const Point& initial, long max_function_calls_count) {
+std::pair<double, Point> minimize(const F& function, const Point& initial, long max_function_calls_count) {
     const long variables_count = 2;
     const int number_of_interpolation_conditions = variables_count + 2;
 //    const long number_of_interpolation_conditions = (variables_count + 1) * (variables_count + 2) / 2;
@@ -32,7 +32,7 @@ Point minimize(const F& function, const Point& initial, long max_function_calls_
     };
     const auto closure = make_closure(wrapper);
 
-    newuoa_closure_const(
+    const auto result = newuoa_closure_const(
         &closure,
         variables_count,
         number_of_interpolation_conditions,
@@ -43,7 +43,7 @@ Point minimize(const F& function, const Point& initial, long max_function_calls_
         working_space
     );
 
-    return Point(variables_values[0], variables_values[1]);
+    return {result, Point(variables_values[0], variables_values[1])};
 }
 
 }
