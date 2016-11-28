@@ -53,15 +53,6 @@ Target get_optimal_target(const Context& context, double max_distance) {
         return Target();
     }
 
-    if (!bonuses.empty()) {
-        const auto target = std::min_element(bonuses.begin(), bonuses.end(),
-            [&] (auto lhs, auto rhs) {
-                return get_position(*lhs).distance(get_position(context.self()))
-                        < get_position(*rhs).distance(get_position(context.self()));
-            });
-        return get_id(**target);
-    }
-
     const GetDamage get_damage {context};
 
     const auto get_target_penalty = [&] (const auto& unit) {
@@ -95,7 +86,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
         }
     }
 
-    if (!enemy_minions.empty()) {
+    if (!enemy_minions.empty() && bonuses.empty()) {
         const auto in_staff_range = filter_units(enemy_minions, is_in_staff_range);
         if (!in_staff_range.empty()) {
             const auto& unit = **get_with_min_penalty(in_staff_range);
@@ -110,6 +101,15 @@ Target get_optimal_target(const Context& context, double max_distance) {
         if (is_in_range_of_my_or_optimal_position(unit)) {
             return get_id(unit);
         }
+    }
+
+    if (!bonuses.empty()) {
+        const auto target = std::min_element(bonuses.begin(), bonuses.end(),
+            [&] (auto lhs, auto rhs) {
+                return get_position(*lhs).distance(get_position(context.self()))
+                        < get_position(*rhs).distance(get_position(context.self()));
+            });
+        return get_id(**target);
     }
 
     if (!enemy_minions.empty()) {
