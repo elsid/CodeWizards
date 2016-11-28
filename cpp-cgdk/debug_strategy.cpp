@@ -59,11 +59,6 @@ void DebugStrategy::visualize(const Context& context) {
 void DebugStrategy::visualize_graph(const Context& context) {
     const GetNodePenalty get_node_penalty(context, base_->graph(), base_->move_mode().target_lane());
     const auto& nodes = base_->graph().nodes();
-    for (const auto& node : nodes) {
-        const auto penalty = get_node_penalty(node.first);
-        debug_.fillCircle(node.second.x(), node.second.y(), 10, get_color(penalty));
-        debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
-    }
     const auto& arcs = base_->graph().arcs();
     for (const auto& src : nodes) {
         for (const auto& dst : nodes) {
@@ -72,10 +67,15 @@ void DebugStrategy::visualize_graph(const Context& context) {
             }
         }
     }
+    for (const auto& node : nodes) {
+        const auto penalty = get_node_penalty(node.first);
+        debug_.fillCircle(node.second.x(), node.second.y(), 10, get_color(penalty));
+        debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
+    }
     const auto friend_base = nodes.at(base_->graph().friend_base());
-    debug_.fillCircle(friend_base.x(), friend_base.y(), 40, 0x00AA00);
+    debug_.circle(friend_base.x(), friend_base.y(), 40, 0x00AA00);
     const auto enemy_base = nodes.at(base_->graph().enemy_base());
-    debug_.fillCircle(enemy_base.x(), enemy_base.y(), 40, 0xAA0000);
+    debug_.circle(enemy_base.x(), enemy_base.y(), 40, 0xAA0000);
 }
 
 void DebugStrategy::visualize_graph_path(const Context& context) {
@@ -84,7 +84,7 @@ void DebugStrategy::visualize_graph_path(const Context& context) {
     for (auto node = base_->move_mode().path_node(); node != base_->move_mode().path().end(); ++node) {
         const auto position = nodes.at(*node);
         debug_.line(prev.x(), prev.y(), position.x(), position.y(), 0x222222);
-        debug_.fillCircle(position.x(), position.y(), 10, 0x222222);
+        debug_.circle(position.x(), position.y(), 20, 0x222222);
         prev = position;
     }
     const auto& destination = base_->move_mode().destination();
