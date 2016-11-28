@@ -110,4 +110,16 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     return get_common(unit, position, damage_factor, sum_enemy_damage);
 }
 
+double GetUnitAttackAbility::operator ()(const model::Building& unit) const {
+    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(unit.getCooldownTicks());
+}
+
+double GetUnitAttackAbility::operator ()(const model::Minion& unit) const {
+    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(unit.getCooldownTicks());
+}
+
+double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
+    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(context.game().getWizardActionCooldownTicks());
+}
+
 }

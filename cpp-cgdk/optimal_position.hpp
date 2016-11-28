@@ -69,21 +69,13 @@ struct GetUnitAttackAbility {
     const Context& context;
 
     template <class Unit>
-    bool operator ()(const Unit&) const {
-        return false;
+    double operator ()(const Unit&) const {
+        return 0;
     }
 
-    bool operator ()(const model::Building& unit) const {
-        return unit.getRemainingActionCooldownTicks() > unit.getCooldownTicks() / 2;
-    }
-
-    bool operator ()(const model::Minion& unit) const {
-        return unit.getRemainingActionCooldownTicks() > unit.getCooldownTicks() / 2;
-    }
-
-    bool operator ()(const model::Wizard& unit) const {
-        return unit.getRemainingActionCooldownTicks() > context.game().getWizardActionCooldownTicks() / 2;
-    }
+    double operator ()(const model::Building& unit) const;
+    double operator ()(const model::Minion& unit) const;
+    double operator ()(const model::Wizard& unit) const;
 };
 
 struct GetUnitDangerPenalty {
