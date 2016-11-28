@@ -54,7 +54,64 @@ static WorldGraph::Path get_path_to_nearest_node(const WorldGraph& graph, const 
         [&] (const auto& lhs, const auto& rhs) { return lhs.length < rhs.length; });
 }
 
+GetNodePenalty::GetNodePenalty(const Context& context, const WorldGraph& graph, model::LaneType target_lane)
+        : context_(context),
+          graph_(graph),
+          target_lane_(target_lane),
+          nodes_info_(graph.nodes().size()),
+          self_nearest_node_(get_nearest_node(graph.nodes(), get_position(context.self())).first) {
+    fill_nodes_info<model::Building>();
+    fill_nodes_info<model::Minion>();
+    fill_nodes_info<model::Wizard>();
+
+    for (const auto& node : graph.nodes()) {
+        auto& node_info = nodes_info_[node.first];
+        node_info.path = graph.get_shortest_path(self_nearest_node_, node.first);
+        node_info.distance_to_friend_base = node.second.distance(graph.nodes().at(graph.friend_base()));
+        node_info.distance_to_enemy_base = node.second.distance(graph.nodes().at(graph.enemy_base()));
+    }
+
+    max_path_length_ = std::max_element(nodes_info_.begin(), nodes_info_.end(),
+        [] (const auto& lhs, const auto& rhs) { return lhs.path.length < rhs.path.length; })->path.length;
+
+    max_distance_to_friend_base_ = std::max_element(nodes_info_.begin(), nodes_info_.end(),
+        [] (const auto& lhs, const auto& rhs) {
+            return lhs.distance_to_friend_base < rhs.distance_to_friend_base;
+    })->distance_to_friend_base;
+
+    max_distance_to_enemy_base_ = std::max_element(nodes_info_.begin(), nodes_info_.end(),
+        [] (const auto& lhs, const auto& rhs) {
+            return lhs.distance_to_enemy_base < rhs.distance_to_enemy_base;
+    })->distance_to_enemy_base;
+}
+
+double GetNodePenalty::operator ()(WorldGraph::Node node) const {
+    if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
+        return MAX_PENALTY;
+    }
+    const auto& node_info = nodes_info_.at(node);
+    if (node_info.enemies_count == 0 && node_info.friends_count == 0) {
+        return MAX_PENALTY;
+    }
+    const auto parties_diff = node_info.friends_count - node_info.enemies_count;
+    const auto parties_penalty = 0.5 * double(parties_diff) / double(enemies_and_friends_count_) + 1.0;
+    const auto path_length_penalty = node_info.path.length / max_path_length_;
+    const auto distance_to_friend_base_penalty = node_info.distance_to_friend_base / max_distance_to_friend_base_;
+    const auto distance_to_enemy_base_penalty = node_info.distance_to_enemy_base / max_distance_to_enemy_base_;
+    return parties_penalty * PARTIES_PENALTY_WEIGHT
+            + path_length_penalty * PATH_LENGTH_PENALTY_WEIGHT
+            + distance_to_friend_base_penalty * DISTANCE_TO_FRIEND_BASE_PENALTY_WEIGHT
+            + distance_to_enemy_base_penalty * DISTANCE_TO_ENEMY_BASE_PENALTY_WEIGHT;
+}
+
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane) {
+//    GetNodePenalty get_node_penalty(context, graph, target_lane);
+//    std::vector<double> penalties;
+//    penalties.reserve(graph.nodes().size());
+//    std::transform(graph.nodes().begin(), graph.nodes().end(), std::back_inserter(penalties),
+//        [&] (const auto& v) { return get_node_penalty(v.first); });
+//    return WorldGraph::Node(std::min_element(penalties.begin(), penalties.end()) - penalties.begin());
+
     const auto has_near_bonus = [&] (const auto& node) {
         return has_near_units(node.second, context.world().getBonuses(), graph.zone_size());
     };

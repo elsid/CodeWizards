@@ -22,6 +22,10 @@ public:
         return destination_;
     }
 
+    model::LaneType target_lane() const {
+        return target_lane_;
+    }
+
     Result apply(const Context& context) override final;
 
 private:

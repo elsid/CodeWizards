@@ -1,5 +1,6 @@
 #include "debug_strategy.hpp"
 #include "battle_mode.hpp"
+#include "optimal_destination.hpp"
 
 namespace strategy {
 
@@ -55,10 +56,12 @@ void DebugStrategy::visualize(const Context& context) {
     visualize_self(context);
 }
 
-void DebugStrategy::visualize_graph(const Context& /*context*/) {
+void DebugStrategy::visualize_graph(const Context& context) {
+    const GetNodePenalty get_node_penalty(context, base_->graph(), base_->move_mode().target_lane());
     const auto& nodes = base_->graph().nodes();
     for (const auto& node : nodes) {
-        debug_.fillCircle(node.second.x(), node.second.y(), 10, 0xAAAAAA);
+        const auto penalty = get_node_penalty(node.first);
+        debug_.fillCircle(node.second.x(), node.second.y(), 10, get_color(penalty));
         debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
     }
     const auto& arcs = base_->graph().arcs();
@@ -70,9 +73,9 @@ void DebugStrategy::visualize_graph(const Context& /*context*/) {
         }
     }
     const auto friend_base = nodes.at(base_->graph().friend_base());
-    debug_.fillCircle(friend_base.x(), friend_base.y(), 20, 0x00AA00);
+    debug_.fillCircle(friend_base.x(), friend_base.y(), 40, 0x00AA00);
     const auto enemy_base = nodes.at(base_->graph().enemy_base());
-    debug_.fillCircle(enemy_base.x(), enemy_base.y(), 20, 0xAA0000);
+    debug_.fillCircle(enemy_base.x(), enemy_base.y(), 40, 0xAA0000);
 }
 
 void DebugStrategy::visualize_graph_path(const Context& context) {
