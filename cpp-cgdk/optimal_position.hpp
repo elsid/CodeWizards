@@ -265,8 +265,8 @@ private:
     double damage_factor = 1;
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
-        const auto unit_position = get_position(unit);
-        return 1 - get_distance_penalty(position.distance(unit_position), context.game().getMapSize());
+        const auto distance = position.distance(get_position(unit));
+        return 1 - get_distance_penalty(distance, 2 * context.self().getVisionRange());
     }
 
     template <class Unit>
