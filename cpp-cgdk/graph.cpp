@@ -11,21 +11,17 @@ Graph::Path Graph::get_shortest_path(Node src, Node dst) const {
         return lengths[lhs] > lengths[rhs];
     };
     std::priority_queue<Node, std::vector<Node>, decltype(less_priority)> queue(less_priority);
-    std::vector<bool> visited(size_, false);
     std::vector<Node> came_from(size_, size_);
     queue.push(src);
     while (!queue.empty()) {
         const auto node = queue.top();
         queue.pop();
-        if (node == dst) {
-            break;
-        }
-        visited[node] = true;
         for (Node other = 0; other < size_; ++other) {
-            if (!visited[other]) {
-                const auto weight = arcs_.get(node, other);
-                if (weight != std::numeric_limits<double>::max()) {
-                    lengths[other] = lengths[node] + weight;
+            const auto weight = arcs_.get(node, other);
+            if (weight != std::numeric_limits<double>::max()) {
+                const auto length = lengths[node] + weight;
+                if (length < lengths[other]) {
+                    lengths[other] = length;
                     came_from[other] = node;
                     queue.push(other);
                 }
