@@ -1,6 +1,7 @@
 #include "time_limited_strategy.hpp"
 
 #include <ratio>
+#include <iostream>
 
 namespace strategy {
 
