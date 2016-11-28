@@ -14,11 +14,6 @@ struct AddSumTime {
     }
 };
 
-TimeLimitedStrategy::~TimeLimitedStrategy() {
-    using Ms = std::chrono::duration<double, std::milli>;
-    std::cout << "Sum time: " << Ms(sum_time_).count() << "ms" << std::endl;
-}
-
 void TimeLimitedStrategy::apply(Context& context) {
     AddSumTime add_sum_time {context.profiler(), sum_time_};
     context.time_limit(get_iteration_time_limit(context));
