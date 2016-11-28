@@ -122,10 +122,13 @@ inline BasicPoint<int> operator %(const BasicPoint<int>& lhs, int rhs) {
     return BasicPoint<int>(lhs.x() % rhs, lhs.y() % rhs);
 }
 
-template <class T>
-inline std::ostream& operator <<(std::ostream& stream, const BasicPoint<T>& value) {
+inline std::ostream& operator <<(std::ostream& stream, const Point& value) {
     return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
-                  << "BasicPoint(" << value.x() << ", " << value.y() << ")";
+                  << "Point(" << value.x() << ", " << value.y() << ")";
+}
+
+inline std::ostream& operator <<(std::ostream& stream, const PointInt& value) {
+    return stream << "PointInt(" << value.x() << ", " << value.y() << ")";
 }
 
 }
