@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-#!/usr/bin/env bash
-
 set -ex
 
 if ! [[ "${SEED}" ]]; then
