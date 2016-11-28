@@ -9,8 +9,6 @@
 
 #endif
 
-#include <iostream>
-
 namespace strategy {
 
 Strategy::Strategy(const Context& context)
@@ -98,7 +96,7 @@ void Strategy::apply_move(Context& context) {
 }
 
 void Strategy::calculate_movements(const Context& context) {
-    path_ = get_optimal_path(context, destination_, OPTIMAL_PATH_STEP_SIZE, OPTIMAL_PATH_MAX_TICKS, context.time_left());
+    path_ = get_optimal_path(context, destination_, OPTIMAL_PATH_STEP_SIZE, OPTIMAL_PATH_MAX_TICKS);
     if (const auto unit = target_.circular_unit(context.cache())) {
         std::tie(states_, movements_) = get_optimal_movement(context, path_, {true, get_position(*unit)});
     } else {

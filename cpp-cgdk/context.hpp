@@ -118,6 +118,10 @@ private:
     > ids_;
 };
 
+struct Timeout : std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+
 class Context {
 public:
     Context(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move,
@@ -129,27 +133,28 @@ public:
     Context(Context&&) = delete;
 
     const model::Wizard& self() const {
+        check_timeout("Context::self()");
         return self_;
     }
 
     const model::World& world() const {
+        check_timeout("Context::world()");
         return world_;
     }
 
     const model::Game& game() const {
+        check_timeout("Context::game()");
         return game_;
     }
 
     model::Move& move() {
+        check_timeout("Context::move()");
         return move_;
     }
 
     const FullCache& cache() const {
+        check_timeout("Context::cache()");
         return cache_;
-    }
-
-    Duration time_left() const {
-        return time_limit_ - profiler_.duration();
     }
 
     const Profiler& profiler() const {
@@ -158,6 +163,20 @@ public:
 
     Duration time_limit() const {
         return time_limit_;
+    }
+
+    void time_limit(Duration value) {
+        time_limit_ = value;
+    }
+
+    void check_timeout(const std::string& entrypoint) const {
+        using Ms = std::chrono::duration<double, std::milli>;
+        if (profiler().duration() > time_limit()) {
+            std::ostringstream message;
+            message << "Timeout in " << entrypoint << ": limit " << Ms(time_limit()).count()
+                    << "ms, elapsed " << Ms(profiler_.duration()).count() << "ms";
+            throw Timeout(message.str());
+        }
     }
 
 private:

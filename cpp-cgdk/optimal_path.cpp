@@ -127,8 +127,7 @@ double get_distance_to_closest_unit(const std::vector<const T*>& units, const Li
     return path.distance(get_position(**get_closest_unit(units, path)));
 }
 
-Path get_optimal_path(const Context& context, const Point& target, int step_size, int max_ticks, Duration max_duration) {
-    const auto start = Clock::now();
+Path get_optimal_path(const Context& context, const Point& target, int step_size, int max_ticks) {
     const auto initial_position = get_position(context.self());
     const auto global_shift = initial_position.to_int().to_double() - initial_position;
     const auto initial_position_int = (initial_position - global_shift).to_int();
@@ -267,7 +266,7 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
             break;
         }
 
-        if (Clock::now() - start > max_duration || step_state.tick() > max_ticks) {
+        if (step_state.tick() > max_ticks) {
             final_position = closest_position;
             break;
         }

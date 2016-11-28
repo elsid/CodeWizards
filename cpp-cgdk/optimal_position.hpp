@@ -154,6 +154,7 @@ public:
     double operator ()(const Point& position) const {
         const GetUnitIntersectionPenalty get_unit_collision_penalty {context};
         const GetUnitDangerPenalty get_unit_danger_penalty {context, friend_units};
+        const GetRangedDamage get_ranged_damage {context};
 
         const bool is_out_of_borders = context.self().getRadius() >= position.x()
                 || position.x() >= context.game().getMapSize() - context.self().getRadius()
@@ -200,21 +201,21 @@ public:
         const auto get_sum_bonuses_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
                 [&] (auto sum, auto v) {
-                    return sum + get_bonus_penalty(*v, position);
+                    return sum + this->get_bonus_penalty(*v, position);
                 });
         };
 
         const auto get_sum_friendly_fire_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
                 [&] (auto sum, auto v) {
-                    return sum + get_friendly_fire_penalty(*v, position);
+                    return sum + this->get_friendly_fire_penalty(*v, position);
                 });
         };
 
         const auto get_sum_projectiles_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
                 [&] (auto sum, auto v) {
-                    return sum + get_projectile_penalty(*v, position);
+                    return sum + this->get_projectile_penalty(*v, position);
                 });
         };
 

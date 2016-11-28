@@ -8,13 +8,13 @@
 
 #include "debug/output.hpp"
 
-#include <iostream>
-
 #else
 
 #include "time_limited_strategy.hpp"
 
 #endif
+
+#include <iostream>
 
 void MyStrategy::move(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move) {
 #ifndef STRATEGY_DEBUG
@@ -33,11 +33,9 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
 #endif
         }
         strategy_->apply(context);
-        if (move.getSpeed() == 0) {
-            abort();
-        }
 #ifndef STRATEGY_DEBUG
     } catch (const std::exception& exception) {
+        std::cerr << exception.what() << std::endl;
         strategy_.reset();
     }
 #endif

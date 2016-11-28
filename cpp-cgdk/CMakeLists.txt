@@ -80,6 +80,7 @@ add_executable(cpp-cgdk-tests
     tests/optimal_destination.cpp
     tests/optimal_path.cpp
     tests/optimal_movement.cpp
+    tests/my_strategy.cpp
     tests/main.cpp
 )
 

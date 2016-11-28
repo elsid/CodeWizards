@@ -18,7 +18,7 @@ TEST(MyStrategy, simple) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {enemy, SELF}, // Wizards
+        {SELF}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -27,6 +27,9 @@ TEST(MyStrategy, simple) {
     );
     model::Move move;
     MyStrategy().move(SELF, world, GAME, move);
+    EXPECT_EQ(move.getSpeed(), 4);
+    EXPECT_EQ(move.getStrafeSpeed(), 0);
+    EXPECT_EQ(move.getTurn(), 0);
 }
 
 }
