@@ -247,7 +247,7 @@ public:
                 const auto distance = position.distance(get_position(*target));
                 double distance_penalty = 0;
                 if (distance > max_cast_range) {
-                    const auto safe_distance = std::max(context.self().getCastRange(), 2 * context.self().getVisionRange());
+                    const auto safe_distance = 2.0 * context.self().getVisionRange();
                     distance_penalty = 1.0 - get_distance_penalty(distance - max_cast_range, safe_distance);
                 }
                 target_distance_penalty = std::max(get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage),

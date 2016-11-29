@@ -89,7 +89,7 @@ double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Po
     if (distance < safe_distance * 0.5) {
         return get_distance_penalty(distance, safe_distance);
     } else {
-        return 0.5 * get_distance_penalty(distance, 2 * safe_distance);
+        return 0.5 * get_distance_penalty(distance, 2.0 * safe_distance);
     }
 }
 
