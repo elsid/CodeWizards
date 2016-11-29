@@ -25,7 +25,8 @@ void BattleMode::update_target(const Context& context) {
         if (!unit) {
             break;
         }
-        destination_ = {true, get_optimal_position(context, target, 2 * context.self().getVisionRange())};
+        destination_ = {true, get_optimal_position(context, target, 2 * context.self().getVisionRange(),
+                        OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)};
         const auto max_attack_range = get_attack_range(context.self()) + unit->getRadius();
         const auto min_distance = std::min(destination_.second.distance(get_position(*unit)),
                                            get_position(context.self()).distance(get_position(*unit)));

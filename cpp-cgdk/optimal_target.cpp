@@ -70,7 +70,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
     IsInMyRange is_in_staff_range {context, context.game().getStaffRange()};
 
     const auto is_in_range_of_my_or_optimal_position = [&] (const auto& unit) {
-        const auto optimal_position = get_optimal_position(context, &unit, 2 * context.self().getVisionRange());
+        const auto optimal_position = get_optimal_position(context, &unit, 2 * context.self().getVisionRange(), 1, 10);
         const auto min = std::min(get_position(context.self()).distance(get_position(unit)),
                                   optimal_position.distance(get_position(unit)));
         return min <= get_attack_range(context.self()) + unit.getRadius();

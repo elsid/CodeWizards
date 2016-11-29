@@ -24,7 +24,8 @@ bool is_me(const model::Unit&);
 
 double get_distance_penalty(double value, double safe);
 
-Point get_optimal_position(const Context& context, const Target& target, double max_distance);
+Point get_optimal_position(const Context& context, const Target& target, double max_distance,
+                           std::size_t initial_points_count, int max_function_calls);
 
 template <class T>
 std::vector<const T*> filter_friends(const std::vector<const T*>& units, model::Faction my_faction, UnitId my_id) {
@@ -351,24 +352,27 @@ private:
 };
 
 template <class T>
-Point get_optimal_position(const Context& context, const T* target, double max_distance) {
+Point get_optimal_position(const Context& context, const T* target, double max_distance,
+                           std::size_t initial_points_count, int max_function_calls) {
     const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
     std::vector<std::pair<double, Point>> points;
-    points.reserve(OPTIMAL_POSITION_INITIAL_POINTS_COUNT + 1);
-    points.emplace_back(minimize(get_position_penalty, get_position(context.self()), OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS));
+    points.reserve(initial_points_count + 1);
+    points.emplace_back(minimize(get_position_penalty, get_position(context.self()), max_function_calls));
     std::size_t step = 0;
-    std::generate_n(std::back_inserter(points), OPTIMAL_POSITION_INITIAL_POINTS_COUNT - 1,
+    std::generate_n(std::back_inserter(points), initial_points_count - 1,
         [&] {
-            const auto angle = normalize_angle(2.0 * M_PI * double(step++) / double(OPTIMAL_POSITION_INITIAL_POINTS_COUNT));
+            context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+            const auto angle = normalize_angle(2.0 * M_PI * double(step++) / double(initial_points_count));
             const auto initial = get_position(context.self()) + Point(1, 0).rotated(angle) * 0.25 * context.self().getVisionRange();
-            return minimize(get_position_penalty, initial, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
+            return minimize(get_position_penalty, initial, max_function_calls);
         });
     return std::min_element(points.begin(), points.end(),
         [] (const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; })->second;
 }
 
 template <>
-inline Point get_optimal_position(const Context& /*context*/, const model::Bonus* target, double /*max_distance*/) {
+inline Point get_optimal_position(const Context& /*context*/, const model::Bonus* target, double /*max_distance*/,
+                                  std::size_t /*initial_points_count*/, int /*max_function_calls*/) {
     return get_position(*target);
 }
 
