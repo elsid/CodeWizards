@@ -15,7 +15,11 @@
 
 #endif
 
+#ifdef STRATEGY_LOCAL
+
 #include <iostream>
+
+#endif
 
 void MyStrategy::move(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move) {
 #ifndef STRATEGY_DEBUG
@@ -36,7 +40,9 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
         strategy_->apply(context);
 #ifndef STRATEGY_DEBUG
     } catch (const std::exception& exception) {
+#ifdef STRATEGY_LOCAL
         std::cerr << "[" << world.getTickIndex() << "] " << exception.what() << std::endl;
+#endif
         strategy_.reset();
     }
 #endif
