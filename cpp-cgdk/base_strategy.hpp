@@ -62,19 +62,26 @@ private:
     Movements movements_;
     MovementsStates::const_iterator state_;
     Movements::const_iterator movement_;
+    std::pair<bool, model::Message> last_message_;
 
     void select_mode(const Context& context);
     void apply_mode(const Context& context);
     void update_movements(const Context& context);
     void apply_move(Context& context);
     void apply_action(Context& context);
+    void learn_skills(Context& Context);
 
     void use_move_mode();
     void use_battle_mode();
     void calculate_movements(const Context& context);
 
+    bool need_apply_haste(const Context& context) const;
+    bool need_apply_shield(const Context& context) const;
     static bool need_apply_staff(const Context& context, const model::CircularUnit& target);
-    static bool need_apply_magic_missile(const Context& context, const model::CircularUnit& target, double turn);
+    static bool need_apply_magic_missile(const Context& context, const model::CircularUnit& target);
+    static bool need_apply_fireball(const Context& context, const model::CircularUnit& target);
+    static bool need_apply_frostbolt(const Context& context, const model::CircularUnit& target);
+    static bool need_apply_cast(const Context& context, const model::CircularUnit& target, double radius);
 };
 
 }

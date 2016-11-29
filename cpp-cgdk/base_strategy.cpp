@@ -12,6 +12,38 @@
 
 namespace strategy {
 
+static const std::vector<model::SkillType> SKILLS = {
+    model::SKILL_SHIELD,
+    model::SKILL_HASTE,
+    model::SKILL_ADVANCED_MAGIC_MISSILE,
+    model::SKILL_FROST_BOLT,
+    model::SKILL_FIREBALL,
+    model::SKILL_RANGE_BONUS_PASSIVE_1,
+    model::SKILL_RANGE_BONUS_AURA_1,
+    model::SKILL_RANGE_BONUS_PASSIVE_2,
+    model::SKILL_RANGE_BONUS_AURA_2,
+    model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1,
+    model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_1,
+    model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2,
+    model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_2,
+    model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1,
+    model::SKILL_STAFF_DAMAGE_BONUS_AURA_1,
+    model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2,
+    model::SKILL_STAFF_DAMAGE_BONUS_AURA_2,
+    model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1,
+    model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_1,
+    model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2,
+    model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_2,
+    model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1,
+    model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1,
+    model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2,
+    model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2,
+};
+
+bool has_skill(const model::Wizard& unit, model::SkillType skill) {
+    return unit.getSkills().end() != std::find(unit.getSkills().begin(), unit.getSkills().end(), skill);
+}
+
 BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
           battle_mode_(std::make_shared<BattleMode>()),
@@ -34,6 +66,32 @@ void BaseStrategy::apply(Context &context) {
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     apply_action(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+    learn_skills(context);
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+}
+
+void BaseStrategy::learn_skills(Context& context) {
+    if (!context.self().getMessages().empty()) {
+        last_message_ = {true, context.self().getMessages().back()};
+    }
+    if (last_message_.first && !has_skill(context.self(), last_message_.second.getSkillToLearn())) {
+        context.move().setSkillToLearn(last_message_.second.getSkillToLearn());
+    } else {
+        std::vector<std::size_t> skills_frequency(model::_SKILL_COUNT_);
+        for (const auto& wizard : get_units<model::Wizard>(context.cache())) {
+            for (const auto skill : wizard.second.value().getSkills()) {
+                ++skills_frequency[skill];
+            }
+        }
+        const auto frequent = std::max_element(skills_frequency.begin(), skills_frequency.end());
+        model::SkillType skill;
+        if (*frequent == 0) {
+            skill = *std::find_if(SKILLS.begin(), SKILLS.end(), [&] (auto skill) { return !has_skill(context.self(), skill); });
+        } else {
+            skill = model::SkillType(frequent - skills_frequency.begin());
+        }
+        context.move().setSkillToLearn(skill);
+    }
 }
 
 void BaseStrategy::select_mode(const Context& context) {
@@ -97,9 +155,23 @@ void BaseStrategy::apply_move(Context& context) {
     if (movement_ == movements_.end()) {
         return;
     }
+
     context.move().setSpeed(movement_->speed());
     context.move().setStrafeSpeed(movement_->strafe_speed());
-    context.move().setTurn(movement_->turn());
+
+    if (const auto target = target_.circular_unit(context.cache())) {
+        const auto turn = context.self().getAngleTo(*target);
+
+        context.move().setTurn(turn);
+
+        if (target_.is<model::Bonus>()) {
+            return;
+        }
+
+        context.move().setCastAngle(turn);
+    } else {
+        context.move().setTurn(movement_->turn());
+    }
 }
 
 void BaseStrategy::calculate_movements(const Context& context) {
@@ -114,36 +186,27 @@ void BaseStrategy::calculate_movements(const Context& context) {
 }
 
 void BaseStrategy::apply_action(Context& context) {
-    if (const auto target = target_.circular_unit(context.cache())) {
-        const auto distance = get_position(*target).distance(get_position(context.self()));
-
-        if (distance > context.self().getCastRange() + target->getRadius() + context.game().getMagicMissileRadius()) {
-            return;
-        }
-
-        const auto turn = context.self().getAngleTo(*target);
-
-        context.move().setTurn(turn);
-
-        if (target_.is<model::Bonus>()) {
-            return;
-        }
-
-        context.move().setCastAngle(turn);
-
-        if (context.self().getRemainingActionCooldownTicks() != 0) {
-            return;
-        }
-
+    if (context.self().getRemainingActionCooldownTicks() > 0) {
+        return;
+    } else if (need_apply_haste(context)) {
+        context.move().setAction(model::ACTION_HASTE);
+    } else if (need_apply_shield(context)) {
+        context.move().setAction(model::ACTION_SHIELD);
+    } else if (target_.is<model::Bonus>()) {
+        return;
+    } else if (const auto target = target_.circular_unit(context.cache())) {
+        const auto distance = get_position(context.self()).distance(get_position(*target));
         if (need_apply_staff(context, *target)) {
             context.move().setAction(model::ACTION_STAFF);
-            return;
-        }
-
-        if (need_apply_magic_missile(context, *target, turn)) {
+        } else if (need_apply_fireball(context, *target)) {
+            context.move().setAction(model::ACTION_FIREBALL);
+            context.move().setMinCastDistance(distance - target->getRadius() - context.game().getFireballRadius());
+        } else if (need_apply_frostbolt(context, *target)) {
+            context.move().setAction(model::ACTION_FROST_BOLT);
+            context.move().setMinCastDistance(distance - target->getRadius() - context.game().getFrostBoltRadius());
+        } else if (need_apply_magic_missile(context, *target)) {
             context.move().setAction(model::ACTION_MAGIC_MISSILE);
             context.move().setMinCastDistance(distance - target->getRadius() - context.game().getMagicMissileRadius());
-            return;
         }
     }
 }
@@ -156,35 +219,66 @@ void BaseStrategy::use_battle_mode() {
     mode_ = battle_mode_;
 }
 
+bool BaseStrategy::need_apply_haste(const Context& context) const {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_HASTE] == 0
+            && !is_with_status(context.self(), model::STATUS_HASTENED)
+            && has_skill(context.self(), model::SKILL_HASTE)
+            && ((!target_.is<model::Bonus>()
+                && target_.is_some())
+                || get_position(context.self()).distance(destination_) > 0.5 * context.self().getVisionRange());
+}
+
+bool BaseStrategy::need_apply_shield(const Context& context) const {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_SHIELD] == 0
+            && !is_with_status(context.self(), model::STATUS_SHIELDED)
+            && !target_.is<model::Bonus>()
+            && target_.is_some()
+            && has_skill(context.self(), model::SKILL_SHIELD);
+}
+
 bool BaseStrategy::need_apply_staff(const Context& context, const model::CircularUnit& target) {
     const auto distance = get_position(target).distance(get_position(context.self()));
     const auto lethal_area = target.getRadius() + context.game().getStaffRange();
-    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_STAFF] == 0 && distance < lethal_area;
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_STAFF] == 0
+            && distance < lethal_area;
 }
 
-bool BaseStrategy::need_apply_magic_missile(const Context& context, const model::CircularUnit& target, double turn) {
-    if (context.self().getRemainingCooldownTicksByAction()[model::ACTION_MAGIC_MISSILE] != 0) {
-        return false;
-    }
+bool BaseStrategy::need_apply_fireball(const Context& context, const model::CircularUnit& target) {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FIREBALL] == 0
+            && has_skill(context.self(), model::SKILL_FIREBALL)
+            && need_apply_cast(context, target, context.game().getFireballRadius());
+}
 
-    const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + turn));
+bool BaseStrategy::need_apply_frostbolt(const Context& context, const model::CircularUnit& target) {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FROST_BOLT] == 0
+            && has_skill(context.self(), model::SKILL_FROST_BOLT)
+            && need_apply_cast(context, target, context.game().getFrostBoltRadius());
+}
+
+bool BaseStrategy::need_apply_magic_missile(const Context& context, const model::CircularUnit& target) {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_MAGIC_MISSILE] == 0
+            && need_apply_cast(context, target, context.game().getMagicMissileRadius());
+}
+
+bool BaseStrategy::need_apply_cast(const Context& context, const model::CircularUnit& target, double radius) {
+    const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + context.move().getCastAngle()));
     const auto distance = get_position(target).distance(get_position(context.self()));
-    const auto missile_target = get_position(context.self()) + direction * distance;
-    const auto distance_to_target = get_position(target).distance(missile_target);
-    const auto lethal_area = context.game().getMagicMissileRadius() + target.getRadius();
+    const auto cast_target = get_position(context.self()) + direction * distance;
+    const auto distance_to_target = get_position(target).distance(cast_target);
+    const auto lethal_area = radius + target.getRadius();
 
     if (distance_to_target > lethal_area) {
         return false;
     }
 
-    const Circle missile(get_position(context.self()), context.game().getMagicMissileRadius());
+    const Circle cast(get_position(context.self()), radius);
     const auto friend_wizards = filter_friends(get_units<model::Wizard>(context.world()), context.self().getFaction(),
                                                context.self().getId());
     std::vector<Circle> barriers;
     barriers.reserve(friend_wizards.size());
     std::transform(friend_wizards.begin(), friend_wizards.end(), std::back_inserter(barriers), make_circle);
 
-    return !has_intersection_with_barriers(missile, missile_target, barriers);
+    return !has_intersection_with_barriers(cast, cast_target, barriers);
 }
 
 }

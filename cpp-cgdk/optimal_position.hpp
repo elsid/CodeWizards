@@ -267,10 +267,6 @@ public:
             }
         }
 
-        if (get_sum_projectiles_penalty(projectiles, position) != 0) {
-            std::cout << get_sum_projectiles_penalty(projectiles, position) << " " << projectiles.size() << std::endl;
-        }
-
         const auto except_borders = get_sum_units_penalty(buildings, position)
                 + get_sum_units_penalty(minions, position)
                 + get_sum_units_penalty(trees, position)
