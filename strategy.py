@@ -14,5 +14,5 @@ def python3():
 
 
 def cpp():
-    with AutoKillProcess([environ.get('BIN')], env=environ) as strategy:
+    with AutoKillProcess([environ.get('BIN', 'cpp-cgdk-release/bin/cpp-cgdk')], env=environ) as strategy:
         strategy.wait()
