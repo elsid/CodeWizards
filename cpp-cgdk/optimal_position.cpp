@@ -53,7 +53,7 @@ double GetAttackRange::operator ()(const model::Unit&) const {
 }
 
 double GetAttackRange::operator ()(const model::Building& unit) const {
-    return context.self().getRadius() + unit.getAttackRange();
+    return context.self().getRadius() + unit.getAttackRange() + 1;
 }
 
 double GetAttackRange::operator ()(const model::Minion& unit) const {
@@ -61,10 +61,10 @@ double GetAttackRange::operator ()(const model::Minion& unit) const {
         case model::_MINION_UNKNOWN_:
             break;
         case model::MINION_ORC_WOODCUTTER:
-            return context.self().getRadius() + context.game().getOrcWoodcutterAttackRange();
+            return context.self().getRadius() + context.game().getOrcWoodcutterAttackRange() + 1;
         case model::MINION_FETISH_BLOWDART:
             return context.self().getRadius() + context.game().getFetishBlowdartAttackRange()
-                    + context.game().getDartRadius();
+                    + context.game().getDartRadius() + 1;
         case model::_MINION_COUNT_:
             break;
     }
@@ -75,7 +75,7 @@ double GetAttackRange::operator ()(const model::Minion& unit) const {
 }
 
 double GetAttackRange::operator ()(const model::Wizard& unit) const {
-    return context.self().getRadius() + unit.getCastRange() + context.game().getMagicMissileRadius();
+    return context.self().getRadius() + unit.getCastRange() + context.game().getMagicMissileRadius() + 1;
 }
 
 double GetUnitIntersectionPenalty::operator ()(const model::CircularUnit& unit, const Point& position) const {
@@ -93,7 +93,8 @@ double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Po
     }
 }
 
-double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double damage_factor, double sum_enemy_damage) const {
+double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double damage_factor,
+                                         double sum_enemy_damage) const {
     if (!is_enemy(unit, context.self().getFaction())) {
         return 0;
     }

@@ -14,8 +14,8 @@
 namespace strategy {
 
 Target get_optimal_target(const Context& context, double max_distance) {
-    IsInMyRange is_in_my_range {context, max_distance};
-    GetAttackRange get_attack_range {context};
+    const IsInMyRange is_in_my_range {context, max_distance};
+    const GetAttackRange get_attack_range {context};
 
     const auto is_enemy_and_in_my_range = [&] (const auto& unit) {
         return is_enemy(unit, context.self().getFaction()) && is_in_my_range(unit);
@@ -67,7 +67,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
             [&] (auto lhs, auto rhs) { return get_target_penalty(*lhs) < get_target_penalty(*rhs); });
     };
 
-    IsInMyRange is_in_staff_range {context, context.game().getStaffRange()};
+    const IsInMyRange is_in_staff_range {context, context.game().getStaffRange()};
 
     const auto is_in_range_of_my_or_optimal_position = [&] (const auto& unit) {
         const auto optimal_position = get_optimal_position(context, &unit, 2 * context.self().getVisionRange(), 1, 10);

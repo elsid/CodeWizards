@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <numeric>
 #include <type_traits>
+#include <iostream>
 
 namespace strategy {
 
@@ -60,9 +61,12 @@ struct GetRangedDamage {
     double operator ()(const Unit& unit, const Point& position) const {
         const GetAttackRange get_attack_range {context};
         const GetDamage get_damage {context};
-        const auto attack_range = get_attack_range(unit);
-        const auto distance = position.distance(get_position(unit));
-        const auto factor = attack_range >= distance ? 1 : get_distance_penalty(distance - attack_range, 0.5 * attack_range);
+        const auto attack_range = get_attack_range(unit) + context.self().getRadius();
+        const auto current_distance = position.distance(get_position(unit));
+        const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
+        const auto factor = attack_range >= current_distance || attack_range >= future_distance
+                ? 1.0
+                : get_distance_penalty(0.5 * (current_distance + future_distance) - attack_range, 0.5 * attack_range);
         return factor * get_damage(unit);
     }
 };
@@ -80,6 +84,17 @@ struct GetUnitAttackAbility {
     double operator ()(const model::Wizard& unit) const;
 };
 
+struct GetCurrentDamage {
+    const Context& context;
+
+    template <class Unit>
+    double operator ()(const Unit& unit, const Point& position) const {
+        const GetRangedDamage get_ranged_damage {context};
+        const GetUnitAttackAbility get_attack_ability {context};
+        return get_ranged_damage(unit, position) * get_attack_ability(unit);
+    }
+};
+
 struct GetUnitDangerPenalty {
     const Context& context;
     const std::vector<const model::CircularUnit*>& friend_units;
@@ -93,15 +108,18 @@ struct GetUnitDangerPenalty {
 
     template <class T>
     double get_common(const T& unit, const Point& position, double damage_factor, double sum_enemy_damage) const {
-        const GetAttackRange get_attack_range {context};
         const GetDamage get_damage {context};
-        const GetRangedDamage get_ranged_damage {context};
-        const GetUnitAttackAbility get_attack_ability {context};
-        const double add_damage = damage_factor * (get_damage(unit) - get_ranged_damage(unit, position));
+        const GetAttackRange get_attack_range {context};
+        const GetCurrentDamage get_current_damage {context};
+        double distance_factor;
+        if (sum_enemy_damage + damage_factor * get_current_damage(unit, position) > 2 * context.self().getLife()) {
+            distance_factor = 1.0;
+        } else {
+            distance_factor = damage_factor * get_current_damage(unit, position) / get_damage(unit);
+        }
         const double safe_distance = std::max(
-                context.self().getCastRange() + context.game().getMagicMissileRadius(),
-                get_attack_ability(unit) * (get_attack_range(unit) + 2 * context.self().getRadius())
-                    * std::min(1.0, 2 * (sum_enemy_damage + add_damage) / context.self().getLife())
+            context.self().getCastRange() + context.game().getMagicMissileRadius(),
+            distance_factor * (get_attack_range(unit) + 2 * context.self().getRadius())
         );
         return get_distance_penalty(position.distance(get_position(unit)), safe_distance);
     }
@@ -172,7 +190,7 @@ public:
 
         const GetUnitIntersectionPenalty get_unit_collision_penalty {context};
         const GetUnitDangerPenalty get_unit_danger_penalty {context, friend_units};
-        const GetRangedDamage get_ranged_damage {context};
+        const GetCurrentDamage get_current_damage {context};
 
         const bool is_out_of_borders = context.self().getRadius() >= position.x()
                 || position.x() >= context.game().getMapSize() - context.self().getRadius()
@@ -183,22 +201,18 @@ public:
             return max_borders_penalty;
         }
 
-        const double enemy_wizards_damage = std::accumulate(
-                    enemy_wizards.begin(), enemy_wizards.end(), 0.0,
-                    [&] (auto sum, const auto& v) { return sum + damage_factor * get_ranged_damage(*v, position); });
+        const double enemy_wizards_damage = std::accumulate(enemy_wizards.begin(), enemy_wizards.end(), 0.0,
+            [&] (auto sum, const auto& v) { return sum + damage_factor * get_current_damage(*v, position); });
 
-        const double enemy_minions_damage = std::accumulate(
-                    enemy_minions.begin(), enemy_minions.end(), 0.0,
-                    [&] (auto sum, const auto& v) { return sum + damage_factor * get_ranged_damage(*v, position); });
+        const double enemy_minions_damage = std::accumulate(enemy_minions.begin(), enemy_minions.end(), 0.0,
+            [&] (auto sum, const auto& v) { return sum + damage_factor * get_current_damage(*v, position); });
 
-        const double enemy_buildings_damage = std::accumulate(
-                    enemy_buildings.begin(), enemy_buildings.end(), 0.0,
-                    [&] (auto sum, const auto& v) { return sum + damage_factor * get_ranged_damage(*v, position); });
+        const double enemy_buildings_damage = std::accumulate(enemy_buildings.begin(), enemy_buildings.end(), 0.0,
+            [&] (auto sum, const auto& v) { return sum + damage_factor * get_current_damage(*v, position); });
 
         const double sum_enemy_damage = enemy_wizards_damage
                 + enemy_minions_damage
-                + enemy_buildings_damage
-                + (target ? get_ranged_damage(*target, position) : 0.0);
+                + enemy_buildings_damage;
 
         const auto get_sum_wizards_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
@@ -237,22 +251,24 @@ public:
                 });
         };
 
-        double target_distance_penalty = 0;
+        double target_penalty = 0;
 
         if (target) {
-            if (const auto bonus = dynamic_cast<const model::Bonus*>(target)) {
-                target_distance_penalty = get_bonus_penalty(*bonus, position);
-            } else {
-                const auto max_cast_range = context.self().getCastRange() + context.game().getMagicMissileRadius();
-                const auto distance = position.distance(get_position(*target));
-                double distance_penalty = 0;
-                if (distance > max_cast_range) {
-                    const auto safe_distance = 2.0 * context.self().getVisionRange();
-                    distance_penalty = 1.0 - get_distance_penalty(distance - max_cast_range, safe_distance);
-                }
-                target_distance_penalty = std::max(get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage),
-                                                   distance_penalty);
+            target_penalty = get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage);
+
+            if (!dynamic_cast<const model::Bonus*>(target)) {
+                const auto current_distance = position.distance(get_position(*target));
+                const auto future_distance = position.distance(get_position(*target) + get_speed(*target));
+                const auto distance = 0.5 * (current_distance + future_distance);
+                const auto range = context.self().getCastRange() + target->getRadius();
+                const auto distance_penalty = 1.0 - get_distance_penalty(distance - range, context.self().getVisionRange());
+                target_penalty = std::max(get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage),
+                                          distance_penalty);
             }
+        }
+
+        if (get_sum_projectiles_penalty(projectiles, position) != 0) {
+            std::cout << get_sum_projectiles_penalty(projectiles, position) << " " << projectiles.size() << std::endl;
         }
 
         const auto except_borders = get_sum_units_penalty(buildings, position)
@@ -262,7 +278,7 @@ public:
                 + get_sum_bonuses_penalty(bonuses, position)
                 + get_sum_projectiles_penalty(projectiles, position)
                 + get_sum_friendly_fire_penalty(friend_units, position)
-                + target_distance_penalty;
+                + target_penalty;
 
         const auto borders_distance_penalty = get_border_distance_penalty(position.x(), max_borders_penalty - except_borders)
                 + get_border_distance_penalty(context.game().getMapSize() - position.x(), max_borders_penalty - except_borders)
