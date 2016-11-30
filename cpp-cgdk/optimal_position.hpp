@@ -221,7 +221,9 @@ public:
 
         const double sum_enemy_damage = enemy_wizards_damage
                 + enemy_minions_damage
-                + enemy_buildings_damage;
+                + enemy_buildings_damage
+                + is_with_status(context.self(), model::STATUS_BURNING)
+                    * double(context.game().getBurningSummaryDamage()) / double(context.game().getBurningDurationTicks());
 
         const auto get_sum_wizards_penalty = [&] (const auto& units, const Point& position) {
             return std::accumulate(units.begin(), units.end(), 0.0,
