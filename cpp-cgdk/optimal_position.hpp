@@ -328,7 +328,7 @@ private:
     double get_projectile_penalty(const model::Projectile& unit, const Point& position) const {
         const auto unit_speed = get_speed(unit);
         const auto unit_position = get_position(unit);
-        const auto safe_distance = 2 * context.self().getRadius() + unit.getRadius();
+        const auto safe_distance = context.self().getVisionRange();
         const auto distance_to = Line(unit_position, unit_position + unit_speed).distance(position);
         return get_distance_penalty(distance_to, safe_distance);
     }
