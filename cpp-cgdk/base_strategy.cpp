@@ -191,8 +191,10 @@ void BaseStrategy::apply_action(Context& context) {
         return;
     } else if (need_apply_haste(context)) {
         context.move().setAction(model::ACTION_HASTE);
+        context.move().setStatusTargetId(context.self().getId());
     } else if (need_apply_shield(context)) {
         context.move().setAction(model::ACTION_SHIELD);
+        context.move().setStatusTargetId(context.self().getId());
     } else if (target_.is<model::Bonus>()) {
         return;
     } else if (const auto target = target_.circular_unit(context.cache())) {
