@@ -49,7 +49,7 @@ void MoveMode::next_path_node(const Context& context) {
 
     const auto to_next = graph_.nodes().at(*path_node_).distance(get_position(context.self()));
 
-    if (to_next > context.self().getVisionRange()) {
+    if (to_next > 0.5 * context.self().getVisionRange()) {
         return;
     }
 
