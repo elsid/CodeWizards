@@ -264,9 +264,9 @@ bool BaseStrategy::need_apply_magic_missile(const Context& context, const model:
 bool BaseStrategy::need_apply_cast(const Context& context, const model::CircularUnit& target, double radius) {
     const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + context.move().getCastAngle()));
     const auto distance = get_position(target).distance(get_position(context.self()));
-    const auto cast_target = get_position(context.self()) + direction * distance;
+    const auto cast_target = get_position(context.self()) + direction * std::min(distance, context.self().getCastRange());
     const auto distance_to_target = get_position(target).distance(cast_target);
-    const auto lethal_area = radius + target.getRadius();
+    const auto lethal_area = radius + target.getRadius() * 0.5;
 
     if (distance_to_target > lethal_area) {
         return false;
