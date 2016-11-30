@@ -350,9 +350,10 @@ private:
             return 0.0;
         }
 
+        const auto cast_radius = std::max(context.game().getMagicMissileRadius(),
+            std::max(context.game().getFrostBoltRadius(), context.game().getFireballRadius()));
         const auto target_to_unit = unit_position - target_position;
-        const auto tangent_cos = (unit.getRadius() + context.game().getMagicMissileRadius())
-                / target_position.distance(unit_position);
+        const auto tangent_cos = (unit.getRadius(), cast_radius) / target_position.distance(unit_position);
         const auto tangent_angle = std::acos(std::min(1.0, std::max(-1.0, tangent_cos)));
         const auto tangent1_direction = target_to_unit.rotated(tangent_angle);
         const auto tangent2_direction = target_to_unit.rotated(-tangent_angle);
