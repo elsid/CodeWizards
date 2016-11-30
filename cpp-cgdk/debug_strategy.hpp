@@ -35,7 +35,9 @@ private:
     void visualize_path(const Context& context);
     void visualize_destination(const Context& context);
     void visualize_target(const Context& context);
-    void visualize_self(const Context& context);
+    void visualize_units(const Context& context);
+    void visualize_unit(const Context& context, const model::Wizard& unit);
+    void visualize_unit(const Context& context, const model::Building& unit);
 
     template <class T>
     void visualize_positions_penalties(const Context& context, const T* target) {
