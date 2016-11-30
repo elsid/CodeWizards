@@ -27,32 +27,6 @@ Target get_optimal_target(const Context& context, double max_distance) {
 
     const auto bonuses = filter_units(context.world().getBonuses(), is_in_my_range);
 
-    if (enemy_wizards.empty() && enemy_minions.empty() && enemy_buildings.empty() && bonuses.empty()) {
-        const double factor = get_speed(context.self()).norm() < 1 ? 2 : 1.3;
-        const auto trees = filter_units(context.world().getTrees(),
-            [&] (const auto& unit) {
-                return get_position(context.self()).distance(get_position(unit))
-                        < factor * context.self().getRadius() + unit.getRadius();
-            });
-        const auto less_by_distance = [&] (auto lhs, auto rhs) {
-            return get_position(*lhs).distance(get_position(context.self())) <
-                    get_position(*rhs).distance(get_position(context.self()));
-        };
-        if (!trees.empty()) {
-            return get_id(**std::min_element(trees.begin(), trees.end(), less_by_distance));
-        }
-        const auto neutral_minions = filter_units(context.world().getMinions(),
-              [&] (const auto& unit) {
-                  return unit.getFaction() == model::FACTION_NEUTRAL &&
-                          get_position(context.self()).distance(get_position(unit))
-                          < factor * context.self().getRadius() + unit.getRadius();
-              });
-        if (!neutral_minions.empty()) {
-            return get_id(**std::min_element(neutral_minions.begin(), neutral_minions.end(), less_by_distance));
-        }
-        return Target();
-    }
-
     const GetDamage get_damage {context};
 
     const auto get_target_penalty = [&] (const auto& unit) {
@@ -67,63 +41,115 @@ Target get_optimal_target(const Context& context, double max_distance) {
             [&] (auto lhs, auto rhs) { return get_target_penalty(*lhs) < get_target_penalty(*rhs); });
     };
 
-    const IsInMyRange is_in_staff_range {context, context.game().getStaffRange()};
+    const double other_factor = get_speed(context.self()).norm() < 1 ? 2 : 1;
+    const auto trees = filter_units(context.world().getTrees(),
+        [&] (const auto& unit) {
+            return get_position(context.self()).distance(get_position(unit))
+                    < other_factor * unit.getRadius() + context.game().getStaffRange();
+        });
+    const auto less_by_distance = [&] (auto lhs, auto rhs) {
+        return get_position(*lhs).distance(get_position(context.self())) <
+                get_position(*rhs).distance(get_position(context.self()));
+    };
+
+    const auto neutral_minions = filter_units(context.world().getMinions(),
+          [&] (const auto& unit) {
+              return unit.getFaction() == model::FACTION_NEUTRAL &&
+                      get_position(context.self()).distance(get_position(unit))
+                      < other_factor * unit.getRadius() + context.game().getStaffRange();
+          });
 
     const auto is_in_range_of_my_or_optimal_position = [&] (const auto& unit) {
-        const auto optimal_position = get_optimal_position(context, &unit, 2 * context.self().getVisionRange(), 1, 10);
+        const auto optimal_position = get_optimal_position(context, &unit, 2 * context.self().getVisionRange(),
+            OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
         const auto min = std::min(get_position(context.self()).distance(get_position(unit)),
                                   optimal_position.distance(get_position(unit)));
         return min <= get_attack_range(context.self()) + unit.getRadius();
     };
 
+    const model::Wizard* optimal_wizard = nullptr;
+    const model::Minion* optimal_minion = nullptr;
+    const model::Minion* optimal_neutral_minion = nullptr;
+    const model::Bonus* optimal_bonus = nullptr;
+    const model::Building* optimal_building = nullptr;
+    const model::Tree* optimal_tree = nullptr;
+
+    enum Type {
+        OPTIMAL_ENEMY_WIZARD,
+        OPTIMAL_ENEMY_MINION,
+        OPTIMAL_BONUS,
+        OPTIMAL_ENEMY_BUILDING,
+        OPTIMAL_TREE,
+        OPTIMAL_NEUTRAL_MINION,
+        OPTIMAL_COUNT,
+    };
+
+    std::vector<double> penalties(OPTIMAL_COUNT, std::numeric_limits<double>::max());
+
     if (!enemy_wizards.empty()) {
-        const auto in_staff_range = filter_units(enemy_wizards, is_in_staff_range);
-        if (!in_staff_range.empty()) {
-            const auto& unit = **get_with_min_penalty(in_staff_range);
-            if (is_in_range_of_my_or_optimal_position(unit)) {
-                return get_id(unit);
-            }
+        const auto unit = *get_with_min_penalty(enemy_wizards);
+        if (is_in_range_of_my_or_optimal_position(*unit)) {
+            optimal_wizard = unit;
+            penalties[OPTIMAL_ENEMY_WIZARD] = get_target_penalty(*unit);
         }
     }
 
-    if (!enemy_minions.empty() && bonuses.empty()) {
-        const auto in_staff_range = filter_units(enemy_minions, is_in_staff_range);
-        if (!in_staff_range.empty()) {
-            const auto& unit = **get_with_min_penalty(in_staff_range);
-            if (is_in_range_of_my_or_optimal_position(unit)) {
-                return get_id(unit);
-            }
-        }
-    }
-
-    if (!enemy_wizards.empty()) {
-        const auto& unit = **get_with_min_penalty(enemy_wizards);
-        if (is_in_range_of_my_or_optimal_position(unit)) {
-            return get_id(unit);
+    if (!enemy_minions.empty()) {
+        const auto unit = *get_with_min_penalty(enemy_minions);
+        if (is_in_range_of_my_or_optimal_position(*unit)) {
+            optimal_minion = unit;
+            penalties[OPTIMAL_ENEMY_MINION] = get_target_penalty(*unit);
         }
     }
 
     if (!bonuses.empty()) {
-        const auto target = std::min_element(bonuses.begin(), bonuses.end(),
+        optimal_bonus = *std::min_element(bonuses.begin(), bonuses.end(),
             [&] (auto lhs, auto rhs) {
                 return get_position(*lhs).distance(get_position(context.self()))
                         < get_position(*rhs).distance(get_position(context.self()));
             });
-        return get_id(**target);
-    }
-
-    if (!enemy_minions.empty()) {
-        const auto& unit = **get_with_min_penalty(enemy_minions);
-        if (is_in_range_of_my_or_optimal_position(unit)) {
-            return get_id(unit);
-        }
+        penalties[OPTIMAL_BONUS] = get_position(*optimal_bonus).distance(get_position(context.self()));
     }
 
     if (!enemy_buildings.empty()) {
-        const auto& unit = **get_with_min_penalty(enemy_buildings);
-        if (is_in_range_of_my_or_optimal_position(unit)) {
-            return get_id(unit);
+        const auto unit = *get_with_min_penalty(enemy_buildings);
+        if (is_in_range_of_my_or_optimal_position(*unit)) {
+            optimal_building = unit;
+            penalties[OPTIMAL_ENEMY_BUILDING] = get_target_penalty(*unit);
         }
+    }
+
+    if (!trees.empty()) {
+        optimal_tree = *std::min_element(trees.begin(), trees.end(), less_by_distance);
+        penalties[OPTIMAL_TREE] = get_position(*optimal_tree).distance(get_position(context.self()));
+    }
+
+    if (!neutral_minions.empty()) {
+        optimal_neutral_minion = *std::min_element(neutral_minions.begin(), neutral_minions.end(), less_by_distance);
+        penalties[OPTIMAL_NEUTRAL_MINION] = get_position(*optimal_tree).distance(get_position(context.self()));
+    }
+
+    const auto optimal = std::min_element(penalties.begin(), penalties.end());
+
+    if (*optimal == std::numeric_limits<double>::max()) {
+        return Target();
+    }
+
+    switch (Type(optimal - penalties.begin())) {
+        case OPTIMAL_ENEMY_WIZARD:
+            return get_id(*optimal_wizard);
+        case OPTIMAL_ENEMY_MINION:
+            return get_id(*optimal_minion);
+        case OPTIMAL_BONUS:
+            return get_id(*optimal_bonus);
+        case OPTIMAL_ENEMY_BUILDING:
+            return get_id(*optimal_building);
+        case OPTIMAL_TREE:
+            return get_id(*optimal_tree);
+        case OPTIMAL_NEUTRAL_MINION:
+            return get_id(*optimal_neutral_minion);
+        case OPTIMAL_COUNT:
+            return Target();
     }
 
     return Target();
