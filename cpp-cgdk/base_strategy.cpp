@@ -160,7 +160,8 @@ void BaseStrategy::apply_move(Context& context) {
     context.move().setStrafeSpeed(movement_->strafe_speed());
 
     if (const auto target = target_.circular_unit(context.cache())) {
-        const auto turn = context.self().getAngleTo(*target);
+        const Bounds bounds(context);
+        const auto turn = bounds.limit_turn(context.self().getAngleTo(*target), 0);
 
         context.move().setTurn(turn);
 
