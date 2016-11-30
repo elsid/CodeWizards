@@ -180,7 +180,7 @@ public:
         enemy_minions = filter_units(minions, is_enemy_and_not_target);
         enemy_buildings = filter_units(buildings, is_enemy_and_not_target);
 
-        const auto friend_wizards = filter_friends(wizards, context.self().getFaction(), context.self().getId());
+        friend_wizards = filter_friends(wizards, context.self().getFaction(), context.self().getId());
         const auto friend_minions = filter_friends(minions, context.self().getFaction(), context.self().getId());
         const auto friend_buildings = filter_friends(buildings, context.self().getFaction(), context.self().getId());
 
@@ -284,7 +284,7 @@ public:
                 + get_sum_wizards_penalty(wizards, position)
                 + get_sum_bonuses_penalty(bonuses, position)
                 + get_sum_projectiles_penalty(projectiles, position)
-                + get_sum_friendly_fire_penalty(friend_units, position)
+                + get_sum_friendly_fire_penalty(friend_wizards, position)
                 + target_penalty;
 
         const auto borders_distance_penalty = get_border_distance_penalty(position.x(), max_borders_penalty - except_borders)
@@ -309,6 +309,7 @@ private:
     std::vector<const model::Minion*> enemy_minions;
     std::vector<const model::Building*> enemy_buildings;
     std::vector<const model::CircularUnit*> friend_units;
+    std::vector<const model::Wizard*> friend_wizards;
     double max_borders_penalty = std::numeric_limits<double>::max();
     double damage_factor = 1;
 
