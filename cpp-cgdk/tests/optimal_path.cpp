@@ -2,6 +2,7 @@
 
 #include <debug/output.hpp>
 #include <optimal_path.hpp>
+#include <helpers.hpp>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

@@ -15,28 +15,10 @@
 
 namespace strategy {
 
-bool is_enemy(const model::Unit& unit, model::Faction my_faction);
-
-bool is_friend(const model::Unit& unit, model::Faction my_faction, UnitId my_id);
-bool is_friend(const model::Wizard& unit, model::Faction my_faction, UnitId my_id);
-
-bool is_me(const model::Wizard& unit);
-bool is_me(const model::Unit&);
-
 double get_distance_penalty(double value, double safe);
 
 Point get_optimal_position(const Context& context, const Target& target, double max_distance,
                            std::size_t initial_points_count, int max_function_calls);
-
-template <class T>
-std::vector<const T*> filter_friends(const std::vector<const T*>& units, model::Faction my_faction, UnitId my_id) {
-    return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
-}
-
-template <class T>
-std::vector<const T*> filter_friends(const std::vector<T>& units, model::Faction my_faction, UnitId my_id) {
-    return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
-}
 
 struct GetAttackRange {
     const Context& context;

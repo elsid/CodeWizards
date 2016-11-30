@@ -13,21 +13,6 @@
 
 namespace strategy {
 
-int get_hastened_remaining_ticks(const model::LivingUnit& unit) {
-    const auto hastend = find_status(unit.getStatuses(), model::STATUS_HASTENED);
-    return hastend == unit.getStatuses().end() ? 0 : hastend->getRemainingDurationTicks();
-}
-
-double normalize_angle(double value) {
-    if (value > M_PI) {
-        return value - std::round(value * 0.5 * M_1_PI) * 2.0 * M_PI;
-    }
-    if (value < -M_PI) {
-        return value + std::round(std::abs(value) * 0.5 * M_1_PI) * 2.0 * M_PI;
-    }
-    return value;
-}
-
 Movement get_next_movement(const Point& target, const MovementState& state, const OptPoint& look_target, const Bounds& bounds) {
     const auto direction = target - state.position();
     const auto norm = direction.norm();

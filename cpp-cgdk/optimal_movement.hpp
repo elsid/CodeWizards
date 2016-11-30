@@ -4,6 +4,7 @@
 #include "point.hpp"
 #include "context.hpp"
 #include "optimal_path.hpp"
+#include "helpers.hpp"
 
 #include <vector>
 
@@ -55,8 +56,6 @@ private:
     double turn_;
 };
 
-int get_hastened_remaining_ticks(const model::LivingUnit& unit);
-
 class Bounds {
 public:
     Bounds(const Context& context)
@@ -104,8 +103,6 @@ using Movements = std::vector<Movement>;
 using OptPoint = std::pair<bool, Point>;
 
 std::pair<MovementsStates, Movements> get_optimal_movement(const Context& context, const Path& path, const OptPoint& look_target);
-double normalize_angle(double value);
-int get_hastened_remaining_ticks(const model::LivingUnit& unit);
 
 Movement get_next_movement(const Point& target, const MovementState& state, const OptPoint& look_target, const Bounds& bounds);
 Point get_shift(const MovementState& state, const Movement& movement);

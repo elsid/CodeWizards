@@ -57,6 +57,7 @@ set(SOURCES
     move_mode.cpp
     battle_mode.cpp
     circle.cpp
+    helpers.cpp
 )
 
 add_executable(cpp-cgdk

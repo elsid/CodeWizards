@@ -40,10 +40,6 @@ static const std::vector<model::SkillType> SKILLS = {
     model::SKILL_STAFF_DAMAGE_BONUS_AURA_2,
 };
 
-bool has_skill(const model::Wizard& unit, model::SkillType skill) {
-    return unit.getSkills().end() != std::find(unit.getSkills().begin(), unit.getSkills().end(), skill);
-}
-
 BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
           battle_mode_(std::make_shared<BattleMode>()),

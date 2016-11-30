@@ -155,27 +155,4 @@ Target get_optimal_target(const Context& context, double max_distance) {
     return Target();
 }
 
-std::vector<model::Status>::const_iterator find_status(const std::vector<model::Status>& statuses, model::StatusType status) {
-    return std::find_if(statuses.begin(), statuses.end(),
-                        [&] (const model::Status& v) { return v.getType() == status; });
-}
-
-bool is_with_status(const model::LivingUnit& unit, model::StatusType status) {
-    return unit.getStatuses().end() != find_status(unit.getStatuses(), status);
-}
-
-bool is_empowered(const model::LivingUnit& unit) {
-    return is_with_status(unit, model::STATUS_EMPOWERED);
-}
-
-bool is_shielded(const model::LivingUnit& unit) {
-    return is_with_status(unit, model::STATUS_SHIELDED);
-}
-
-bool is_enemy(const model::Unit& unit, model::Faction my_faction) {
-    return unit.getFaction() != my_faction
-            && unit.getFaction() != model::FACTION_NEUTRAL
-            && unit.getFaction() != model::FACTION_OTHER;
-}
-
 }

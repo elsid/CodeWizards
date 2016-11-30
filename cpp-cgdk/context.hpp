@@ -189,14 +189,6 @@ private:
     Duration time_limit_;
 };
 
-inline Point get_position(const model::Unit& unit) {
-    return Point(unit.getX(), unit.getY());
-}
-
-inline Point get_speed(const model::Unit& unit) {
-    return Point(unit.getSpeedX(), unit.getSpeedY());
-}
-
 template <class T>
 const std::vector<T>& get_units(const model::World& world);
 
