@@ -120,17 +120,17 @@ struct GetUnitDangerPenalty {
         const GetDamage get_damage {context};
         const GetAttackRange get_attack_range {context};
         const GetCurrentDamage get_current_damage {context};
-        double distance_factor;
-        if (sum_enemy_damage + damage_factor * get_current_damage(unit, position) > 2 * context.self().getLife()) {
-            distance_factor = 1.0;
-        } else {
-            distance_factor = damage_factor * get_current_damage(unit, position) / get_damage(unit);
-        }
+        const auto damage = sum_enemy_damage + damage_factor * (get_damage(unit) - get_current_damage(unit, position));
+        const auto distance = position.distance(get_position(unit));
+        const auto distance_factor = std::max(
+            2 * damage / context.self().getLife(),
+            damage_factor * get_current_damage(unit, position) / get_damage(unit)
+        );
         const double safe_distance = std::max(
             context.self().getCastRange() + context.game().getMagicMissileRadius(),
             distance_factor * (get_attack_range(unit) + 2 * context.self().getRadius())
         );
-        return get_distance_penalty(position.distance(get_position(unit)), safe_distance);
+        return get_distance_penalty(distance, safe_distance);
     }
 };
 
