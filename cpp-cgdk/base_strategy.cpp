@@ -222,6 +222,7 @@ void BaseStrategy::use_battle_mode() {
 
 bool BaseStrategy::need_apply_haste(const Context& context) const {
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_HASTE] == 0
+            && context.self().getMana() >= context.game().getHasteManacost()
             && !is_with_status(context.self(), model::STATUS_HASTENED)
             && has_skill(context.self(), model::SKILL_HASTE)
             && ((!target_.is<model::Bonus>()
@@ -231,6 +232,7 @@ bool BaseStrategy::need_apply_haste(const Context& context) const {
 
 bool BaseStrategy::need_apply_shield(const Context& context) const {
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_SHIELD] == 0
+            && context.self().getMana() >= context.game().getShieldManacost()
             && !is_with_status(context.self(), model::STATUS_SHIELDED)
             && !target_.is<model::Bonus>()
             && target_.is_some()
@@ -246,18 +248,21 @@ bool BaseStrategy::need_apply_staff(const Context& context, const model::Circula
 
 bool BaseStrategy::need_apply_fireball(const Context& context, const model::CircularUnit& target) {
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FIREBALL] == 0
+            && context.self().getMana() >= context.game().getFireballManacost()
             && has_skill(context.self(), model::SKILL_FIREBALL)
             && need_apply_cast(context, target, context.game().getFireballRadius());
 }
 
 bool BaseStrategy::need_apply_frostbolt(const Context& context, const model::CircularUnit& target) {
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FROST_BOLT] == 0
+            && context.self().getMana() >= context.game().getFrostBoltManacost()
             && has_skill(context.self(), model::SKILL_FROST_BOLT)
             && need_apply_cast(context, target, context.game().getFrostBoltRadius());
 }
 
 bool BaseStrategy::need_apply_magic_missile(const Context& context, const model::CircularUnit& target) {
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_MAGIC_MISSILE] == 0
+            && context.self().getMana() >= context.game().getMagicMissileManacost()
             && need_apply_cast(context, target, context.game().getMagicMissileRadius());
 }
 
