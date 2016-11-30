@@ -47,17 +47,21 @@ void MoveMode::next_path_node(const Context& context) {
         return;
     }
 
-    const auto required_distance = path_.end() - path_node_ > 2
-            ? context.self().getVisionRange() * 0.5
-            : context.self().getVisionRange();
+    const auto to_next = graph_.nodes().at(*path_node_).distance(get_position(context.self()));
 
-    const auto distance = graph_.nodes().at(*path_node_).distance(get_position(context.self()));
-
-    if (distance > required_distance) {
+    if (to_next > context.self().getVisionRange()) {
         return;
     }
 
-    ++path_node_;
+    if (path_node_ - path_.begin() > 0) {
+        const auto prev = path_node_ - 1;
+        const auto to_prev = graph_.nodes().at(*prev).distance(get_position(context.self()));
+        if (to_prev > to_next) {
+            ++path_node_;
+        }
+    } else {
+        ++path_node_;
+    }
 }
 
 }
