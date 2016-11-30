@@ -82,7 +82,36 @@ struct GetCurrentDamage {
     double operator ()(const Unit& unit, const Point& position) const {
         const GetRangedDamage get_ranged_damage {context};
         const GetUnitAttackAbility get_attack_ability {context};
-        return get_ranged_damage(unit, position) * get_attack_ability(unit);
+        return get_ranged_damage(unit, position) * get_attack_ability(unit) * get_turn_factor(unit, position);
+    }
+
+    template <class Unit>
+    double get_turn_factor(const Unit&, const Point&) const {
+        return 1.0;
+    }
+
+    double get_turn_factor(const model::Minion& unit, const Point& position) const {
+        return get_rotating_unit_turn_factor(unit, position);
+    }
+
+    double get_turn_factor(const model::Wizard& unit, const Point& position) const {
+        return get_rotating_unit_turn_factor(unit, position);
+    }
+
+    template <class Unit>
+    double get_rotating_unit_turn_factor(const Unit& unit, const Point& position) const {
+        const Bounds my_bounds(context);
+        const auto unit_bounds = make_unit_bounds(context, unit);
+        const auto my_position = get_position(context.self());
+        const auto current_angle = unit.getAngle();
+        const auto future_direction = position - get_position(unit);
+        const auto future_angle = normalize_angle(future_direction.absolute_rotation() - unit.getAngle());
+        const auto turn = std::max(0.0, std::abs(future_angle - current_angle) - context.game().getWizardMaxTurnAngle());
+        const auto turn_ticks = turn / unit_bounds.max_turn(0);
+        const auto distance = position.distance(my_position);
+        const auto move_ticks = distance / my_bounds.max_strafe_speed(std::ceil(turn_ticks));
+        const auto max_cast_angle = M_PI / 12.0;
+        return turn_ticks > move_ticks ? 1.0 - std::max(0.0, future_angle - max_cast_angle) / (M_PI - max_cast_angle) : 1.0;
     }
 };
 

@@ -56,10 +56,12 @@ private:
     double turn_;
 };
 
-class Bounds {
+template <class Unit>
+class UnitBounds {
 public:
-    Bounds(const Context& context)
-        : context_(context), hastened_remaining_ticks_(get_hastened_remaining_ticks(context.self())) {}
+    UnitBounds(const Context& context, const Unit& unit)
+        : context_(context),
+          hastened_remaining_ticks_(get_hastened_remaining_ticks(unit)) {}
 
     double max_speed(double tick) const {
         return context_.game().getWizardForwardSpeed() * movement_bonus_factor(tick);
@@ -96,6 +98,16 @@ public:
 private:
     const Context& context_;
     int hastened_remaining_ticks_;
+};
+
+template <class Unit>
+UnitBounds<Unit> make_unit_bounds(const Context& context, const Unit& unit) {
+    return UnitBounds<Unit>(context, unit);
+}
+
+struct Bounds : public UnitBounds<model::Wizard> {
+    Bounds(const Context& context)
+        : UnitBounds<model::Wizard>(context, context.self()) {}
 };
 
 using MovementsStates = std::vector<MovementState>;
