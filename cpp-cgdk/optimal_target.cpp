@@ -126,7 +126,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
 
     if (!neutral_minions.empty()) {
         optimal_neutral_minion = *std::min_element(neutral_minions.begin(), neutral_minions.end(), less_by_distance);
-        penalties[OPTIMAL_NEUTRAL_MINION] = get_position(*optimal_tree).distance(get_position(context.self()));
+        penalties[OPTIMAL_NEUTRAL_MINION] = get_position(*optimal_neutral_minion).distance(get_position(context.self()));
     }
 
     const auto optimal = std::min_element(penalties.begin(), penalties.end());
