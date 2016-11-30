@@ -256,10 +256,34 @@ bool BaseStrategy::need_apply_shield(const Context& context) const {
 }
 
 bool BaseStrategy::need_apply_staff(const Context& context, const model::CircularUnit& target) {
-    const auto distance = get_position(target).distance(get_position(context.self()));
-    const auto lethal_area = target.getRadius() + context.game().getStaffRange();
-    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_STAFF] == 0
-            && distance < lethal_area;
+    if (context.self().getRemainingCooldownTicksByAction()[model::ACTION_STAFF] != 0) {
+        return false;
+    }
+
+    const auto is_in_attack_range = [&] (const auto& unit) {
+        const auto direction = get_position(unit) - get_position(context.self());
+        const auto angle = normalize_angle(direction.absolute_rotation() - context.self().getAngle());
+
+        if (std::abs(angle) > context.game().getStaffSector()) {
+            return false;
+        }
+
+        const auto distance = direction.norm();
+        const auto lethal_area = unit.getRadius() + context.game().getStaffRange();
+        return distance <= lethal_area;
+    };
+
+    if (!is_in_attack_range(target)) {
+        return false;
+    }
+
+    const auto wizards = get_units<model::Wizard>(context.world());
+    const auto is_any_friend_in_attack_range = wizards.end() != std::find_if(wizards.begin(), wizards.end(),
+        [&] (const auto& unit) {
+            return is_friend(unit, context.self().getFaction(), context.self().getId()) && is_in_attack_range(unit);
+        });
+
+    return !is_any_friend_in_attack_range;
 }
 
 bool BaseStrategy::need_apply_fireball(const Context& context, const model::CircularUnit& target) {
