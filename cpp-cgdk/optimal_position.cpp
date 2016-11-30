@@ -78,6 +78,22 @@ double GetAttackRange::operator ()(const model::Wizard& unit) const {
     return context.self().getRadius() + unit.getCastRange() + context.game().getMagicMissileRadius() + 1;
 }
 
+double GetVisionRange::operator ()(const model::Unit&) const {
+    return 0.0;
+}
+
+double GetVisionRange::operator ()(const model::Building& unit) const {
+    return unit.getVisionRange();
+}
+
+double GetVisionRange::operator ()(const model::Minion& unit) const {
+    return unit.getVisionRange();
+}
+
+double GetVisionRange::operator ()(const model::Wizard& unit) const {
+    return unit.getVisionRange();
+}
+
 double GetUnitIntersectionPenalty::operator ()(const model::CircularUnit& unit, const Point& position) const {
     return get_distance_penalty(position.distance(get_position(unit)),
                                 1.1 * context.self().getRadius() + unit.getRadius());

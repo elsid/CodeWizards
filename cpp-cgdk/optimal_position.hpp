@@ -47,6 +47,15 @@ struct GetAttackRange {
     double operator ()(const model::Wizard& unit) const;
 };
 
+struct GetVisionRange {
+    const Context& context;
+
+    double operator ()(const model::Unit&) const;
+    double operator ()(const model::Building& unit) const;
+    double operator ()(const model::Minion& unit) const;
+    double operator ()(const model::Wizard& unit) const;
+};
+
 struct GetUnitIntersectionPenalty {
     const Context& context;
 
