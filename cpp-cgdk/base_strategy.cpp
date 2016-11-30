@@ -84,8 +84,10 @@ void BaseStrategy::learn_skills(Context& context) {
             }
         }
         const auto frequent = std::max_element(skills_frequency.begin(), skills_frequency.end());
+        const auto frequent_value = *frequent;
+        std::sort(skills_frequency.begin(), skills_frequency.end());
         model::SkillType skill;
-        if (*frequent == 0) {
+        if (frequent_value <= skills_frequency[skills_frequency.size() / 2]) {
             skill = *std::find_if(SKILLS.begin(), SKILLS.end(), [&] (auto skill) { return !has_skill(context.self(), skill); });
         } else {
             skill = model::SkillType(frequent - skills_frequency.begin());
