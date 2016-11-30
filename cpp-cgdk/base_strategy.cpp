@@ -101,28 +101,40 @@ void BaseStrategy::select_mode(const Context& context) {
         return use_move_mode();
     }
 
-    const IsInMyRange is_in_my_range {context, 0.95 * context.self().getVisionRange()};
+    const IsInMyRange is_in_vision_range {context, 0.95 * context.self().getVisionRange()};
 
     const auto bonuses = get_units<model::Bonus>(context.world());
-    const auto has_near_bonuses = bonuses.end() != std::find_if(bonuses.begin(), bonuses.end(), is_in_my_range);
+    const auto has_near_bonuses = bonuses.end() != std::find_if(bonuses.begin(), bonuses.end(), is_in_vision_range);
 
     if (has_near_bonuses) {
         return use_battle_mode();
     }
 
     const auto is_enemy_in_node_range = [&] (const auto& unit) {
-        return is_enemy(unit, context.self().getFaction()) && is_in_my_range(unit);
+        return is_enemy(unit, context.self().getFaction()) && is_in_vision_range(unit);
     };
 
     const auto& buildings = get_units<model::Building>(context.world());
     const auto& minions = get_units<model::Minion>(context.world());
     const auto& wizards = get_units<model::Wizard>(context.world());
+    const auto& trees = get_units<model::Tree>(context.world());
 
-    const auto has_near_enemies = buildings.end() != std::find_if(buildings.begin(), buildings.end(), is_enemy_in_node_range)
+    const auto is_in_staff_range = [&] (const auto& unit) {
+        return get_position(context.self()).distance(get_position(unit)) <= unit.getRadius() + context.game().getStaffRange();
+    };
+
+    const auto is_neutral_in_staff_range = [&] (const auto& unit) {
+        return unit.getFaction() == model::FACTION_NEUTRAL && is_in_staff_range(unit);
+    };
+
+    const auto has_near_potential_targets =
+            buildings.end() != std::find_if(buildings.begin(), buildings.end(), is_enemy_in_node_range)
         || minions.end() != std::find_if(minions.begin(), minions.end(), is_enemy_in_node_range)
-        || wizards.end() != std::find_if(wizards.begin(), wizards.end(), is_enemy_in_node_range);
+        || wizards.end() != std::find_if(wizards.begin(), wizards.end(), is_enemy_in_node_range)
+        || trees.end() != std::find_if(trees.begin(), trees.end(), is_in_staff_range)
+        || minions.end() != std::find_if(minions.begin(), minions.end(), is_neutral_in_staff_range);
 
-    if (has_near_enemies) {
+    if (has_near_potential_targets) {
         use_battle_mode();
     } else {
         use_move_mode();
