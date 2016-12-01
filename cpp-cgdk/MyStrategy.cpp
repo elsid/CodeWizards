@@ -27,6 +27,7 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
 #endif
         strategy::Profiler profiler;
         add_fake_bonuses(world);
+        add_fake_enemy_buildings(world, self.getFaction() == model::FACTION_ACADEMY ? model::FACTION_RENEGADES : model::FACTION_ACADEMY);
         update_cache(self, world);
         strategy::Context context(self, world, game, move, cache_, profiler, strategy::Duration::max());
         if (!strategy_) {
@@ -149,4 +150,150 @@ void MyStrategy::add_fake_bonuses(const model::World& world) {
     }
     strategy::get_cache<model::Bonus>(cache_).update(strategy::FAKE_TOP_BONUS, world.getTickIndex());
     strategy::get_cache<model::Bonus>(cache_).update(strategy::FAKE_BOTTOM_BONUS, world.getTickIndex());
+}
+
+void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Faction enemy_faction) {
+    if (world.getTickIndex() != 1000) {
+        return;
+    }
+
+    static const std::vector<model::Building> FAKE_ENEMY_BUILDINGS({
+        model::Building(
+            -3, // Id
+            world.getWidth() - 400, // X
+            world.getHeight() - 3600, // Y
+            0, // SpeedX
+            0, // SpeedY
+            0, // Angle
+            enemy_faction, // Faction
+            100, // Radius
+            1000, // Life
+            1000, // MaxLife
+            {}, // Statuses
+            model::BUILDING_FACTION_BASE, // Type
+            800, // VisionRange
+            800, // AttackRange
+            0, // Damage
+            240, // CooldownTicks
+            0 // RemainingActionCooldownTicks
+        ),
+        model::Building(
+            -4, // Id
+            world.getWidth() - 50, // X
+            world.getHeight() - 2693.26, // Y
+            0, // SpeedX
+            0, // SpeedY
+            0, // Angle
+            enemy_faction, // Faction
+            50, // Radius
+            500, // Life
+            500, // MaxLife
+            {}, // Statuses
+            model::BUILDING_GUARDIAN_TOWER, // Type
+            600, // VisionRange
+            600, // AttackRange
+            0, // Damage
+            240, // CooldownTicks
+            0 // RemainingActionCooldownTicks
+        ),
+        model::Building(
+            -5, // Id
+            world.getWidth() - 350, // X
+            world.getHeight() - 1656.75, // Y
+            0, // SpeedX
+            0, // SpeedY
+            0, // Angle
+            enemy_faction, // Faction
+            50, // Radius
+            500, // Life
+            500, // MaxLife
+            {}, // Statuses
+            model::BUILDING_GUARDIAN_TOWER, // Type
+            600, // VisionRange
+            600, // AttackRange
+            0, // Damage
+            240, // CooldownTicks
+            0 // RemainingActionCooldownTicks
+        ),
+        model::Building(
+            -6, // Id
+            world.getWidth() - 902.613, // X
+            world.getHeight() - 2768.1, // Y
+            0, // SpeedX
+            0, // SpeedY
+            0, // Angle
+            enemy_faction, // Faction
+            50, // Radius
+            500, // Life
+            500, // MaxLife
+            {}, // Statuses
+            model::BUILDING_GUARDIAN_TOWER, // Type
+            600, // VisionRange
+            600, // AttackRange
+            0, // Damage
+            240, // CooldownTicks
+            0 // RemainingActionCooldownTicks
+        ),
+        model::Building(
+            -7, // Id
+            world.getWidth() - 1370.66, // X
+            world.getHeight() - 3650, // Y
+            0, // SpeedX
+            0, // SpeedY
+            0, // Angle
+            enemy_faction, // Faction
+            50, // Radius
+            500, // Life
+            500, // MaxLife
+            {}, // Statuses
+            model::BUILDING_GUARDIAN_TOWER, // Type
+            600, // VisionRange
+            600, // AttackRange
+            0, // Damage
+            240, // CooldownTicks
+            0 // RemainingActionCooldownTicks
+        ),
+        model::Building(
+            -8, // Id
+            world.getWidth() - 1929.29, // X
+            world.getHeight() - 2400, // Y
+            0, // SpeedX
+            0, // SpeedY
+            0, // Angle
+            enemy_faction, // Faction
+            50, // Radius
+            500, // Life
+            500, // MaxLife
+            {}, // Statuses
+            model::BUILDING_GUARDIAN_TOWER, // Type
+            600, // VisionRange
+            600, // AttackRange
+            0, // Damage
+            240, // CooldownTicks
+            0 // RemainingActionCooldownTicks
+        ),
+        model::Building(
+            -9, // Id
+            world.getWidth() - 2312.13, // X
+            world.getHeight() - 3950, // Y
+            0, // SpeedX
+            0, // SpeedY
+            0, // Angle
+            enemy_faction, // Faction
+            50, // Radius
+            500, // Life
+            500, // MaxLife
+            {}, // Statuses
+            model::BUILDING_GUARDIAN_TOWER, // Type
+            600, // VisionRange
+            600, // AttackRange
+            0, // Damage
+            240, // CooldownTicks
+            0 // RemainingActionCooldownTicks
+        ),
+    });
+
+    for (const auto& unit : FAKE_ENEMY_BUILDINGS) {
+        strategy::get_cache<model::Building>(cache_).update(unit, world.getTickIndex());
+    }
 }

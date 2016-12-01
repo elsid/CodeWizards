@@ -16,6 +16,7 @@ private:
 
     void update_cache(const model::Wizard& self, const model::World& world);
     void add_fake_bonuses(const model::World& world);
+    void add_fake_enemy_buildings(const model::World& world, model::Faction enemy_faction);
 };
 
 #endif
