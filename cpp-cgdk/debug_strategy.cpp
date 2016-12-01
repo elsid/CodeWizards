@@ -178,11 +178,11 @@ void DebugStrategy::visualize_target(const Context& context) {
 }
 
 void DebugStrategy::visualize_units(const Context& context) {
-    for (const auto& unit : context.world().getWizards()) {
-        visualize_unit(context, unit);
+    for (const auto& unit : get_units<model::Wizard>(context.cache())) {
+        visualize_unit(context, unit.second.value());
     }
-    for (const auto& unit : context.world().getBuildings()) {
-        visualize_unit(context, unit);
+    for (const auto& unit : get_units<model::Building>(context.cache())) {
+        visualize_unit(context, unit.second.value());
     }
 }
 
