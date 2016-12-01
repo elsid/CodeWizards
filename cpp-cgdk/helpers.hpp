@@ -1,6 +1,7 @@
 #pragma once
 
 #include "model/World.h"
+#include "model/ActionType.h"
 
 #include "point.hpp"
 #include "cache.hpp"
@@ -44,6 +45,16 @@ static const std::unordered_map<model::SkillType, int> SKILLS_MOVEMENT_BONUS_LEV
     {model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_1, 2},
     {model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2, 3},
     {model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_2, 4},
+};
+
+static const std::unordered_map<model::ActionType, std::string> ACTIONS_NAMES = {
+    {model::ACTION_NONE, "NONE"},
+    {model::ACTION_STAFF, "STAFF"},
+    {model::ACTION_MAGIC_MISSILE, "MAGIC_MISSILE"},
+    {model::ACTION_FROST_BOLT, "FROST_BOLT"},
+    {model::ACTION_FIREBALL, "FIREBALL"},
+    {model::ACTION_HASTE, "HASTE"},
+    {model::ACTION_SHIELD, "SHIELD"},
 };
 
 bool has_skill(const model::Wizard& unit, model::SkillType skill);
