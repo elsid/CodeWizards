@@ -132,7 +132,8 @@ struct GetUnitDangerPenalty {
         const GetAttackRange get_attack_range {context};
         const GetCurrentDamage get_current_damage {context};
         const auto damage = sum_enemy_damage + damage_factor * (get_damage(unit) - get_current_damage(unit, position));
-        const auto distance = position.distance(get_position(unit));
+        const auto distance = std::min(position.distance(get_position(unit)),
+                                       position.distance(get_position(unit) + get_speed(unit)));
         const auto distance_factor = std::max(
             2 * damage / context.self().getLife(),
             damage_factor * get_current_damage(unit, position) / get_damage(unit)
