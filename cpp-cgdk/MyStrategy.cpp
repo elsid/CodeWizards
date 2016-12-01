@@ -60,7 +60,7 @@ struct CacheTtl<model::Bonus> {
 
 template <>
 struct CacheTtl<model::Building> {
-    static constexpr const Tick value = 2500;
+    static constexpr const Tick value = std::numeric_limits<int>::max();
 };
 
 template <>
@@ -75,7 +75,7 @@ struct CacheTtl<model::Projectile> {
 
 template <>
 struct CacheTtl<model::Tree> {
-    static constexpr const Tick value = 2500;
+    static constexpr const Tick value = std::numeric_limits<int>::max();
 };
 
 template <>
