@@ -13,10 +13,10 @@
 namespace strategy {
 
 const std::vector<model::SkillType> SKILLS_PRIORITY = {
-    model::SKILL_FROST_BOLT,
-    model::SKILL_ADVANCED_MAGIC_MISSILE,
-    model::SKILL_SHIELD,
     model::SKILL_FIREBALL,
+    model::SKILL_ADVANCED_MAGIC_MISSILE,
+    model::SKILL_FROST_BOLT,
+    model::SKILL_SHIELD,
     model::SKILL_HASTE,
 };
 
