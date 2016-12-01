@@ -136,12 +136,10 @@ void BaseStrategy::update_movements(const Context& context) {
 }
 
 void BaseStrategy::apply_move(Context& context) {
-    if (movement_ == movements_.end()) {
-        return;
+    if (movement_ != movements_.end()) {
+        context.move().setSpeed(movement_->speed());
+        context.move().setStrafeSpeed(movement_->strafe_speed());
     }
-
-    context.move().setSpeed(movement_->speed());
-    context.move().setStrafeSpeed(movement_->strafe_speed());
 
     if (const auto target = target_.circular_unit(context.cache())) {
         const Bounds bounds(context);
@@ -154,7 +152,7 @@ void BaseStrategy::apply_move(Context& context) {
         }
 
         context.move().setCastAngle(turn);
-    } else {
+    } else if (movement_ != movements_.end()) {
         context.move().setTurn(movement_->turn());
     }
 }
