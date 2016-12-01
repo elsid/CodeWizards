@@ -282,7 +282,7 @@ public:
             if (!dynamic_cast<const model::Bonus*>(target)) {
                 const auto current_distance = position.distance(get_position(*target));
                 const auto future_distance = position.distance(get_position(*target) + get_speed(*target));
-                const auto distance = 0.5 * (current_distance + future_distance);
+                const auto distance = std::max(current_distance, future_distance);
                 const auto range = context.self().getCastRange();
                 double distance_penalty = 0;
                 if (distance > range) {
