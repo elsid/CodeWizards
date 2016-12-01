@@ -13,6 +13,34 @@
 
 namespace strategy {
 
+double GetDamage::operator ()(const model::Bonus&) const {
+    return 0.0;
+}
+
+double GetDamage::operator ()(const model::Tree&) const {
+    return 0.0;
+}
+
+double GetDamage::operator ()(const model::Building& unit) const {
+    return (1.0 + get_statuses_factor(unit)) * unit.getDamage();
+}
+
+double GetDamage::operator ()(const model::Minion& unit) const {
+    return (1.0 + get_statuses_factor(unit)) * unit.getDamage();
+}
+
+double GetDamage::operator ()(const model::Wizard& unit) const {
+    return (1.0 + get_statuses_factor(unit) + get_skills_factor(unit)) * context.game().getMagicMissileDirectDamage();
+}
+
+double GetDamage::get_statuses_factor(const model::LivingUnit& unit) const {
+    return is_empowered(unit) * context.game().getEmpoweredDamageFactor();
+}
+
+double GetDamage::get_skills_factor(const model::Wizard& unit) const {
+    return context.game().getMagicalDamageBonusPerSkillLevel() * get_magical_damage_bonus_level(unit);
+}
+
 Target get_optimal_target(const Context& context, double max_distance) {
     const IsInMyRange is_in_my_range {context, max_distance};
     const GetAttackRange get_attack_range {context};

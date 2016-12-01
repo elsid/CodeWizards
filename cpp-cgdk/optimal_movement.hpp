@@ -62,7 +62,7 @@ public:
     UnitBounds(const Context& context, const Unit& unit)
         : context_(context),
           hastened_remaining_ticks_(get_hastened_remaining_ticks(unit)),
-          movement_skill_bonus_level_(get_movement_skill_bonus_level(unit)) {}
+          movement_skill_bonus_level_(get_movement_bonus_level(unit)) {}
 
     double max_speed(double tick) const {
         return context_.game().getWizardForwardSpeed() * movement_bonus_factor(tick);

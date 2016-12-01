@@ -9,29 +9,13 @@ namespace strategy {
 struct GetDamage {
     const Context& context;
 
-    double operator ()(const model::Bonus&) const {
-        return 0.0;
-    }
-
-    double operator ()(const model::Tree&) const {
-        return 0.0;
-    }
-
-    double operator ()(const model::Building& unit) const {
-        return get_factor(unit) * unit.getDamage();
-    }
-
-    double operator ()(const model::Minion& unit) const {
-        return get_factor(unit) * unit.getDamage();
-    }
-
-    double operator ()(const model::Wizard& unit) const {
-        return get_factor(unit) * context.game().getMagicMissileDirectDamage();
-    }
-
-    double get_factor(const model::LivingUnit& unit) const {
-        return 1 + is_empowered(unit) * context.game().getEmpoweredDamageFactor();
-    }
+    double operator ()(const model::Bonus&) const;
+    double operator ()(const model::Tree&) const;
+    double operator ()(const model::Building& unit) const;
+    double operator ()(const model::Minion& unit) const;
+    double operator ()(const model::Wizard& unit) const;
+    double get_statuses_factor(const model::LivingUnit& unit) const;
+    double get_skills_factor(const model::Wizard& unit) const;
 };
 
 struct IsInMyRange {

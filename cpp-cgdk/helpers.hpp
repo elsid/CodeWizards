@@ -47,6 +47,20 @@ static const std::unordered_map<model::SkillType, int> SKILLS_MOVEMENT_BONUS_LEV
     {model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_2, 4},
 };
 
+static const std::unordered_map<model::SkillType, int> SKILLS_MAGICAL_DAMAGE_BONUS_LEVELS = {
+    {model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1, 1},
+    {model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_1, 2},
+    {model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2, 3},
+    {model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_2, 4},
+};
+
+static const std::unordered_map<model::SkillType, int> SKILLS_STAFF_DAMAGE_BONUS_LEVELS = {
+    {model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1, 1},
+    {model::SKILL_STAFF_DAMAGE_BONUS_AURA_1, 2},
+    {model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2, 3},
+    {model::SKILL_STAFF_DAMAGE_BONUS_AURA_2, 4},
+};
+
 static const std::unordered_map<model::ActionType, std::string> ACTIONS_NAMES = {
     {model::ACTION_NONE, "NONE"},
     {model::ACTION_STAFF, "STAFF"},
@@ -67,8 +81,22 @@ Point get_speed(const model::Unit& unit);
 
 int get_hastened_remaining_ticks(const model::LivingUnit& unit);
 
-int get_movement_skill_bonus_level(const model::Unit& unit);
-int get_movement_skill_bonus_level(const model::Wizard& unit);
+template <class T>
+int get_skill_bonus_level(const model::Wizard& unit, const T& skills) {
+    int result = 0;
+    for (const auto skill : unit.getSkills()) {
+        const auto level = skills.find(skill);
+        if (level != skills.end()) {
+            result = std::max(result, level->second);
+        }
+    }
+    return result;
+}
+
+int get_movement_bonus_level(const model::Unit& unit);
+int get_movement_bonus_level(const model::Wizard& unit);
+int get_staff_damage_bonus_level(const model::Wizard& unit);
+int get_magical_damage_bonus_level(const model::Wizard& unit);
 
 double normalize_angle(double value);
 

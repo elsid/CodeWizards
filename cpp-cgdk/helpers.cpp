@@ -39,19 +39,20 @@ int get_hastened_remaining_ticks(const model::LivingUnit& unit) {
     return hastend == unit.getStatuses().end() ? 0 : hastend->getRemainingDurationTicks();
 }
 
-int get_movement_skill_bonus_level(const model::Unit&) {
+int get_movement_bonus_level(const model::Unit&) {
     return 0;
 }
 
-int get_movement_skill_bonus_level(const model::Wizard& unit) {
-    int result = 0;
-    for (const auto skill : unit.getSkills()) {
-        const auto level = SKILLS_MOVEMENT_BONUS_LEVELS.find(skill);
-        if (level != SKILLS_MOVEMENT_BONUS_LEVELS.end()) {
-            result = std::max(result, level->second);
-        }
-    }
-    return result;
+int get_movement_bonus_level(const model::Wizard& unit) {
+    return get_skill_bonus_level(unit, SKILLS_MOVEMENT_BONUS_LEVELS);
+}
+
+int get_staff_damage_bonus_level(const model::Wizard& unit) {
+    return get_skill_bonus_level(unit, SKILLS_STAFF_DAMAGE_BONUS_LEVELS);
+}
+
+int get_magical_damage_bonus_level(const model::Wizard& unit) {
+    return get_skill_bonus_level(unit, SKILLS_MAGICAL_DAMAGE_BONUS_LEVELS);
 }
 
 double normalize_angle(double value) {
