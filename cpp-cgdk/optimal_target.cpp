@@ -41,11 +41,11 @@ Target get_optimal_target(const Context& context, double max_distance) {
             [&] (auto lhs, auto rhs) { return get_target_penalty(*lhs) < get_target_penalty(*rhs); });
     };
 
-    const double other_factor = get_speed(context.self()).norm() < 1 ? 2 : 1;
+    const double tree_factor = get_speed(context.self()).norm() < 1 ? 2 : 1;
     const auto trees = filter_units(context.world().getTrees(),
         [&] (const auto& unit) {
             return get_position(context.self()).distance(get_position(unit))
-                    < other_factor * unit.getRadius() + context.game().getStaffRange();
+                    < tree_factor * unit.getRadius() + context.game().getStaffRange();
         });
     const auto less_by_distance = [&] (auto lhs, auto rhs) {
         return get_position(*lhs).distance(get_position(context.self())) <
@@ -56,7 +56,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
           [&] (const auto& unit) {
               return unit.getFaction() == model::FACTION_NEUTRAL &&
                       get_position(context.self()).distance(get_position(unit))
-                      < other_factor * unit.getRadius() + context.game().getStaffRange();
+                      < unit.getRadius() + context.self().getRadius() + 10;
           });
 
     const auto is_in_range_of_my_or_optimal_position = [&] (const auto& unit) {
