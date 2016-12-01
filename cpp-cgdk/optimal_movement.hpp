@@ -61,7 +61,8 @@ class UnitBounds {
 public:
     UnitBounds(const Context& context, const Unit& unit)
         : context_(context),
-          hastened_remaining_ticks_(get_hastened_remaining_ticks(unit)) {}
+          hastened_remaining_ticks_(get_hastened_remaining_ticks(unit)),
+          movement_skill_bonus_level_(get_movement_skill_bonus_level(unit)) {}
 
     double max_speed(double tick) const {
         return context_.game().getWizardForwardSpeed() * movement_bonus_factor(tick);
@@ -84,7 +85,8 @@ public:
     }
 
     double movement_bonus_factor(double tick) const {
-        return 1 + (tick < hastened_remaining_ticks_ ? context_.game().getHastenedMovementBonusFactor() : 0);
+        return 1 + (tick < hastened_remaining_ticks_ ? context_.game().getHastenedMovementBonusFactor() : 0)
+                + movement_skill_bonus_level_ * context_.game().getMovementBonusFactorPerSkillLevel();
     }
 
     double rotation_bonus_factor(double tick) const {
@@ -98,6 +100,7 @@ public:
 private:
     const Context& context_;
     int hastened_remaining_ticks_;
+    int movement_skill_bonus_level_;
 };
 
 template <class Unit>

@@ -39,6 +39,13 @@ static const std::unordered_map<model::SkillType, model::SkillType> SKILLS_DEPEN
     {model::SKILL_SHIELD, model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2},
 };
 
+static const std::unordered_map<model::SkillType, int> SKILLS_MOVEMENT_BONUS_LEVELS = {
+    {model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1, 1},
+    {model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_1, 2},
+    {model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2, 3},
+    {model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_2, 4},
+};
+
 bool has_skill(const model::Wizard& unit, model::SkillType skill);
 bool can_learn_skill(const model::Wizard& unit, model::SkillType skill);
 model::SkillType next_to_learn(const model::Wizard& unit, model::SkillType skill);
@@ -48,6 +55,9 @@ Point get_position(const model::Unit& unit);
 Point get_speed(const model::Unit& unit);
 
 int get_hastened_remaining_ticks(const model::LivingUnit& unit);
+
+int get_movement_skill_bonus_level(const model::Unit& unit);
+int get_movement_skill_bonus_level(const model::Wizard& unit);
 
 double normalize_angle(double value);
 
