@@ -104,7 +104,7 @@ void DebugStrategy::visualize(const Context& context) {
 }
 
 void DebugStrategy::visualize_graph(const Context& context) {
-    const GetNodePenalty get_node_penalty(context, base_->graph(), base_->move_mode().target_lane());
+    const GetNodeScore get_node_score(context, base_->graph(), base_->move_mode().target_lane());
     const auto& nodes = base_->graph().nodes();
     const auto& arcs = base_->graph().arcs();
     for (const auto& src : nodes) {
@@ -115,9 +115,10 @@ void DebugStrategy::visualize_graph(const Context& context) {
         }
     }
     for (const auto& node : nodes) {
-        const auto penalty = get_node_penalty(node.first);
-        debug_.fillCircle(node.second.x(), node.second.y(), 10, get_color(penalty));
+        const auto score = get_node_score(node.first);
+        debug_.fillCircle(node.second.x(), node.second.y(), 10, get_color(score));
         debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
+        debug_.text(node.second.x() + 30, node.second.y() - 30, std::to_string(score).c_str(), get_color(score));
     }
     const auto friend_base = nodes.at(base_->graph().friend_base());
     debug_.circle(friend_base.x(), friend_base.y(), 40, 0x00AA00);

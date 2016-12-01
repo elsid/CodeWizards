@@ -197,7 +197,10 @@ void BaseStrategy::apply_action(Context& context) {
 }
 
 void BaseStrategy::use_move_mode() {
-    mode_ = move_mode_;
+    if (mode_ != move_mode_) {
+        mode_ = move_mode_;
+        move_mode_->reset();
+    }
 }
 
 void BaseStrategy::use_battle_mode() {

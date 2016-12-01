@@ -19,6 +19,12 @@ MoveMode::Result MoveMode::apply(const Context& context) {
     return path_node_ == path_.end() ? Result() : Result(Target(), graph_.nodes().at(*path_node_));
 }
 
+void MoveMode::reset() {
+    destination_.first = false;
+    path_.clear();
+    path_node_ = path_.end();
+}
+
 void MoveMode::handle_messages(const Context& context) {
     if (!context.self().getMessages().empty()) {
         last_message_ = context.world().getTickIndex();

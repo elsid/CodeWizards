@@ -38,28 +38,13 @@ WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& p
         [&] (const auto& lhs, const auto& rhs) { return position.distance(lhs.second) < position.distance(rhs.second); });
 }
 
-static WorldGraph::Pair get_nearest_node_by_path(const WorldGraph& graph, const std::vector<WorldGraph::Pair>& nodes, const WorldGraph::Node node) {
-    std::unordered_map<WorldGraph::Node, double> path_lengths;
-    std::transform(nodes.begin(), nodes.end(), std::inserter(path_lengths, path_lengths.end()),
-        [&] (const auto& v) { return std::make_pair(v.first, graph.get_shortest_path(node, v.first).length); });
-    return *std::min_element(nodes.begin(), nodes.end(),
-        [&] (const auto& lhs, const auto& rhs) { return path_lengths.at(lhs.first) < path_lengths.at(rhs.first); });
-}
-
-static WorldGraph::Path get_path_to_nearest_node(const WorldGraph& graph, const std::vector<WorldGraph::Pair>& nodes, const WorldGraph::Node node) {
-    std::vector<WorldGraph::Path> paths;
-    std::transform(nodes.begin(), nodes.end(), std::inserter(paths, paths.end()),
-        [&] (const auto& v) { return graph.get_shortest_path(node, v.first); });
-    return *std::min_element(paths.begin(), paths.end(),
-        [&] (const auto& lhs, const auto& rhs) { return lhs.length < rhs.length; });
-}
-
-GetNodePenalty::GetNodePenalty(const Context& context, const WorldGraph& graph, model::LaneType target_lane)
+GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, model::LaneType target_lane)
         : context_(context),
           graph_(graph),
           target_lane_(target_lane),
           nodes_info_(graph.nodes().size()),
           self_nearest_node_(get_nearest_node(graph.nodes(), get_position(context.self())).first) {
+    fill_nodes_info<model::Bonus>();
     fill_nodes_info<model::Building>();
     fill_nodes_info<model::Minion>();
     fill_nodes_info<model::Wizard>();
@@ -67,128 +52,60 @@ GetNodePenalty::GetNodePenalty(const Context& context, const WorldGraph& graph, 
     for (const auto& node : graph.nodes()) {
         auto& node_info = nodes_info_[node.first];
         node_info.path = graph.get_shortest_path(self_nearest_node_, node.first);
-        node_info.distance_to_friend_base = node.second.distance(graph.nodes().at(graph.friend_base()));
-        node_info.distance_to_enemy_base = node.second.distance(graph.nodes().at(graph.enemy_base()));
     }
-
-    max_path_length_ = std::max_element(nodes_info_.begin(), nodes_info_.end(),
-        [] (const auto& lhs, const auto& rhs) { return lhs.path.length < rhs.path.length; })->path.length;
-
-    max_distance_to_friend_base_ = std::max_element(nodes_info_.begin(), nodes_info_.end(),
-        [] (const auto& lhs, const auto& rhs) {
-            return lhs.distance_to_friend_base < rhs.distance_to_friend_base;
-    })->distance_to_friend_base;
-
-    max_distance_to_enemy_base_ = std::max_element(nodes_info_.begin(), nodes_info_.end(),
-        [] (const auto& lhs, const auto& rhs) {
-            return lhs.distance_to_enemy_base < rhs.distance_to_enemy_base;
-    })->distance_to_enemy_base;
 }
 
-double GetNodePenalty::operator ()(WorldGraph::Node node) const {
-    if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
-        return MAX_PENALTY;
-    }
+double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto& node_info = nodes_info_.at(node);
-    if (node_info.enemies_count == 0 && node_info.friends_count == 0) {
-        return MAX_PENALTY;
+
+    const auto reduce_factor = 1.0 / (
+                node_info.enemy_minions_count * ENEMY_MINION_REDUCE_FACTOR
+                + node_info.enemy_wizards_count * ENEMY_WIZARD_REDUCE_FACTOR
+                + node_info.enemy_towers_count * ENEMY_TOWER_REDUCE_FACTOR
+                + node_info.has_enemy_base * ENEMY_BASE_REDUCE_FACTOR
+                + node_info.friend_minions_count * FRIEND_MINION_REDUCE_FACTOR
+                + node_info.friend_wizards_count * FRIEND_WIZARD_REDUCE_FACTOR
+                + (1 + node_info.path.length) * PATH_LENGTH_REDUCE_FACTOR
+            );
+
+    const auto bonus_score = node_info.has_bonus
+            * context_.game().getBonusScoreAmount();
+
+    if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
+        return bonus_score * reduce_factor;
     }
-    const auto parties_diff = node_info.friends_count - node_info.enemies_count;
-    const auto parties_penalty = 0.5 * double(parties_diff) / double(enemies_and_friends_count_) + 1.0;
-    const auto path_length_penalty = node_info.path.length / max_path_length_;
-    const auto distance_to_friend_base_penalty = node_info.distance_to_friend_base / max_distance_to_friend_base_;
-    const auto distance_to_enemy_base_penalty = node_info.distance_to_enemy_base / max_distance_to_enemy_base_;
-    return parties_penalty * PARTIES_PENALTY_WEIGHT
-            + path_length_penalty * PATH_LENGTH_PENALTY_WEIGHT
-            + distance_to_friend_base_penalty * DISTANCE_TO_FRIEND_BASE_PENALTY_WEIGHT
-            + distance_to_enemy_base_penalty * DISTANCE_TO_ENEMY_BASE_PENALTY_WEIGHT;
+
+    const auto mult_factor = 1.0
+            + node_info.friend_towers_count * FRIEND_TOWER_MULT_FACTOR
+            + node_info.has_friend_base * FRIEND_BASE_MULT_FACTOR;
+
+    const auto enemy_minions_score = node_info.enemy_minions_count
+            * (context_.game().getMinionDamageScoreFactor() + context_.game().getMinionEliminationScoreFactor())
+            * context_.game().getMinionLife();
+
+    const auto enemy_wizards_score = node_info.enemy_wizards_count
+            * (context_.game().getWizardDamageScoreFactor() * WIZARD_DAMAGE_PROBABILITY
+               + context_.game().getWizardEliminationScoreFactor() * WIZARD_ELIMINATION_PROBABILITY)
+            * context_.game().getWizardBaseLife();
+
+    const auto enemy_towers_score = node_info.enemy_towers_count
+            * (context_.game().getBuildingDamageScoreFactor() + context_.game().getBuildingEliminationScoreFactor())
+            * context_.game().getGuardianTowerLife();
+
+    const auto enemy_base_score = node_info.has_enemy_base
+            * context_.game().getVictoryScore();
+
+    return (1 + enemy_minions_score + enemy_wizards_score + enemy_towers_score + enemy_base_score + bonus_score)
+            * reduce_factor * mult_factor;
 }
-
-struct NodeInfo {
-    bool has_bonus = false;
-    bool has_enemy = false;
-};
-
-struct SetNodesInfo {
-    model::Faction my_faction;
-    const WorldGraph::Nodes& nodes;
-    std::vector<NodeInfo>& nodes_info;
-
-    void operator ()(const model::Bonus& unit) {
-        const auto nearest_node = get_nearest_node(nodes, get_position(unit)).first;
-        nodes_info[nearest_node].has_bonus = true;
-    }
-
-    void operator ()(const model::LivingUnit& unit) {
-        if (is_enemy(unit, my_faction)) {
-            const auto nearest_node = get_nearest_node(nodes, get_position(unit)).first;
-            nodes_info[nearest_node].has_enemy = true;
-        }
-    }
-};
 
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane) {
-//    GetNodePenalty get_node_penalty(context, graph, target_lane);
-//    std::vector<double> penalties;
-//    penalties.reserve(graph.nodes().size());
-//    std::transform(graph.nodes().begin(), graph.nodes().end(), std::back_inserter(penalties),
-//        [&] (const auto& v) { return get_node_penalty(v.first); });
-//    return WorldGraph::Node(std::min_element(penalties.begin(), penalties.end()) - penalties.begin());
-
-    std::vector<NodeInfo> nodes_info(graph.nodes().size());
-    SetNodesInfo set_nodes_info {context.self().getFaction(), graph.nodes(), nodes_info};
-
-    const auto fill_nodes_info = [&] (const auto& units) {
-        for (const auto& v : units) {
-            const auto& unit = v.second.value();
-            set_nodes_info(unit);
-        }
-    };
-
-    fill_nodes_info(get_units<model::Bonus>(context.cache()));
-    fill_nodes_info(get_units<model::Building>(context.cache()));
-    fill_nodes_info(get_units<model::Minion>(context.cache()));
-    fill_nodes_info(get_units<model::Wizard>(context.cache()));
-
-    const auto has_near_bonus = [&] (const auto& node) {
-        return nodes_info[node.first].has_bonus;
-    };
-
-    const auto has_near_enemy = [&] (const auto& node) {
-        return nodes_info[node.first].has_enemy;
-    };
-
-    const auto at_target_lane = [&] (const auto& node) {
-        return target_lane == model::_LANE_UNKNOWN_ || graph.lanes_nodes().at(target_lane).count(node.first);
-    };
-
-    const auto nodes_with_bonuses = filter_nodes(graph.nodes(), has_near_bonus);
-    const auto nodes_with_enemy = filter_nodes(graph.nodes(),
-        [&] (const auto& node) { return at_target_lane(node) && has_near_enemy(node); });
-
-    const auto nearest_node = get_nearest_node(graph.nodes(), get_position(context.self())).first;
-
-    if (!nodes_with_bonuses.empty() && !nodes_with_enemy.empty()) {
-        const auto with_enemy = get_nearest_node_by_path(graph, nodes_with_enemy, nearest_node).first;
-        if (with_enemy == nearest_node) {
-            return with_enemy;
-        }
-    }
-
-    if (!nodes_with_bonuses.empty()) {
-        return get_nearest_node_by_path(graph, nodes_with_bonuses, nearest_node).first;
-    }
-
-    if (!nodes_with_enemy.empty()) {
-        const auto to_friend_base = get_path_to_nearest_node(graph, nodes_with_enemy, graph.friend_base());
-        const auto to_enemy_base = graph.get_shortest_path(nearest_node, graph.enemy_base());
-        if (to_friend_base.length < 2 * graph.zone_size() && 2 * graph.zone_size() < to_enemy_base.length) {
-            return to_friend_base.nodes.back();
-        }
-        return get_nearest_node_by_path(graph, nodes_with_enemy, nearest_node).first;
-    }
-
-    return graph.center();
+    const GetNodeScore get_node_score(context, graph, target_lane);
+    std::vector<double> scores;
+    scores.reserve(graph.nodes().size());
+    std::transform(graph.nodes().begin(), graph.nodes().end(), std::back_inserter(scores),
+        [&] (const auto& v) { return get_node_score(v.first); });
+    return WorldGraph::Node(std::max_element(scores.begin(), scores.end()) - scores.begin());
 }
 
 }
