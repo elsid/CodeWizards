@@ -283,7 +283,10 @@ public:
                 const auto future_distance = position.distance(get_position(*target) + get_speed(*target));
                 const auto distance = 0.5 * (current_distance + future_distance);
                 const auto range = context.self().getCastRange();
-                const auto distance_penalty = 1.0 - get_distance_penalty(distance - range, context.self().getVisionRange());
+                double distance_penalty = 0;
+                if (distance > range) {
+                    distance_penalty = 1.0 - get_distance_penalty(distance - range, context.self().getVisionRange());
+                }
                 target_penalty = std::max(get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage),
                                           distance_penalty);
             }
