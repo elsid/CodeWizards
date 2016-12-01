@@ -1,9 +1,29 @@
 #include "helpers.hpp"
 
+#include <unordered_set>
+
 namespace strategy {
 
 bool has_skill(const model::Wizard& unit, model::SkillType skill) {
     return unit.getSkills().end() != std::find(unit.getSkills().begin(), unit.getSkills().end(), skill);
+}
+
+bool can_learn_skill(const model::Wizard& unit, model::SkillType skill) {
+    const auto prev = SKILLS_DEPENDECIES.at(skill);
+    return prev == model::_SKILL_UNKNOWN_ || has_skill(unit, prev);
+}
+
+model::SkillType next_to_learn(const model::Wizard& unit, model::SkillType skill) {
+    if (has_skill(unit, skill)) {
+        return model::_SKILL_UNKNOWN_;
+    }
+    while (true) {
+        const auto prev = SKILLS_DEPENDECIES.at(skill);
+        if (prev == model::_SKILL_UNKNOWN_ || has_skill(unit, prev)) {
+            return skill;
+        }
+        skill = prev;
+    }
 }
 
 Point get_position(const model::Unit& unit) {

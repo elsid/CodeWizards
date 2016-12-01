@@ -12,32 +12,12 @@
 
 namespace strategy {
 
-static const std::vector<model::SkillType> SKILLS = {
+const std::vector<model::SkillType> SKILLS_PRIORITY = {
+    model::SKILL_FROST_BOLT,
     model::SKILL_ADVANCED_MAGIC_MISSILE,
     model::SKILL_SHIELD,
-    model::SKILL_FROST_BOLT,
-    model::SKILL_HASTE,
     model::SKILL_FIREBALL,
-    model::SKILL_RANGE_BONUS_PASSIVE_1,
-    model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1,
-    model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1,
-    model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1,
-    model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1,
-    model::SKILL_RANGE_BONUS_AURA_1,
-    model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_1,
-    model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_1,
-    model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1,
-    model::SKILL_STAFF_DAMAGE_BONUS_AURA_1,
-    model::SKILL_RANGE_BONUS_PASSIVE_2,
-    model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2,
-    model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2,
-    model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2,
-    model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2,
-    model::SKILL_RANGE_BONUS_AURA_2,
-    model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_2,
-    model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_2,
-    model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2,
-    model::SKILL_STAFF_DAMAGE_BONUS_AURA_2,
+    model::SKILL_HASTE,
 };
 
 BaseStrategy::BaseStrategy(const Context& context)
@@ -71,24 +51,18 @@ void BaseStrategy::learn_skills(Context& context) {
         last_message_ = {true, context.self().getMessages().back()};
     }
     if (last_message_.first && !has_skill(context.self(), last_message_.second.getSkillToLearn())) {
-        context.move().setSkillToLearn(last_message_.second.getSkillToLearn());
-    } else {
-        std::vector<std::size_t> skills_frequency(model::_SKILL_COUNT_);
-        for (const auto& wizard : get_units<model::Wizard>(context.cache())) {
-            for (const auto skill : wizard.second.value().getSkills()) {
-                ++skills_frequency[skill];
-            }
+        const auto skill = next_to_learn(context.self(), last_message_.second.getSkillToLearn());
+        if (skill != model::_SKILL_UNKNOWN_) {
+            context.move().setSkillToLearn(skill);
+            return;
         }
-        const auto frequent = std::max_element(skills_frequency.begin(), skills_frequency.end());
-        const auto frequent_value = *frequent;
-        std::sort(skills_frequency.begin(), skills_frequency.end());
-        model::SkillType skill;
-        if (frequent_value <= skills_frequency[skills_frequency.size() / 2]) {
-            skill = *std::find_if(SKILLS.begin(), SKILLS.end(), [&] (auto skill) { return !has_skill(context.self(), skill); });
-        } else {
-            skill = model::SkillType(frequent - skills_frequency.begin());
+    }
+    for (const auto top : SKILLS_PRIORITY) {
+        const auto skill = next_to_learn(context.self(), top);
+        if (skill != model::_SKILL_UNKNOWN_) {
+            context.move().setSkillToLearn(skill);
+            return;
         }
-        context.move().setSkillToLearn(skill);
     }
 }
 
