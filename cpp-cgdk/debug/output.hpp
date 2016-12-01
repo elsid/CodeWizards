@@ -46,10 +46,6 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Message& /* 
     return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Building& /* value */) {
-    return stream;
-}
-
 inline std::ostream& operator <<(std::ostream& stream, model::Faction value) {
     switch (value) {
         case model::_FACTION_UNKNOWN_:
@@ -64,6 +60,23 @@ inline std::ostream& operator <<(std::ostream& stream, model::Faction value) {
             return stream << "model::FACTION_OTHER";
         case model::_FACTION_COUNT_:
             return stream << "model::_FACTION_COUNT_";
+    }
+    std::ostringstream error;
+    error << "Invalid model::Faction value:: " << int(value)
+          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+    throw std::logic_error(error.str());
+}
+
+inline std::ostream& operator <<(std::ostream& stream, model::BuildingType value) {
+    switch (value) {
+        case model::_BUILDING_UNKNOWN_:
+            return stream << "model::_BUILDING_UNKNOWN_";
+        case model::BUILDING_GUARDIAN_TOWER:
+            return stream << "model::BUILDING_GUARDIAN_TOWER";
+        case model::BUILDING_FACTION_BASE:
+            return stream << "model::BUILDING_FACTION_BASE";
+        case model::_BUILDING_COUNT_:
+            return stream << "model::_BUILDING_COUNT_";
     }
     std::ostringstream error;
     error << "Invalid model::Faction value:: " << int(value)
@@ -100,6 +113,28 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Tree& value)
     stream << "    " << value.getLife() << ", // Life\n";
     stream << "    " << value.getMaxLife() << ", // MaxLife\n";
     stream << "    " << value.getStatuses() << " // Statuses\n";
+    return stream << ")";
+}
+
+inline std::ostream& operator <<(std::ostream& stream, const model::Building& value) {
+    stream << "model::Building(\n";
+    stream << "    " << value.getId() << ", // Id\n";
+    stream << "    " << value.getX() << ", // X\n";
+    stream << "    " << value.getY() << ", // Y\n";
+    stream << "    " << value.getSpeedX() << ", // SpeedX\n";
+    stream << "    " << value.getSpeedY() << ", // SpeedY\n";
+    stream << "    " << value.getAngle() << ", // Angle\n";
+    stream << "    " << value.getFaction() << ", // Faction\n";
+    stream << "    " << value.getRadius() << ", // Radius\n";
+    stream << "    " << value.getLife() << ", // Life\n";
+    stream << "    " << value.getMaxLife() << ", // MaxLife\n";
+    stream << "    " << value.getStatuses() << ", // Statuses\n";
+    stream << "    " << value.getType() << ", // Type\n";
+    stream << "    " << value.getVisionRange() << ", // VisionRange\n";
+    stream << "    " << value.getAttackRange() << ", // AttackRange\n";
+    stream << "    " << value.getDamage() << ", // Damage\n";
+    stream << "    " << value.getCooldownTicks() << ", // CooldownTicks\n";
+    stream << "    " << value.getRemainingActionCooldownTicks() << " // RemainingActionCooldownTicks\n";
     return stream << ")";
 }
 
