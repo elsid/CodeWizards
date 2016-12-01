@@ -202,7 +202,7 @@ public:
 
         damage_factor = 1.0 - is_shielded(context.self()) * context.game().getShieldedDirectDamageAbsorptionFactor();
         max_borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
-                                 + projectiles.size() + trees.size() + wizards.size());
+                                 + projectiles.size() * PROJECTILE_PENALTY_WEIGHT + trees.size() + wizards.size());
     }
 
     double operator ()(const Point& position) const {
@@ -297,7 +297,7 @@ public:
                 + get_sum_units_penalty(trees, position)
                 + get_sum_wizards_penalty(wizards, position)
                 + get_sum_bonuses_penalty(bonuses, position)
-                + get_sum_projectiles_penalty(projectiles, position)
+                + get_sum_projectiles_penalty(projectiles, position) * PROJECTILE_PENALTY_WEIGHT
                 + get_sum_friendly_fire_penalty(friend_wizards, position)
                 + target_penalty;
 
@@ -345,7 +345,7 @@ private:
     double get_projectile_penalty(const model::Projectile& unit, const Point& position) const {
         const auto unit_speed = get_speed(unit);
         const auto unit_position = get_position(unit);
-        const auto safe_distance = context.self().getVisionRange();
+        const auto safe_distance = 2 * (context.self().getRadius() + unit.getRadius());
         const auto distance_to = Line(unit_position, unit_position + unit_speed).distance(position);
         return get_distance_penalty(distance_to, safe_distance);
     }
