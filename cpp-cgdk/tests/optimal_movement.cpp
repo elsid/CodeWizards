@@ -59,7 +59,7 @@ TEST(get_next_movement, all) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     EXPECT_EQ(get_next_movement(Point(), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 0, 0));
     EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(1, 0, 0));
     EXPECT_EQ(get_next_movement(Point(0, 1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 1, 0.10471999999999999));
@@ -93,7 +93,7 @@ TEST(get_optimal_movement, only_for_me) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const Path path({get_position(SELF), target});
     const OptPoint look_target;
@@ -125,7 +125,7 @@ TEST(get_optimal_movement, only_for_me_to_my_position) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const Path path({get_position(SELF)});
     const OptPoint look_target;
@@ -153,7 +153,7 @@ TEST(get_optimal_movement, only_for_me_not_direct) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(SELF, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point final_target(1200, 1100);
     const Path path({get_position(SELF), Point(1100, 1200), final_target});
     const OptPoint look_target;
@@ -211,7 +211,7 @@ TEST(get_optimal_movement, only_for_me_with_hastened) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(self, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const Path path({get_position(self), target});
     const OptPoint look_target;
@@ -282,7 +282,7 @@ TEST(get_optimal_movement, with_static_barriers) {
     model::Move move;
     const Profiler profiler;
     const FullCache cache;
-    const Context context(self, world, GAME, move, cache, profiler, Duration::max());
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto path = get_optimal_path(context, target, step_size);

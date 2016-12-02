@@ -126,9 +126,9 @@ struct Timeout : std::runtime_error {
 class Context {
 public:
     Context(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move,
-            const FullCache& cache, const Profiler& profiler, Duration time_limit)
+            const FullCache& cache, const FullCache& history_cache, const Profiler& profiler, Duration time_limit)
         : self_(self), world_(world), game_(game), move_(move),
-          cache_(cache), profiler_(profiler), time_limit_(time_limit) {}
+          cache_(cache), history_cache_(history_cache), profiler_(profiler), time_limit_(time_limit) {}
 
     Context(const Context&) = delete;
     Context(Context&&) = delete;
@@ -155,6 +155,10 @@ public:
 
     const FullCache& cache() const {
         return cache_;
+    }
+
+    const FullCache& history_cache() const {
+        return history_cache_;
     }
 
     const Profiler& profiler() const {
@@ -185,6 +189,7 @@ private:
     const model::Game& game_;
     model::Move& move_;
     const FullCache& cache_;
+    const FullCache& history_cache_;
     const Profiler& profiler_;
     Duration time_limit_;
 };

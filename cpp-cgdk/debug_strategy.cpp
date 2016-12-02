@@ -90,6 +90,36 @@ struct Abs {
 void DebugStrategy::apply(Context& context) {
     base_->apply(context);
     visualize(context);
+    count_hits(context);
+    if (casts_count_ > 0) {
+        std::cout << context.world().getTickIndex() << " " << casts_count_ << " " << hits_count_ << " " << double(hits_count_) / double(casts_count_) << std::endl;
+    }
+}
+
+void DebugStrategy::count_hits(const Context& context) {
+    for (const auto& projectile : get_units<model::Projectile>(context.history_cache())) {
+        if (projectile.second.last_seen() == context.world().getTickIndex() - 1
+                && projectile.second.value().getOwnerUnitId() == context.self().getId()) {
+            ++casts_count_;
+
+            const auto is_hit = [&] (const auto& unit) {
+                return unit.second.value().getFaction() != context.self().getFaction()
+                        && (get_position(projectile.second.value()) + get_speed(projectile.second.value())).distance(get_position(unit.second.value()))
+                            <= unit.second.value().getRadius() + projectile.second.value().getRadius() + get_speed(unit.second.value()).norm();
+            };
+
+            const auto hits_count = [&] (const auto& units) {
+                return std::count_if(units.begin(), units.end(), is_hit);
+            };
+
+            const auto units_hits_count = hits_count(get_units<model::Building>(context.history_cache()))
+                    + hits_count(get_units<model::Minion>(context.history_cache()))
+                    + hits_count(get_units<model::Wizard>(context.history_cache()))
+                    + hits_count(get_units<model::Tree>(context.history_cache()));
+            units_hits_count_ += units_hits_count;
+            hits_count_ += bool(units_hits_count);
+        }
+    }
 }
 
 void DebugStrategy::visualize(const Context& context) {

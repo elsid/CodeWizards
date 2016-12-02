@@ -27,6 +27,11 @@ public:
 private:
     std::unique_ptr<BaseStrategy> base_;
     Debug debug_;
+    std::size_t casts_count_ = 0;
+    std::size_t hits_count_ = 0;
+    std::size_t units_hits_count_ = 0;
+
+    void count_hits(const Context& context);
 
     void visualize(const Context& context);
     void visualize_graph(const Context& context);

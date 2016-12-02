@@ -29,7 +29,7 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
         add_fake_bonuses(world);
         add_fake_enemy_buildings(world, self.getFaction() == model::FACTION_ACADEMY ? model::FACTION_RENEGADES : model::FACTION_ACADEMY);
         update_cache(self, world);
-        strategy::Context context(self, world, game, move, cache_, profiler, strategy::Duration::max());
+        strategy::Context context(self, world, game, move, cache_, history_cache_, profiler, strategy::Duration::max());
         if (!strategy_) {
             auto base = std::make_unique<strategy::BaseStrategy>(context);
 #ifdef STRATEGY_DEBUG
@@ -114,6 +114,7 @@ void MyStrategy::update_cache(const model::Wizard& self, const model::World& wor
     using namespace strategy;
 
     strategy::update_cache(cache_, world);
+    strategy::update_cache(history_cache_, world);
 
     const auto is_friend_or_me = [&] (const auto& unit) {
         return unit.getFaction() == self.getFaction();
