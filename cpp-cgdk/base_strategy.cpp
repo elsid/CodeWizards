@@ -67,10 +67,6 @@ void BaseStrategy::learn_skills(Context& context) {
 }
 
 void BaseStrategy::select_mode(const Context& context) {
-    if (!context.self().getMessages().empty()) {
-        return use_move_mode();
-    }
-
     const IsInMyRange is_in_vision_range {context, 0.95 * context.self().getVisionRange()};
 
     const auto bonuses = get_units<model::Bonus>(context.world());
