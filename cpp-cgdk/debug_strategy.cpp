@@ -91,9 +91,6 @@ void DebugStrategy::apply(Context& context) {
     base_->apply(context);
     visualize(context);
     count_hits(context);
-    if (casts_count_ > 0) {
-        std::cout << context.world().getTickIndex() << " " << casts_count_ << " " << hits_count_ << " " << double(hits_count_) / double(casts_count_) << std::endl;
-    }
 }
 
 void DebugStrategy::count_hits(const Context& context) {
@@ -112,12 +109,39 @@ void DebugStrategy::count_hits(const Context& context) {
                 return std::count_if(units.begin(), units.end(), is_hit);
             };
 
-            const auto units_hits_count = hits_count(get_units<model::Building>(context.history_cache()))
-                    + hits_count(get_units<model::Minion>(context.history_cache()))
-                    + hits_count(get_units<model::Wizard>(context.history_cache()))
-                    + hits_count(get_units<model::Tree>(context.history_cache()));
+            const auto buildings_hits_count = hits_count(get_units<model::Building>(context.history_cache()));
+            const auto minions_hits_count = hits_count(get_units<model::Minion>(context.history_cache()));
+            const auto trees_hits_count = hits_count(get_units<model::Tree>(context.history_cache()));
+            const auto wizards_hits_count = hits_count(get_units<model::Wizard>(context.history_cache()));
+
+            const auto units_hits_count = buildings_hits_count + minions_hits_count + trees_hits_count + wizards_hits_count;
+
             units_hits_count_ += units_hits_count;
+
             hits_count_ += bool(units_hits_count);
+            buildings_hits_count_ += bool(buildings_hits_count);
+            minions_hits_count_ += bool(minions_hits_count);
+            trees_hits_count_ += bool(trees_hits_count);
+            wizards_hits_count_ += bool(wizards_hits_count);
+
+            std::cout << "[" << context.world().getTickIndex() << "]"
+                      << " all: "
+                      << hits_count_ << "/"
+                      << casts_count_ << "="
+                      << double(hits_count_) / double(casts_count_)
+                      << " buildings: "
+                      << buildings_hits_count_ << " "
+                      << double(buildings_hits_count_) / double(casts_count_)
+                      << " minions: "
+                      << minions_hits_count_ << " "
+                      << double(minions_hits_count_) / double(casts_count_)
+                      << " trees: "
+                      << trees_hits_count_ << " "
+                      << double(trees_hits_count_) / double(casts_count_)
+                      << " wizards: "
+                      << wizards_hits_count_ << " "
+                      << double(wizards_hits_count_) / double(casts_count_)
+                      << std::endl;
         }
     }
 }
