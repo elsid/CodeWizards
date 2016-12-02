@@ -79,11 +79,22 @@ double GetVisionRange::operator ()(const model::Wizard& unit) const {
 }
 
 double GetUnitIntersectionPenalty::operator ()(const model::CircularUnit& unit, const Point& position) const {
-    return get_distance_penalty(position.distance(get_position(unit)),
-                                1.1 * context.self().getRadius() + unit.getRadius());
+    return base(unit, position);
+}
+
+double GetUnitIntersectionPenalty::operator ()(const model::Minion& unit, const Point& position) const {
+    if (unit.getFaction() == model::FACTION_NEUTRAL) {
+        return increased(unit, position);
+    } else {
+        return base(unit, position);
+    }
 }
 
 double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Point& position) const {
+    return increased(unit, position);
+}
+
+double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, const Point& position) const {
     const auto distance = position.distance(get_position(unit));
     const auto safe_distance = 1.1 * context.self().getRadius() + 2 * unit.getRadius();
     if (distance < safe_distance * 0.5) {
@@ -91,6 +102,11 @@ double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Po
     } else {
         return 0.5 * get_distance_penalty(distance, 2.0 * safe_distance);
     }
+}
+
+double GetUnitIntersectionPenalty::base(const model::CircularUnit& unit, const Point& position) const {
+    return get_distance_penalty(position.distance(get_position(unit)),
+                                1.1 * context.self().getRadius() + unit.getRadius());
 }
 
 double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double damage_factor,

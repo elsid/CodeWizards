@@ -42,7 +42,11 @@ struct GetUnitIntersectionPenalty {
     const Context& context;
 
     double operator ()(const model::CircularUnit& unit, const Point& position) const;
+    double operator ()(const model::Minion& unit, const Point& position) const;
     double operator ()(const model::Tree& unit, const Point& position) const;
+
+    double base(const model::CircularUnit& unit, const Point& position) const;
+    double increased(const model::CircularUnit& unit, const Point& position) const;
 };
 
 struct GetRangedDamage {
