@@ -48,10 +48,11 @@ void BaseStrategy::apply(Context &context) {
 
 void BaseStrategy::learn_skills(Context& context) {
     if (!context.self().getMessages().empty()) {
-        last_message_ = {true, context.self().getMessages().back()};
+        skill_to_learn_ = context.self().getMessages().back().getSkillToLearn();
     }
-    if (last_message_.first && !has_skill(context.self(), last_message_.second.getSkillToLearn())) {
-        const auto skill = next_to_learn(context.self(), last_message_.second.getSkillToLearn());
+    if (skill_to_learn_ != model::_SKILL_UNKNOWN_ && skill_to_learn_ != model::_SKILL_COUNT_
+            && !has_skill(context.self(), skill_to_learn_)) {
+        const auto skill = next_to_learn(context.self(), skill_to_learn_);
         if (skill != model::_SKILL_UNKNOWN_) {
             context.move().setSkillToLearn(skill);
             return;

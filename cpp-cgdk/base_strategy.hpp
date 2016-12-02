@@ -62,7 +62,7 @@ private:
     Movements movements_;
     MovementsStates::const_iterator state_;
     Movements::const_iterator movement_;
-    std::pair<bool, model::Message> last_message_;
+    model::SkillType skill_to_learn_ = model::_SKILL_UNKNOWN_;
 
     void select_mode(const Context& context);
     void apply_mode(const Context& context);
