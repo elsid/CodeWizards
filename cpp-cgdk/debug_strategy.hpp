@@ -34,8 +34,12 @@ private:
     std::size_t trees_hits_count_ = 0;
     std::size_t wizards_hits_count_ = 0;
     std::size_t units_hits_count_ = 0;
+    int prev_my_life_ = -1;
+    int sum_damage_to_me_ = 0;
+    std::size_t deaths_count_ = 0;
+    int prev_tick_ = 0;
 
-    void count_hits(const Context& context);
+    void count_stats(const Context& context);
 
     void visualize(const Context& context);
     void visualize_graph(const Context& context);

@@ -90,10 +90,10 @@ struct Abs {
 void DebugStrategy::apply(Context& context) {
     base_->apply(context);
     visualize(context);
-    count_hits(context);
+    count_stats(context);
 }
 
-void DebugStrategy::count_hits(const Context& context) {
+void DebugStrategy::count_stats(const Context& context) {
     for (const auto& projectile : get_units<model::Projectile>(context.history_cache())) {
         if (projectile.second.last_seen() == context.world().getTickIndex() - 1
                 && projectile.second.value().getOwnerUnitId() == context.self().getId()) {
@@ -144,6 +144,25 @@ void DebugStrategy::count_hits(const Context& context) {
                       << std::endl;
         }
     }
+
+    if (prev_my_life_ < context.self().getLife()) {
+        prev_my_life_ = context.self().getLife();
+    } else if (prev_my_life_ > context.self().getLife()) {
+        const auto damage = prev_my_life_ - context.self().getLife();
+        sum_damage_to_me_ += damage;
+        std::cout << "[" << context.world().getTickIndex() << "]"
+                  << " damage: " << damage
+                  << " life: " << context.self().getLife()
+                  << " sum: " << sum_damage_to_me_
+                  << std::endl;
+        prev_my_life_ = context.self().getLife();
+    }
+
+    if (prev_tick_ && prev_tick_ != context.world().getTickIndex() - 1) {
+        ++deaths_count_;
+        std::cout << "[" << context.world().getTickIndex() << "] death: " << deaths_count_ << " tick: " << prev_tick_ + 1 << std::endl;
+    }
+    prev_tick_ = context.world().getTickIndex();
 }
 
 void DebugStrategy::visualize(const Context& context) {
