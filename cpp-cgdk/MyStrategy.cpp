@@ -174,7 +174,7 @@ void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Fact
             model::BUILDING_FACTION_BASE, // Type
             800, // VisionRange
             800, // AttackRange
-            0, // Damage
+            48, // Damage
             240, // CooldownTicks
             0 // RemainingActionCooldownTicks
         ),
@@ -193,7 +193,7 @@ void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Fact
             model::BUILDING_GUARDIAN_TOWER, // Type
             600, // VisionRange
             600, // AttackRange
-            0, // Damage
+            36, // Damage
             240, // CooldownTicks
             0 // RemainingActionCooldownTicks
         ),
@@ -212,7 +212,7 @@ void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Fact
             model::BUILDING_GUARDIAN_TOWER, // Type
             600, // VisionRange
             600, // AttackRange
-            0, // Damage
+            36, // Damage
             240, // CooldownTicks
             0 // RemainingActionCooldownTicks
         ),
@@ -231,7 +231,7 @@ void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Fact
             model::BUILDING_GUARDIAN_TOWER, // Type
             600, // VisionRange
             600, // AttackRange
-            0, // Damage
+            36, // Damage
             240, // CooldownTicks
             0 // RemainingActionCooldownTicks
         ),
@@ -250,7 +250,7 @@ void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Fact
             model::BUILDING_GUARDIAN_TOWER, // Type
             600, // VisionRange
             600, // AttackRange
-            0, // Damage
+            36, // Damage
             240, // CooldownTicks
             0 // RemainingActionCooldownTicks
         ),
@@ -269,7 +269,7 @@ void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Fact
             model::BUILDING_GUARDIAN_TOWER, // Type
             600, // VisionRange
             600, // AttackRange
-            0, // Damage
+            36, // Damage
             240, // CooldownTicks
             0 // RemainingActionCooldownTicks
         ),
@@ -288,7 +288,7 @@ void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Fact
             model::BUILDING_GUARDIAN_TOWER, // Type
             600, // VisionRange
             600, // AttackRange
-            0, // Damage
+            36, // Damage
             240, // CooldownTicks
             0 // RemainingActionCooldownTicks
         ),
