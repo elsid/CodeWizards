@@ -28,7 +28,9 @@ void MoveMode::reset() {
 void MoveMode::handle_messages(const Context& context) {
     if (!context.self().getMessages().empty()) {
         last_message_ = context.world().getTickIndex();
-        target_lane_ = context.self().getMessages().back().getLane();
+        if (context.self().getMessages().back().getLane() != model::_LANE_COUNT_) {
+            target_lane_ = context.self().getMessages().back().getLane();
+        }
     } else if (context.world().getTickIndex() - last_message_ > MESSAGE_TICKS) {
         target_lane_ = model::_LANE_UNKNOWN_;
     }
