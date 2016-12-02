@@ -153,7 +153,7 @@ void MyStrategy::add_fake_bonuses(const model::World& world) {
 }
 
 void MyStrategy::add_fake_enemy_buildings(const model::World& world, model::Faction enemy_faction) {
-    if (world.getTickIndex() != 1000) {
+    if (world.getTickIndex() != 0) {
         return;
     }
 
