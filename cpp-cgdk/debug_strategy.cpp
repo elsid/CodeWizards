@@ -94,19 +94,29 @@ void DebugStrategy::apply(Context& context) {
 }
 
 void DebugStrategy::count_stats(const Context& context) {
+    if (base_->target().is<model::Building>()) {
+        ++buildings_.target_ticks_count;
+    } else if (base_->target().is<model::Minion>()) {
+        ++minions_.target_ticks_count;
+    } else if (base_->target().is<model::Tree>()) {
+        ++trees_.target_ticks_count;
+    } else if (base_->target().is<model::Wizard>()) {
+        ++wizards_.target_ticks_count;
+    }
+
     for (const auto& projectile : get_units<model::Projectile>(context.history_cache())) {
         if (projectile.second.last_seen() == context.world().getTickIndex() - 1
                 && projectile.second.value().getOwnerUnitId() == context.self().getId()) {
             ++casts_count_;
 
             const auto is_hit = [&] (const auto& unit) {
-                return unit.second.value().getFaction() != context.self().getFaction()
-                        && (get_position(projectile.second.value()) + get_speed(projectile.second.value())).distance(get_position(unit.second.value()))
-                            <= unit.second.value().getRadius() + projectile.second.value().getRadius() + get_speed(unit.second.value()).norm();
+                return unit.getFaction() != context.self().getFaction()
+                        && (get_position(projectile.second.value()) + get_speed(projectile.second.value())).distance(get_position(unit))
+                            <= unit.getRadius() + projectile.second.value().getRadius() + get_speed(unit).norm();
             };
 
             const auto hits_count = [&] (const auto& units) {
-                return std::count_if(units.begin(), units.end(), is_hit);
+                return std::count_if(units.begin(), units.end(), [&] (const auto& v) { return is_hit(v.second.value()); });
             };
 
             const auto buildings_hits_count = hits_count(get_units<model::Building>(context.history_cache()));
@@ -116,32 +126,91 @@ void DebugStrategy::count_stats(const Context& context) {
 
             const auto units_hits_count = buildings_hits_count + minions_hits_count + trees_hits_count + wizards_hits_count;
 
+            if (const auto target = base_->target().unit<model::Building>(context.history_cache())) {
+                buildings_.target_hits_count += is_hit(*target);
+                ++buildings_.target_casts_count;
+            } else if (const auto target = base_->target().unit<model::Minion>(context.history_cache())) {
+                minions_.target_hits_count += is_hit(*target);
+                ++minions_.target_casts_count;
+            } else if (const auto target = base_->target().unit<model::Tree>(context.history_cache())) {
+                trees_.target_hits_count += is_hit(*target);
+                ++trees_.target_casts_count;
+            } else if (const auto target = base_->target().unit<model::Wizard>(context.history_cache())) {
+                wizards_.target_hits_count += is_hit(*target);
+                ++wizards_.target_casts_count;
+            }
+
             units_hits_count_ += units_hits_count;
 
             hits_count_ += bool(units_hits_count);
-            buildings_hits_count_ += bool(buildings_hits_count);
-            minions_hits_count_ += bool(minions_hits_count);
-            trees_hits_count_ += bool(trees_hits_count);
-            wizards_hits_count_ += bool(wizards_hits_count);
+            buildings_.hits_count += bool(buildings_hits_count);
+            minions_.hits_count += bool(minions_hits_count);
+            trees_.hits_count += bool(trees_hits_count);
+            wizards_.hits_count += bool(wizards_hits_count);
 
-            std::cout << "[" << context.world().getTickIndex() << "]"
+            std::cout << "[" << context.world().getTickIndex() << "] hits/casts "
                       << " all: "
                       << hits_count_ << "/"
                       << casts_count_ << "="
                       << double(hits_count_) / double(casts_count_)
                       << " buildings: "
-                      << buildings_hits_count_ << " "
-                      << double(buildings_hits_count_) / double(casts_count_)
+                      << buildings_.target_hits_count << " "
+                      << double(buildings_.target_hits_count) / double(buildings_.target_casts_count) << " "
+                      << buildings_.hits_count << " "
+                      << double(buildings_.hits_count) / double(casts_count_)
                       << " minions: "
-                      << minions_hits_count_ << " "
-                      << double(minions_hits_count_) / double(casts_count_)
+                      << minions_.target_hits_count << " "
+                      << double(minions_.target_hits_count) / double(minions_.target_casts_count) << " "
+                      << minions_.hits_count << " "
+                      << double(minions_.hits_count) / double(casts_count_)
                       << " trees: "
-                      << trees_hits_count_ << " "
-                      << double(trees_hits_count_) / double(casts_count_)
+                      << trees_.target_hits_count << " "
+                      << double(trees_.target_hits_count) / double(trees_.target_casts_count) << " "
+                      << trees_.hits_count << " "
+                      << double(trees_.hits_count) / double(casts_count_)
                       << " wizards: "
-                      << wizards_hits_count_ << " "
-                      << double(wizards_hits_count_) / double(casts_count_)
-                      << std::endl;
+                      << wizards_.target_hits_count << " "
+                      << double(wizards_.target_hits_count) / double(wizards_.target_casts_count) << " "
+                      << wizards_.hits_count << " "
+                      << double(wizards_.hits_count) / double(casts_count_)
+                      << '\n';
+
+            const auto ticks_count = buildings_.target_ticks_count + minions_.target_ticks_count + trees_.target_ticks_count + wizards_.target_ticks_count;
+
+            std::cout << "[" << context.world().getTickIndex() << "] target_casts/target_ticks "
+                      << "all: "
+                      << casts_count_ << "/"
+                      << ticks_count << "="
+                      << double(casts_count_) / double(ticks_count) << "~"
+                      << double(casts_count_) / double(ticks_count) * 60 << " "
+                      << "buildings: "
+                      << buildings_.target_casts_count << "/"
+                      << buildings_.target_ticks_count << "="
+                      << double(buildings_.target_casts_count) / double(buildings_.target_ticks_count) << "~"
+                      << double(buildings_.target_casts_count) / double(buildings_.target_ticks_count) * 60 << " "
+                      << "minions: "
+                      << minions_.target_casts_count << "/"
+                      << minions_.target_ticks_count << "="
+                      << double(minions_.target_casts_count) / double(minions_.target_ticks_count) << "~"
+                      << double(minions_.target_casts_count) / double(minions_.target_ticks_count) * 60 << " "
+                      << "trees: "
+                      << trees_.target_casts_count << "/"
+                      << trees_.target_ticks_count << "="
+                      << double(trees_.target_casts_count) / double(trees_.target_ticks_count) << "~"
+                      << double(trees_.target_casts_count) / double(trees_.target_ticks_count) * 60 << " "
+                      << "wizards: "
+                      << wizards_.target_casts_count << "/"
+                      << wizards_.target_ticks_count << "="
+                      << double(wizards_.target_casts_count) / double(wizards_.target_ticks_count) << "~"
+                      << double(wizards_.target_casts_count) / double(wizards_.target_ticks_count) * 60 << " "
+                      << '\n';
+
+            std::cout << "[" << context.world().getTickIndex() << "] target_ticks/ticks "
+                      << "all: "
+                      << ticks_count << "/"
+                      << context.world().getTickIndex() << "="
+                      << double(ticks_count) / double(context.world().getTickIndex()) << " "
+                      << '\n';
         }
     }
 
@@ -154,13 +223,13 @@ void DebugStrategy::count_stats(const Context& context) {
                   << " damage: " << damage
                   << " life: " << context.self().getLife()
                   << " sum: " << sum_damage_to_me_
-                  << std::endl;
+                  << '\n';
         prev_my_life_ = context.self().getLife();
     }
 
     if (prev_tick_ && prev_tick_ != context.world().getTickIndex() - 1) {
         ++deaths_count_;
-        std::cout << "[" << context.world().getTickIndex() << "] death: " << deaths_count_ << " tick: " << prev_tick_ + 1 << std::endl;
+        std::cout << "[" << context.world().getTickIndex() << "] death: " << deaths_count_ << " tick: " << prev_tick_ + 1 << '\n';
     }
     prev_tick_ = context.world().getTickIndex();
 }

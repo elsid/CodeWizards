@@ -25,15 +25,25 @@ public:
     void apply(Context& context) override final;
 
 private:
+    struct UnitsStats {
+        std::size_t hits_count = 0;
+        std::size_t target_hits_count = 0;
+        std::size_t target_casts_count = 0;
+        std::size_t target_ticks_count = 0;
+    };
+
     std::unique_ptr<BaseStrategy> base_;
     Debug debug_;
+
     std::size_t casts_count_ = 0;
     std::size_t hits_count_ = 0;
-    std::size_t buildings_hits_count_ = 0;
-    std::size_t minions_hits_count_ = 0;
-    std::size_t trees_hits_count_ = 0;
-    std::size_t wizards_hits_count_ = 0;
     std::size_t units_hits_count_ = 0;
+
+    UnitsStats buildings_;
+    UnitsStats minions_;
+    UnitsStats trees_;
+    UnitsStats wizards_;
+
     int prev_my_life_ = -1;
     int sum_damage_to_me_ = 0;
     std::size_t deaths_count_ = 0;
