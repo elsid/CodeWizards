@@ -247,11 +247,18 @@ void DebugStrategy::visualize_graph(const Context& context) {
             }
         }
     }
+    std::vector<double> scores;
+    scores.reserve(nodes.size());
+    std::transform(nodes.begin(), nodes.end(), std::back_inserter(scores),
+        [&] (const auto& v) { return get_node_score(v.first); });
+    const auto minmax_score = std::minmax_element(scores.begin(), scores.end());
+    const auto interval = *minmax_score.second - *minmax_score.first;
     for (const auto& node : nodes) {
-        const auto score = get_node_score(node.first);
-        debug_.fillCircle(node.second.x(), node.second.y(), 10, get_color(score));
+        const auto score = scores[node.first];
+        const auto color = get_color((score - *minmax_score.first) / (interval ? interval : 1));
+        debug_.fillCircle(node.second.x(), node.second.y(), 10, color);
         debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
-        debug_.text(node.second.x() + 30, node.second.y() - 30, std::to_string(score).c_str(), get_color(score));
+        debug_.text(node.second.x() + 30, node.second.y() - 30, std::to_string(score).c_str(), color);
     }
     const auto friend_base = nodes.at(base_->graph().friend_base());
     debug_.circle(friend_base.x(), friend_base.y(), 40, 0x00AA00);
