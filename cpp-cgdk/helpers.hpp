@@ -1,10 +1,12 @@
 #pragma once
 
+#include "point.hpp"
+#include "cache.hpp"
+
 #include "model/World.h"
 #include "model/ActionType.h"
 
-#include "point.hpp"
-#include "cache.hpp"
+#include <tuple>
 
 namespace strategy {
 
@@ -61,6 +63,13 @@ static const std::unordered_map<model::SkillType, int> SKILLS_STAFF_DAMAGE_BONUS
     {model::SKILL_STAFF_DAMAGE_BONUS_AURA_2, 4},
 };
 
+static const std::unordered_map<model::SkillType, int> SKILLS_MAGICAL_DAMAGE_ABSORPTION_LEVELS = {
+    {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1, 1},
+    {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1, 2},
+    {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2, 3},
+    {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2, 4},
+};
+
 static const std::unordered_map<model::ActionType, std::string> ACTIONS_NAMES = {
     {model::ACTION_NONE, "NONE"},
     {model::ACTION_STAFF, "STAFF"},
@@ -106,6 +115,7 @@ int get_movement_bonus_level(const model::Unit& unit);
 int get_movement_bonus_level(const model::Wizard& unit);
 int get_staff_damage_bonus_level(const model::Wizard& unit);
 int get_magical_damage_bonus_level(const model::Wizard& unit);
+int get_magical_damage_absorption_level(const model::Wizard& unit);
 
 double normalize_angle(double value);
 
@@ -177,6 +187,97 @@ inline std::vector<const T*> filter_friends(const std::vector<const T*>& units, 
 template <class T>
 inline std::vector<const T*> filter_friends(const std::vector<T>& units, model::Faction my_faction, UnitId my_id) {
     return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
+}
+
+double line_factor(double value, double zero_at, double one_at);
+
+template <std::size_t max, std::size_t left, class ... Values>
+struct MaxElement {
+    template <class Less>
+    static std::size_t perform(const std::tuple<Values ...>& values, Less less) {
+        if (less(std::get<max>(values), std::get<left - 1>(values))) {
+            return MaxElement<left - 1, left - 1, Values ...>::perform(values, less);
+        } else {
+            return MaxElement<max, left - 1, Values ...>::perform(values, less);
+        }
+    }
+};
+
+template <class ... Values>
+struct MaxElement<0, 0, Values ...> {
+    template <class Less>
+    static std::size_t perform(const std::tuple<Values ...>&, Less) {
+        return 0;
+    }
+};
+
+template <std::size_t max, class ... Values>
+struct MaxElement<max, 0, Values ...> {
+    template <class Less>
+    static std::size_t perform(const std::tuple<Values ...>& values, Less less) {
+        return less(std::get<max>(values), std::get<0>(values)) ? 0 : max;
+    }
+};
+
+template <class Less = std::less<>, class ... Values>
+std::size_t max_element(const std::tuple<Values ...>& values, Less less = Less()) {
+    return MaxElement<sizeof ... (Values) - 1, sizeof ... (Values), Values ...>::perform(values, less);
+}
+
+template <std::size_t left, class ... Values>
+struct ApplyTo {
+    template <class Function>
+    static auto perform(std::tuple<Values ...>& values, std::size_t index, Function function) {
+        if (index == left - 1) {
+            return function(std::get<left - 1>(values));
+        } else {
+            return ApplyTo<left - 1, Values ...>::perform(values, index, function);
+        }
+    }
+};
+
+template <class ... Values>
+struct ApplyTo<1, Values ...> {
+    template <class Function>
+    static auto perform(std::tuple<Values ...>& values, std::size_t, Function function) {
+        return function(std::get<0>(values));
+    }
+};
+
+template <class ... Values>
+struct ApplyTo<0, Values ...> {};
+
+template <class Function, class ... Values>
+auto apply_to(std::tuple<Values ...>& values, std::size_t index, Function function) {
+    return ApplyTo<sizeof ... (Values), Values ...>::perform(values, index, function);
+}
+
+template <std::size_t left, class ... Values>
+struct ApplyToConst {
+    template <class Function>
+    static auto perform(const std::tuple<Values ...>& values, std::size_t index, Function function) {
+        if (index == left - 1) {
+            return function(std::get<left - 1>(values));
+        } else {
+            return ApplyToConst<left - 1, Values ...>::perform(values, index, function);
+        }
+    }
+};
+
+template <class ... Values>
+struct ApplyToConst<1, Values ...> {
+    template <class Function>
+    static auto perform(const std::tuple<Values ...>& values, std::size_t, Function function) {
+        return function(std::get<0>(values));
+    }
+};
+
+template <class ... Values>
+struct ApplyToConst<0, Values ...> {};
+
+template <class Function, class ... Values>
+auto apply_to(const std::tuple<Values ...>& values, std::size_t index, Function function) {
+    return ApplyToConst<sizeof ... (Values), Values ...>::perform(values, index, function);
 }
 
 }

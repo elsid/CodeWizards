@@ -55,6 +55,10 @@ int get_magical_damage_bonus_level(const model::Wizard& unit) {
     return get_skill_bonus_level(unit, SKILLS_MAGICAL_DAMAGE_BONUS_LEVELS);
 }
 
+int get_magical_damage_absorption_level(const model::Wizard& unit) {
+    return get_skill_bonus_level(unit, SKILLS_MAGICAL_DAMAGE_ABSORPTION_LEVELS);
+}
+
 double normalize_angle(double value) {
     if (value > M_PI) {
         return value - std::round(value * 0.5 * M_1_PI) * 2.0 * M_PI;
@@ -102,6 +106,10 @@ bool is_enemy(const model::Unit& unit, model::Faction my_faction) {
     return unit.getFaction() != my_faction
             && unit.getFaction() != model::FACTION_NEUTRAL
             && unit.getFaction() != model::FACTION_OTHER;
+}
+
+double line_factor(double value, double zero_at, double one_at) {
+    return std::min(1.0, std::max(0.0, (value - zero_at) / (one_at - zero_at)));
 }
 
 }

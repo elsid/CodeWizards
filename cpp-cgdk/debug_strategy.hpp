@@ -48,6 +48,7 @@ private:
     int sum_damage_to_me_ = 0;
     std::size_t deaths_count_ = 0;
     int prev_tick_ = 0;
+    double max_target_score = 0;
 
     void count_stats(const Context& context);
 
@@ -61,6 +62,7 @@ private:
     void visualize_units(const Context& context);
     void visualize_unit(const Context& context, const model::Wizard& unit);
     void visualize_unit(const Context& context, const model::Building& unit);
+    void visualize_unit(const Context& context, const model::Minion& unit);
 
     template <class T>
     void visualize_positions_penalties(const Context& context, const T* target) {

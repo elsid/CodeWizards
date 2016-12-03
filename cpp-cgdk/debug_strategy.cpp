@@ -319,10 +319,30 @@ void DebugStrategy::visualize_target(const Context& context) {
 }
 
 void DebugStrategy::visualize_units(const Context& context) {
+    const GetTargetScore get_target_score {context};
+    max_target_score = 0;
+    for (const auto& unit : get_units<model::Wizard>(context.cache())) {
+        if (unit.second.value().getFaction() != context.self().getFaction()) {
+            max_target_score = std::max(max_target_score, get_target_score(unit.second.value()));
+        }
+    }
+    for (const auto& unit : get_units<model::Building>(context.cache())) {
+        if (unit.second.value().getFaction() != context.self().getFaction()) {
+            max_target_score = std::max(max_target_score, get_target_score(unit.second.value()));
+        }
+    }
+    for (const auto& unit : get_units<model::Minion>(context.cache())) {
+        if (unit.second.value().getFaction() != context.self().getFaction()) {
+            max_target_score = std::max(max_target_score, get_target_score(unit.second.value()));
+        }
+    }
     for (const auto& unit : get_units<model::Wizard>(context.cache())) {
         visualize_unit(context, unit.second.value());
     }
     for (const auto& unit : get_units<model::Building>(context.cache())) {
+        visualize_unit(context, unit.second.value());
+    }
+    for (const auto& unit : get_units<model::Minion>(context.cache())) {
         visualize_unit(context, unit.second.value());
     }
 }
@@ -352,12 +372,21 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Wizard& 
         ++shift;
     }
 
-    int shilft = 0;
+    int shift = 1;
     for (const auto skill : unit.getSkills()) {
-        debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius() - 20 * shilft,
+        debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius() - 20 * shift,
                     SKILLS_NAMES.at(skill).c_str(), 0x444444);
-        ++shilft;
+        ++shift;
     }
+
+    if (unit.getFaction() == context.self().getFaction()) {
+        return;
+    }
+
+    const GetTargetScore get_target_score {context};
+    const auto score = get_target_score(unit);
+    debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius(),
+                std::to_string(score).c_str(), get_color(score / (max_target_score ? max_target_score : 1.0)));
 }
 
 void DebugStrategy::visualize_unit(const Context& context, const model::Building& unit) {
@@ -368,6 +397,26 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Building
     debug_.circle(unit.getX(), unit.getY(), attack_range, 0xFF4444);
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() + unit.getRadius(),
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
+
+    if (unit.getFaction() == context.self().getFaction()) {
+        return;
+    }
+
+    const GetTargetScore get_target_score {context};
+    const auto score = get_target_score(unit);
+    debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius(),
+                std::to_string(score).c_str(), get_color(score / (max_target_score ? max_target_score : 1.0)));
+}
+
+void DebugStrategy::visualize_unit(const Context& context, const model::Minion& unit) {
+    if (unit.getFaction() == context.self().getFaction()) {
+        return;
+    }
+
+    const GetTargetScore get_target_score {context};
+    const auto score = get_target_score(unit);
+    debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius(),
+                std::to_string(score).c_str(), get_color(score / (max_target_score ? max_target_score : 1.0)));
 }
 
 std::int32_t get_color(double red, double green, double blue) {

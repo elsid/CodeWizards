@@ -2,6 +2,7 @@
 #include "optimal_position.hpp"
 
 #include <algorithm>
+#include <cassert>
 
 #ifdef STRATEGY_DEBUG
 
@@ -89,146 +90,202 @@ model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit) co
     return next_attack_action;
 }
 
+double GetDefenceFactor::operator ()(const model::LivingUnit& unit) const {
+    return 1.0 - status_factor(unit);
+}
+
+double GetDefenceFactor::operator ()(const model::Wizard& unit) const {
+    return 1.0 - status_factor(unit) - skills_factor(unit);
+}
+
+double GetDefenceFactor::status_factor(const model::LivingUnit& unit) const {
+    return is_shielded(unit) * context.game().getShieldedDirectDamageAbsorptionFactor();
+}
+
+double GetDefenceFactor::skills_factor(const model::Wizard& unit) const {
+    return get_magical_damage_absorption_level(unit) * context.game().getMagicalDamageAbsorptionPerSkillLevel();
+}
+
+double GetTargetScore::distance_probability(const model::Unit& unit) const {
+    const auto distance = get_position(context.self()).distance(get_position(unit));
+    return line_factor(distance, 2 * context.self().getCastRange(), 0);
+}
+
+double GetTargetScore::angle_probability(const model::Unit& unit) const {
+    const auto direction = get_position(unit) - get_position(context.self());
+    const auto angle = normalize_angle(direction.absolute_rotation() - context.self().getAngle());
+    if (angle >= 0) {
+        return line_factor(angle, 2.0 * M_PI, 0);
+    } else {
+        return line_factor(angle, -2.0 * M_PI, 0);
+    }
+}
+
+double GetTargetScore::hit_probability(const model::Bonus&) const {
+    return 1.0;
+}
+
+double GetTargetScore::hit_probability(const model::Tree&) const {
+    return TREE_HIT_PROBABILITY;
+}
+
+double GetTargetScore::hit_probability(const model::Building&) const {
+    return BUILDING_HIT_PROBABILITY;
+}
+
+double GetTargetScore::hit_probability(const model::Minion&) const {
+    return MINION_HIT_PROBABILITY;
+}
+
+double GetTargetScore::hit_probability(const model::Wizard&) const {
+    // TODO: use hastened status and movement bonus skills
+    return WIZARD_HIT_PROBABILITY;
+}
+
+double GetTargetScore::base(const model::Bonus&) const {
+    return context.game().getBonusScoreAmount();
+}
+
+double GetTargetScore::base(const model::Tree&) const {
+    return 2;
+}
+
+double GetTargetScore::base(const model::Building& unit) const {
+    const auto by_damage = base_by_damage(unit, context.game().getBuildingDamageScoreFactor(),
+                                          context.game().getBuildingEliminationScoreFactor());
+    if (unit.getType() == model::BUILDING_FACTION_BASE) {
+        return context.game().getVictoryScore() + by_damage;
+    } else {
+        return by_damage;
+    }
+}
+
+double GetTargetScore::base(const model::Minion& unit) const {
+    if (unit.getFaction() == model::FACTION_NEUTRAL) {
+        return 1;
+    } else {
+        return base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
+                              context.game().getMinionEliminationScoreFactor()) + 1;
+    }
+}
+
+double GetTargetScore::base(const model::Wizard& unit) const {
+    return base_by_damage(unit, context.game().getWizardDamageScoreFactor(),
+                          context.game().getWizardEliminationScoreFactor());
+}
+
+double GetTargetScore::my_max_damage() const {
+    const GetMaxDamage get_max_damage {context};
+    return get_max_damage(context.self());
+}
+
+bool MakeTargetCandidates::is_in_my_range(const model::Unit& unit) const {
+    return get_position(unit).distance(get_position(context.self())) <= max_distance;
+}
+
+bool MakeTargetCandidates::is_in_my_range(const model::Tree& unit) const {
+    const auto factor = get_speed(context.self()).norm() < 1 ? 2 : 1;
+    return get_position(unit).distance(get_position(context.self())) <= factor * unit.getRadius() + context.game().getStaffRange();
+}
+
+bool MakeTargetCandidates::is_in_my_range(const model::Minion& unit) const {
+    if (unit.getFaction() == model::FACTION_NEUTRAL) {
+        return get_position(unit).distance(get_position(context.self())) <= unit.getRadius() + context.game().getStaffRange();
+    } else {
+        return is_in_my_range(static_cast<const model::Unit&>(unit));
+    }
+}
+
+struct GetOptimalTarget {
+    template <class Unit>
+    using Iterator = typename MakeTargetCandidates::Result<Unit>::const_iterator;
+
+    using Iterators = std::tuple<
+        Iterator<model::Bonus>,
+        Iterator<model::Building>,
+        Iterator<model::Minion>,
+        Iterator<model::Tree>,
+        Iterator<model::Wizard>
+    >;
+
+    struct LessByScore {
+        const Iterators& ends;
+
+        template <class Lhs, class Rhs>
+        bool operator ()(Lhs lhs, Rhs rhs) const {
+            if (lhs != std::get<Lhs>(ends) && rhs != std::get<Rhs>(ends)) {
+                return lhs->second < rhs->second;
+            } else {
+                return lhs == std::get<Lhs>(ends) && rhs != std::get<Rhs>(ends);
+            }
+        }
+    };
+
+    const Context& context;
+
+    Target operator ()(const Iterators& begins, Iterators ends) const {
+        const GetAttackRange get_attack_range {context};
+        const LessByScore less_by_score {ends};
+
+        Target result;
+
+        for (auto iterators = begins; iterators != ends;) {
+            const auto max = max_element(iterators, less_by_score);
+
+            const auto set_result = [&] (auto candidate) {
+                const auto optimal_position = get_optimal_position(context, candidate->first, 2 * context.self().getVisionRange(),
+                    OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
+                const auto path = get_optimal_path(context, optimal_position, OPTIMAL_PATH_STEP_SIZE, OPTIMAL_PATH_MAX_TICKS);
+                auto min_distance = get_position(context.self()).distance(get_position(*candidate->first));
+                if (!path.empty()) {
+                    min_distance = std::min(min_distance, path.back().distance(get_position(*candidate->first)));
+                }
+                if (min_distance <= get_attack_range(context.self()) + candidate->first->getRadius()) {
+                    result = get_id(*candidate->first);
+                }
+            };
+
+            apply_to(iterators, max, set_result);
+
+            if (result.is_some()) {
+                break;
+            }
+
+            apply_to(iterators, max, [] (auto& it) { ++it; });
+        }
+
+        return result;
+    }
+};
+
 Target get_optimal_target(const Context& context, double max_distance) {
-    const IsInMyRange is_in_my_range {context, max_distance};
-    const GetAttackRange get_attack_range {context};
+    const MakeTargetCandidates make_target_candidates {context, max_distance};
 
-    const auto is_enemy_and_in_my_range = [&] (const auto& unit) {
-        return is_enemy(unit, context.self().getFaction()) && is_in_my_range(unit);
-    };
+    const auto bonuses_candidates = make_target_candidates(get_units<model::Bonus>(context.cache()));
+    const auto buildings_candidates = make_target_candidates(get_units<model::Building>(context.cache()));
+    const auto minions_candidates = make_target_candidates(get_units<model::Minion>(context.cache()));
+    const auto trees_candidates = make_target_candidates(get_units<model::Tree>(context.cache()));
+    const auto wizards_candidates = make_target_candidates(get_units<model::Wizard>(context.cache()));
 
-    const auto enemy_wizards = filter_units(context.world().getWizards(), is_enemy_and_in_my_range);
-    const auto enemy_minions = filter_units(context.world().getMinions(), is_enemy_and_in_my_range);
-    const auto enemy_buildings = filter_units(context.world().getBuildings(), is_enemy_and_in_my_range);
+    const GetOptimalTarget impl {context};
 
-    const auto bonuses = filter_units(context.world().getBonuses(), is_in_my_range);
+    const GetOptimalTarget::Iterators begins(
+        bonuses_candidates.begin(),
+        buildings_candidates.begin(),
+        minions_candidates.begin(),
+        trees_candidates.begin(),
+        wizards_candidates.begin()
+    );
 
-    const GetMaxDamage get_damage {context};
+    const GetOptimalTarget::Iterators ends(
+        bonuses_candidates.end(),
+        buildings_candidates.end(),
+        minions_candidates.end(),
+        trees_candidates.end(),
+        wizards_candidates.end()
+    );
 
-    const auto get_target_penalty = [&] (const auto& unit) {
-        const auto distance = get_position(unit).distance(get_position(context.self()));
-        return distance <= 2 * unit.getRadius() + context.self().getVisionRange()
-                ? distance * unit.getLife() / get_damage(context.self())
-                : distance;
-    };
-
-    const auto get_with_min_penalty = [&] (const auto& units) {
-        return std::min_element(units.begin(), units.end(),
-            [&] (auto lhs, auto rhs) { return get_target_penalty(*lhs) < get_target_penalty(*rhs); });
-    };
-
-    const double tree_factor = get_speed(context.self()).norm() < 1 ? 2 : 1;
-    const auto trees = filter_units(context.world().getTrees(),
-        [&] (const auto& unit) {
-            return get_position(context.self()).distance(get_position(unit))
-                    < tree_factor * unit.getRadius() + context.game().getStaffRange();
-        });
-    const auto less_by_distance = [&] (auto lhs, auto rhs) {
-        return get_position(*lhs).distance(get_position(context.self())) <
-                get_position(*rhs).distance(get_position(context.self()));
-    };
-
-    const auto neutral_minions = filter_units(context.world().getMinions(),
-          [&] (const auto& unit) {
-              return unit.getFaction() == model::FACTION_NEUTRAL &&
-                      get_position(context.self()).distance(get_position(unit))
-                      < unit.getRadius() + context.self().getRadius() + 10;
-          });
-
-    const auto is_in_range_of_my_or_optimal_position = [&] (const auto& unit) {
-        const auto optimal_position = get_optimal_position(context, &unit, 2 * context.self().getVisionRange(),
-            OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-        const auto min = std::min(get_position(context.self()).distance(get_position(unit)),
-                                  optimal_position.distance(get_position(unit)));
-        return min <= get_attack_range(context.self()) + unit.getRadius();
-    };
-
-    const model::Wizard* optimal_wizard = nullptr;
-    const model::Minion* optimal_minion = nullptr;
-    const model::Minion* optimal_neutral_minion = nullptr;
-    const model::Bonus* optimal_bonus = nullptr;
-    const model::Building* optimal_building = nullptr;
-    const model::Tree* optimal_tree = nullptr;
-
-    enum Type {
-        OPTIMAL_ENEMY_WIZARD,
-        OPTIMAL_ENEMY_MINION,
-        OPTIMAL_BONUS,
-        OPTIMAL_ENEMY_BUILDING,
-        OPTIMAL_TREE,
-        OPTIMAL_NEUTRAL_MINION,
-        OPTIMAL_COUNT,
-    };
-
-    std::vector<double> penalties(OPTIMAL_COUNT, std::numeric_limits<double>::max());
-
-    if (!enemy_wizards.empty()) {
-        const auto unit = *get_with_min_penalty(enemy_wizards);
-        if (is_in_range_of_my_or_optimal_position(*unit)) {
-            optimal_wizard = unit;
-            penalties[OPTIMAL_ENEMY_WIZARD] = get_target_penalty(*unit);
-        }
-    }
-
-    if (!enemy_minions.empty()) {
-        const auto unit = *get_with_min_penalty(enemy_minions);
-        if (is_in_range_of_my_or_optimal_position(*unit)) {
-            optimal_minion = unit;
-            penalties[OPTIMAL_ENEMY_MINION] = get_target_penalty(*unit);
-        }
-    }
-
-    if (!bonuses.empty()) {
-        optimal_bonus = *std::min_element(bonuses.begin(), bonuses.end(),
-            [&] (auto lhs, auto rhs) {
-                return get_position(*lhs).distance(get_position(context.self()))
-                        < get_position(*rhs).distance(get_position(context.self()));
-            });
-        penalties[OPTIMAL_BONUS] = get_position(*optimal_bonus).distance(get_position(context.self()));
-    }
-
-    if (!enemy_buildings.empty()) {
-        const auto unit = *get_with_min_penalty(enemy_buildings);
-        if (is_in_range_of_my_or_optimal_position(*unit)) {
-            optimal_building = unit;
-            penalties[OPTIMAL_ENEMY_BUILDING] = get_target_penalty(*unit);
-        }
-    }
-
-    if (!trees.empty()) {
-        optimal_tree = *std::min_element(trees.begin(), trees.end(), less_by_distance);
-        penalties[OPTIMAL_TREE] = get_position(*optimal_tree).distance(get_position(context.self()));
-    }
-
-    if (!neutral_minions.empty()) {
-        optimal_neutral_minion = *std::min_element(neutral_minions.begin(), neutral_minions.end(), less_by_distance);
-        penalties[OPTIMAL_NEUTRAL_MINION] = get_position(*optimal_neutral_minion).distance(get_position(context.self()));
-    }
-
-    const auto optimal = std::min_element(penalties.begin(), penalties.end());
-
-    if (*optimal == std::numeric_limits<double>::max()) {
-        return Target();
-    }
-
-    switch (Type(optimal - penalties.begin())) {
-        case OPTIMAL_ENEMY_WIZARD:
-            return get_id(*optimal_wizard);
-        case OPTIMAL_ENEMY_MINION:
-            return get_id(*optimal_minion);
-        case OPTIMAL_BONUS:
-            return get_id(*optimal_bonus);
-        case OPTIMAL_ENEMY_BUILDING:
-            return get_id(*optimal_building);
-        case OPTIMAL_TREE:
-            return get_id(*optimal_tree);
-        case OPTIMAL_NEUTRAL_MINION:
-            return get_id(*optimal_neutral_minion);
-        case OPTIMAL_COUNT:
-            return Target();
-    }
-
-    return Target();
+    return impl(begins, ends);
 }
 
 }
