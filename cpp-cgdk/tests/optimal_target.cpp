@@ -56,7 +56,7 @@ TEST(GetTargetScore, for_me_and_enemy_wizard) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const GetTargetScore get_target_score {context};
-    EXPECT_DOUBLE_EQ(get_target_score(enemy), 1.2878679656440357);
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 1.1268844699385312);
 }
 
 TEST(get_optimal_target, for_me_and_enemy_wizard) {

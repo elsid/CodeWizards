@@ -45,6 +45,13 @@ struct GetDefenceFactor {
     double skills_factor(const model::Wizard& unit) const;
 };
 
+struct GetLifeRegeneration {
+    const Context& context;
+
+    double operator ()(const model::LivingUnit& unit) const;
+    double operator ()(const model::Wizard& unit) const;
+};
+
 struct GetTargetScore {
     static constexpr const double BUILDING_HIT_PROBABILITY = 1.0;
     static constexpr const double MINION_HIT_PROBABILITY = 0.8;
@@ -76,8 +83,10 @@ struct GetTargetScore {
     template <class Unit>
     double base_by_damage(const Unit& unit, double damage_score, double elimination_score) const {
         const GetDefenceFactor get_defence_factor {context};
+        const GetLifeRegeneration get_life_regeneration {context};
         const auto defence_factor = get_defence_factor(unit);
-        const auto max_damage = my_max_damage() * defence_factor;
+        const auto max_damage = my_max_damage() * defence_factor
+                - get_life_regeneration(unit) * context.game().getWizardActionCooldownTicks();
         damage_score *= defence_factor;
         if (unit.getLife() <= max_damage) {
             return max_damage * (damage_score + elimination_score);

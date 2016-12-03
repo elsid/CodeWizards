@@ -106,6 +106,16 @@ double GetDefenceFactor::skills_factor(const model::Wizard& unit) const {
     return get_magical_damage_absorption_level(unit) * context.game().getMagicalDamageAbsorptionPerSkillLevel();
 }
 
+
+double GetLifeRegeneration::operator ()(const model::LivingUnit&) const {
+    return 0;
+}
+
+double GetLifeRegeneration::operator ()(const model::Wizard& unit) const {
+    return context.game().getWizardBaseLifeRegeneration()
+            + unit.getLevel() * context.game().getWizardLifeRegenerationGrowthPerLevel();
+}
+
 double GetTargetScore::distance_probability(const model::Unit& unit) const {
     const auto distance = get_position(context.self()).distance(get_position(unit));
     return line_factor(distance, 2 * context.self().getCastRange(), 0);

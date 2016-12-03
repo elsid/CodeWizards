@@ -49,6 +49,7 @@ private:
     std::size_t deaths_count_ = 0;
     int prev_tick_ = 0;
     double max_target_score = 0;
+    double min_target_score = 0;
 
     void count_stats(const Context& context);
 

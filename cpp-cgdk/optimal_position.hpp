@@ -205,7 +205,9 @@ public:
         std::copy(friend_minions.begin(), friend_minions.end(), std::back_inserter(friend_units));
         std::copy(friend_buildings.begin(), friend_buildings.end(), std::back_inserter(friend_units));
 
-        damage_factor = 1.0 - is_shielded(context.self()) * context.game().getShieldedDirectDamageAbsorptionFactor();
+        const GetDefenceFactor get_defence_factor {context};
+
+        my_defence_factor = get_defence_factor(context.self());
         max_borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
                                  + projectiles.size() * PROJECTILE_PENALTY_WEIGHT + trees.size() + wizards.size());
     }
@@ -227,13 +229,13 @@ public:
         }
 
         const double enemy_wizards_damage = std::accumulate(enemy_wizards.begin(), enemy_wizards.end(), 0.0,
-            [&] (auto sum, const auto& v) { return sum + damage_factor * get_current_damage(*v, position); });
+            [&] (auto sum, const auto& v) { return sum + my_defence_factor * get_current_damage(*v, position); });
 
         const double enemy_minions_damage = std::accumulate(enemy_minions.begin(), enemy_minions.end(), 0.0,
-            [&] (auto sum, const auto& v) { return sum + damage_factor * get_current_damage(*v, position); });
+            [&] (auto sum, const auto& v) { return sum + my_defence_factor * get_current_damage(*v, position); });
 
         const double enemy_buildings_damage = std::accumulate(enemy_buildings.begin(), enemy_buildings.end(), 0.0,
-            [&] (auto sum, const auto& v) { return sum + damage_factor * get_current_damage(*v, position); });
+            [&] (auto sum, const auto& v) { return sum + my_defence_factor * get_current_damage(*v, position); });
 
         const double sum_enemy_damage = enemy_wizards_damage
                 + enemy_minions_damage
@@ -245,7 +247,7 @@ public:
             return std::accumulate(units.begin(), units.end(), 0.0,
                 [&] (auto sum, const model::Wizard* v) {
                     return sum + std::max(get_unit_collision_penalty(*v, position),
-                                          get_unit_danger_penalty(*v, position, damage_factor, sum_enemy_damage));
+                                          get_unit_danger_penalty(*v, position, my_defence_factor, sum_enemy_damage));
                 });
         };
 
@@ -253,7 +255,7 @@ public:
             return std::accumulate(units.begin(), units.end(), 0.0,
                 [&] (auto sum, auto v) {
                     return sum + std::max(get_unit_collision_penalty(*v, position),
-                                          get_unit_danger_penalty(*v, position, damage_factor, sum_enemy_damage));
+                                          get_unit_danger_penalty(*v, position, my_defence_factor, sum_enemy_damage));
                 });
         };
 
@@ -281,7 +283,7 @@ public:
         double target_penalty = 0;
 
         if (target) {
-            target_penalty = get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage);
+            target_penalty = get_unit_danger_penalty(*target, position, my_defence_factor, sum_enemy_damage);
 
             if (!dynamic_cast<const model::Bonus*>(target)) {
                 const auto current_distance = position.distance(get_position(*target));
@@ -292,7 +294,7 @@ public:
                 if (distance > range) {
                     distance_penalty = 1.0 - get_distance_penalty(distance - range, context.self().getVisionRange());
                 }
-                target_penalty = std::max(get_unit_danger_penalty(*target, position, damage_factor, sum_enemy_damage),
+                target_penalty = std::max(get_unit_danger_penalty(*target, position, my_defence_factor, sum_enemy_damage),
                                           distance_penalty);
             }
         }
@@ -332,7 +334,7 @@ private:
     std::vector<const model::Wizard*> friend_wizards;
     std::vector<const model::Building*> friend_buildings;
     double max_borders_penalty = std::numeric_limits<double>::max();
-    double damage_factor = 1;
+    double my_defence_factor = 1;
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
         const auto distance = position.distance(get_position(unit));

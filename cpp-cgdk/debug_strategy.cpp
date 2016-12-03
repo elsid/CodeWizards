@@ -321,19 +321,23 @@ void DebugStrategy::visualize_target(const Context& context) {
 void DebugStrategy::visualize_units(const Context& context) {
     const GetTargetScore get_target_score {context};
     max_target_score = 0;
+    min_target_score = std::numeric_limits<double>::max();
     for (const auto& unit : get_units<model::Wizard>(context.cache())) {
         if (unit.second.value().getFaction() != context.self().getFaction()) {
             max_target_score = std::max(max_target_score, get_target_score(unit.second.value()));
+            min_target_score = std::max(min_target_score, get_target_score(unit.second.value()));
         }
     }
     for (const auto& unit : get_units<model::Building>(context.cache())) {
         if (unit.second.value().getFaction() != context.self().getFaction()) {
             max_target_score = std::max(max_target_score, get_target_score(unit.second.value()));
+            min_target_score = std::max(min_target_score, get_target_score(unit.second.value()));
         }
     }
     for (const auto& unit : get_units<model::Minion>(context.cache())) {
         if (unit.second.value().getFaction() != context.self().getFaction()) {
             max_target_score = std::max(max_target_score, get_target_score(unit.second.value()));
+            min_target_score = std::max(min_target_score, get_target_score(unit.second.value()));
         }
     }
     for (const auto& unit : get_units<model::Wizard>(context.cache())) {
@@ -415,8 +419,9 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Minion& 
 
     const GetTargetScore get_target_score {context};
     const auto score = get_target_score(unit);
+    const auto interval = max_target_score - min_target_score;
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius(),
-                std::to_string(score).c_str(), get_color(score / (max_target_score ? max_target_score : 1.0)));
+                std::to_string(score).c_str(), get_color((score - min_target_score) / (interval ? interval : 1.0)));
 }
 
 std::int32_t get_color(double red, double green, double blue) {
