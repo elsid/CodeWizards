@@ -13,32 +13,80 @@
 
 namespace strategy {
 
-double GetDamage::operator ()(const model::Bonus&) const {
+const std::vector<model::ActionType> GetMaxDamage::ATTACK_ACTIONS = {
+    model::ACTION_FIREBALL,
+    model::ACTION_FROST_BOLT,
+    model::ACTION_MAGIC_MISSILE,
+    model::ACTION_STAFF,
+};
+
+double GetMaxDamage::operator ()(const model::Bonus&) const {
     return 0.0;
 }
 
-double GetDamage::operator ()(const model::Tree&) const {
+double GetMaxDamage::operator ()(const model::Tree&) const {
     return 0.0;
 }
 
-double GetDamage::operator ()(const model::Building& unit) const {
-    return (1.0 + get_statuses_factor(unit)) * unit.getDamage();
+double GetMaxDamage::operator ()(const model::Building& unit) const {
+    return (1.0 + status_factor(unit)) * unit.getDamage();
 }
 
-double GetDamage::operator ()(const model::Minion& unit) const {
-    return (1.0 + get_statuses_factor(unit)) * unit.getDamage();
+double GetMaxDamage::operator ()(const model::Minion& unit) const {
+    return (1.0 + status_factor(unit)) * unit.getDamage();
 }
 
-double GetDamage::operator ()(const model::Wizard& unit) const {
-    return (1.0 + get_statuses_factor(unit) + get_skills_factor(unit)) * context.game().getMagicMissileDirectDamage();
+double GetMaxDamage::operator ()(const model::Wizard& unit) const {
+    const auto attack_action = next_attack_action(unit);
+    return (1.0 + status_factor(unit) + action_factor(unit, attack_action)) * action_damage(attack_action);
 }
 
-double GetDamage::get_statuses_factor(const model::LivingUnit& unit) const {
+double GetMaxDamage::status_factor(const model::LivingUnit& unit) const {
     return is_empowered(unit) * context.game().getEmpoweredDamageFactor();
 }
 
-double GetDamage::get_skills_factor(const model::Wizard& unit) const {
-    return context.game().getMagicalDamageBonusPerSkillLevel() * get_magical_damage_bonus_level(unit);
+double GetMaxDamage::action_factor(const model::Wizard& unit, model::ActionType attack_action) const {
+    switch (attack_action) {
+        case model::ACTION_STAFF:
+            return get_staff_damage_bonus_level(unit) * context.game().getStaffDamageBonusPerSkillLevel();
+        case model::ACTION_MAGIC_MISSILE:
+        case model::ACTION_FROST_BOLT:
+        case model::ACTION_FIREBALL:
+            return get_magical_damage_bonus_level(unit) * context.game().getMagicalDamageBonusPerSkillLevel();
+        default:
+            return 0;
+    }
+}
+
+double GetMaxDamage::action_damage(model::ActionType attack_action) const {
+    switch (attack_action) {
+        case model::ACTION_STAFF:
+            return context.game().getStaffDamage();
+        case model::ACTION_MAGIC_MISSILE:
+            return context.game().getMagicMissileDirectDamage();
+        case model::ACTION_FROST_BOLT:
+            return context.game().getFrostBoltDirectDamage();
+        case model::ACTION_FIREBALL:
+            return context.game().getFireballExplosionMaxDamage();
+        default:
+            return 0;
+    }
+}
+
+model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit) const {
+    model::ActionType next_attack_action = model::ACTION_NONE;
+    int min_ticks = std::numeric_limits<int>::max();
+    for (const auto action : ATTACK_ACTIONS) {
+        const auto skill = ACTIONS_SKILLS.at(model::ActionType(action));
+        if (skill == model::_SKILL_UNKNOWN_ || has_skill(unit, skill)) {
+            const auto ticks = context.self().getRemainingCooldownTicksByAction()[action];
+            if (min_ticks > ticks) {
+                min_ticks = ticks;
+                next_attack_action = action;
+            }
+        }
+    }
+    return next_attack_action;
 }
 
 Target get_optimal_target(const Context& context, double max_distance) {
@@ -55,7 +103,7 @@ Target get_optimal_target(const Context& context, double max_distance) {
 
     const auto bonuses = filter_units(context.world().getBonuses(), is_in_my_range);
 
-    const GetDamage get_damage {context};
+    const GetMaxDamage get_damage {context};
 
     const auto get_target_penalty = [&] (const auto& unit) {
         const auto distance = get_position(unit).distance(get_position(context.self()));

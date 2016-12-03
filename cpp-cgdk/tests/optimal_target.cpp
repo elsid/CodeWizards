@@ -57,6 +57,7 @@ TEST(get_optimal_target, for_me_and_enemy_wizard) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto result = get_optimal_target(context, 1000);
+    ASSERT_TRUE(result.is_some());
     EXPECT_EQ(result.unit<model::Wizard>(cache)->getId(), world.getWizards().front().getId());
 }
 

@@ -71,6 +71,15 @@ static const std::unordered_map<model::ActionType, std::string> ACTIONS_NAMES = 
     {model::ACTION_SHIELD, "SHIELD"},
 };
 
+static const std::unordered_map<model::ActionType, model::SkillType> ACTIONS_SKILLS = {
+    {model::ACTION_STAFF, model::_SKILL_UNKNOWN_},
+    {model::ACTION_MAGIC_MISSILE, model::_SKILL_UNKNOWN_},
+    {model::ACTION_FROST_BOLT, model::SKILL_FROST_BOLT},
+    {model::ACTION_FIREBALL, model::SKILL_FIREBALL},
+    {model::ACTION_HASTE, model::SKILL_HASTE},
+    {model::ACTION_SHIELD, model::SKILL_SHIELD},
+};
+
 bool has_skill(const model::Wizard& unit, model::SkillType skill);
 bool can_learn_skill(const model::Wizard& unit, model::SkillType skill);
 model::SkillType next_to_learn(const model::Wizard& unit, model::SkillType skill);

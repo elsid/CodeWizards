@@ -55,7 +55,7 @@ struct GetRangedDamage {
     template <class Unit>
     double operator ()(const Unit& unit, const Point& position) const {
         const GetAttackRange get_attack_range {context};
-        const GetDamage get_damage {context};
+        const GetMaxDamage get_damage {context};
         const auto attack_range = get_attack_range(unit) + context.self().getRadius();
         const auto current_distance = position.distance(get_position(unit));
         const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
@@ -132,7 +132,7 @@ struct GetUnitDangerPenalty {
 
     template <class T>
     double get_common(const T& unit, const Point& position, double damage_factor, double sum_enemy_damage) const {
-        const GetDamage get_damage {context};
+        const GetMaxDamage get_damage {context};
         const GetAttackRange get_attack_range {context};
         const GetCurrentDamage get_current_damage {context};
         const auto damage = sum_enemy_damage + damage_factor * (get_damage(unit) - get_current_damage(unit, position));
@@ -342,7 +342,7 @@ private:
     template <class Unit>
     double get_ranged_damage(const Unit& unit, const Point& position) const {
         const GetAttackRange get_attack_range {context};
-        const GetDamage get_damage {context};
+        const GetMaxDamage get_damage {context};
         const auto attack_range = get_attack_range(unit);
         const auto distance = position.distance(get_position(unit));
         const auto factor = attack_range >= distance ? 1 : get_distance_penalty(distance - attack_range, 0.5 * attack_range);

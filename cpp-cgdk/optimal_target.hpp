@@ -6,7 +6,9 @@
 
 namespace strategy {
 
-struct GetDamage {
+struct GetMaxDamage {
+    static const std::vector<model::ActionType> ATTACK_ACTIONS;
+
     const Context& context;
 
     double operator ()(const model::Bonus&) const;
@@ -14,8 +16,11 @@ struct GetDamage {
     double operator ()(const model::Building& unit) const;
     double operator ()(const model::Minion& unit) const;
     double operator ()(const model::Wizard& unit) const;
-    double get_statuses_factor(const model::LivingUnit& unit) const;
-    double get_skills_factor(const model::Wizard& unit) const;
+
+    double status_factor(const model::LivingUnit& unit) const;
+    double action_factor(const model::Wizard& unit, model::ActionType attack_action) const;
+    double action_damage(model::ActionType attack_action) const;
+    model::ActionType next_attack_action(const model::Wizard& unit) const;
 };
 
 struct IsInMyRange {

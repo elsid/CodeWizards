@@ -14,15 +14,6 @@ static const std::unordered_map<model::ActionType, int> ACTIONS_COLORS = {
     {model::ACTION_SHIELD, 0x0000FF},
 };
 
-static const std::unordered_map<model::ActionType, model::SkillType> ACTIONS_SKILLS = {
-    {model::ACTION_STAFF, model::_SKILL_UNKNOWN_},
-    {model::ACTION_MAGIC_MISSILE, model::_SKILL_UNKNOWN_},
-    {model::ACTION_FROST_BOLT, model::SKILL_FROST_BOLT},
-    {model::ACTION_FIREBALL, model::SKILL_FIREBALL},
-    {model::ACTION_HASTE, model::SKILL_HASTE},
-    {model::ACTION_SHIELD, model::SKILL_SHIELD},
-};
-
 static const std::unordered_map<model::SkillType, std::string> SKILLS_NAMES({
     {model::SKILL_RANGE_BONUS_PASSIVE_1, "RANGE_BONUS_PASSIVE_1"},
     {model::SKILL_RANGE_BONUS_AURA_1, "RANGE_BONUS_AURA_1"},
