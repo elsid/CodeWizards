@@ -266,13 +266,6 @@ public:
                 });
         };
 
-        const auto get_sum_projectiles_penalty = [&] (const auto& units, const Point& position) {
-            return std::accumulate(units.begin(), units.end(), 0.0,
-                [&] (auto sum, auto v) {
-                    return sum + this->get_projectile_penalty(*v, position);
-                });
-        };
-
         double target_penalty = 0;
 
         if (target) {
@@ -298,7 +291,7 @@ public:
                 + get_sum_units_penalty(trees, position)
                 + get_sum_wizards_penalty(wizards, position)
                 + get_sum_bonuses_penalty(bonuses, position)
-                + get_sum_projectiles_penalty(projectiles, position) * PROJECTILE_PENALTY_WEIGHT
+                + get_projectiles_penalty(position) * PROJECTILE_PENALTY_WEIGHT
                 + get_sum_friendly_fire_penalty(friend_wizards, position)
                 + get_sum_friendly_fire_penalty(friend_buildings, position)
                 + target_penalty,
@@ -313,6 +306,13 @@ public:
                 + get_borders_factor(position.y())
                 + get_borders_factor(context.game().getMapSize() - position.y())
             );
+    }
+
+    double get_projectiles_penalty(const Point& position) const {
+        return std::accumulate(projectiles.begin(), projectiles.end(), 0.0,
+            [&] (auto sum, auto v) {
+                return sum + this->get_projectile_penalty(*v, position);
+            });
     }
 
 private:
