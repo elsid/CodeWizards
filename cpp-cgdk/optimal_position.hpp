@@ -294,7 +294,8 @@ public:
                 + get_projectiles_penalty(position) * PROJECTILE_PENALTY_WEIGHT
                 + get_sum_friendly_fire_penalty(friend_wizards, position)
                 + get_sum_friendly_fire_penalty(friend_buildings, position)
-                + target_penalty,
+                + target_penalty
+                - get_elimination_score(position) * ELIMINATION_SCORE_WEIGHT,
                 get_borders_penalty(position)
             );
     }
@@ -313,6 +314,17 @@ public:
             [&] (auto sum, auto v) {
                 return sum + this->get_projectile_penalty(*v, position);
             });
+    }
+
+    double get_elimination_score(const Point& position) const {
+        const auto get_sum_elimination_score = [&] (const auto& units) {
+            return std::accumulate(units.begin(), units.end(), 0.0,
+                [&] (auto sum, const auto& v) { return sum + this->get_elimination_score(v.second, position); });
+        };
+
+        return get_sum_elimination_score(get_units<model::Building>(context.cache()))
+                + get_sum_elimination_score(get_units<model::Minion>(context.cache()))
+                + get_sum_elimination_score(get_units<model::Wizard>(context.cache()));
     }
 
 private:
@@ -375,6 +387,24 @@ private:
         const auto max_distance = (tangent1_distance + tangent2_distance) * 0.5;
         const auto distance_to_tangent = std::min(tangent1_distance, tangent2_distance);
         return distance_to_tangent / max_distance;
+    }
+
+    template <class Unit>
+    double get_elimination_score(const CachedUnit<Unit>& unit, const Point& position) const {
+        const auto mean_life_change_speed = unit.mean_life_change_speed();
+
+        if (!is_enemy(unit.value(), context.self().getFaction()) || mean_life_change_speed >= 0) {
+            return 0;
+        }
+
+        const auto distance = get_position(unit.value()).distance(position);
+        const auto factor = line_factor(-mean_life_change_speed * 30, 0, unit.value().getLife());
+
+        if (distance <= context.game().getScoreGainRange() - context.self().getRadius()) {
+            return factor * (1 + 0.1 * line_factor(distance, context.game().getScoreGainRange()- context.self().getRadius(), 0));
+        } else {
+            return factor * line_factor(distance, context.game().getScoreGainRange(), context.game().getScoreGainRange() - context.self().getRadius());
+        }
     }
 
     double get_borders_factor(double distance) const {

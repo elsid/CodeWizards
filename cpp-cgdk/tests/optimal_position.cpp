@@ -11,6 +11,59 @@ namespace tests {
 
 using namespace testing;
 
+TEST(GetPositionPenalty, get_elimination_score_for_me_and_enemy_wizard) {
+    FullCache cache;
+    model::World world;
+    for (std::size_t i = 0; i < 6; ++i) {
+        const model::Wizard enemy(
+            2, // Id
+            1100, // X
+            1100, // Y
+            0, // SpeedX
+            0, // SpeedY
+            0, // Angle
+            model::FACTION_RENEGADES, // Faction
+            35, // Radius
+            100 - i * 4, // Life
+            100, // MaxLife
+            {}, // Statuses
+            1, // OwnerPlayerId
+            false, // Me
+            100, // Mana
+            100, // MaxMana
+            600, // VisionRange
+            500, // CastRange
+            0, // Xp
+            0, // Level
+            {}, // Skills
+            0, // RemainingActionCooldownTicks
+            {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+            true, // Master
+            {} // Messages
+        );
+        world = model::World(
+            i * i, // TickIndex
+            20000, // TickCount
+            4000, // Width
+            4000, // Height
+            {}, // Players
+            {enemy, SELF}, // Wizards
+            {}, // Minions
+            {}, // Projectiles
+            {}, // Bonuses
+            {}, // Buildings
+            {} // Trees
+        );
+        update_cache(cache, world);
+    }
+    model::Move move;
+    const Profiler profiler;
+    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
+    const auto& target = world.getWizards()[0];
+    const GetPositionPenalty<model::Wizard> get_position_penalty(context, &target, 1000);
+    EXPECT_DOUBLE_EQ(get_position_penalty.get_elimination_score(Point(1000, 1000)), 0.32249090143872688);
+}
+
 TEST(get_optimal_position, for_me_and_enemy_wizard) {
     const model::Wizard enemy(
         2, // Id
