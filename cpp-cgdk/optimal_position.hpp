@@ -334,16 +334,6 @@ private:
         return 1 - get_distance_penalty(distance, 2 * context.self().getVisionRange());
     }
 
-    template <class Unit>
-    double get_ranged_damage(const Unit& unit, const Point& position) const {
-        const GetAttackRange get_attack_range {context};
-        const GetMaxDamage get_damage {context};
-        const auto attack_range = get_attack_range(unit);
-        const auto distance = position.distance(get_position(unit));
-        const auto factor = attack_range >= distance ? 1 : get_distance_penalty(distance - attack_range, 0.5 * attack_range);
-        return factor * get_damage(unit);
-    }
-
     double get_projectile_penalty(const model::Projectile& unit, const Point& position) const {
         const auto unit_speed = get_speed(unit);
         const auto unit_position = get_position(unit);
