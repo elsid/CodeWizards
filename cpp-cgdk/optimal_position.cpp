@@ -32,36 +32,6 @@ Point get_optimal_position(const Context& context, const Target& target, double 
     throw std::logic_error(error.str());
 }
 
-double GetAttackRange::operator ()(const model::Unit&) const {
-    return 0.0;
-}
-
-double GetAttackRange::operator ()(const model::Building& unit) const {
-    return context.self().getRadius() + unit.getAttackRange() + 1;
-}
-
-double GetAttackRange::operator ()(const model::Minion& unit) const {
-    switch (unit.getType()) {
-        case model::_MINION_UNKNOWN_:
-            break;
-        case model::MINION_ORC_WOODCUTTER:
-            return context.self().getRadius() + context.game().getOrcWoodcutterAttackRange() + 1;
-        case model::MINION_FETISH_BLOWDART:
-            return context.self().getRadius() + context.game().getFetishBlowdartAttackRange()
-                    + context.game().getDartRadius() + 1;
-        case model::_MINION_COUNT_:
-            break;
-    }
-    std::ostringstream error;
-    error << "Invalid minion type: " << int(unit.getType())
-          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
-    throw std::logic_error(error.str());
-}
-
-double GetAttackRange::operator ()(const model::Wizard& unit) const {
-    return context.self().getRadius() + unit.getCastRange() + context.game().getMagicMissileRadius() + 1;
-}
-
 double GetVisionRange::operator ()(const model::Unit&) const {
     return 0.0;
 }

@@ -8,21 +8,31 @@
 
 namespace strategy {
 
+struct GetAttackRange {
+    const Context& context;
+
+    double operator ()(const model::Unit&, double distance) const;
+    double operator ()(const model::Building& unit, double distance) const;
+    double operator ()(const model::Minion& unit, double distance) const;
+    double operator ()(const model::Wizard& unit, double distance) const;
+    double operator ()(const model::Wizard& unit, model::ActionType action) const;
+};
+
 struct GetMaxDamage {
-    static const std::vector<model::ActionType> ATTACK_ACTIONS;
+    static const std::array<model::ActionType, 4> ATTACK_ACTIONS;
 
     const Context& context;
 
-    double operator ()(const model::Bonus&) const;
-    double operator ()(const model::Tree&) const;
-    double operator ()(const model::Building& unit) const;
-    double operator ()(const model::Minion& unit) const;
-    double operator ()(const model::Wizard& unit) const;
+    double operator ()(const model::Bonus&, double distance) const;
+    double operator ()(const model::Tree&, double distance) const;
+    double operator ()(const model::Building& unit, double distance) const;
+    double operator ()(const model::Minion& unit, double distance) const;
+    double operator ()(const model::Wizard& unit, double distance) const;
 
     double status_factor(const model::LivingUnit& unit) const;
     double action_factor(const model::Wizard& unit, model::ActionType attack_action) const;
     double action_damage(model::ActionType attack_action) const;
-    model::ActionType next_attack_action(const model::Wizard& unit) const;
+    model::ActionType next_attack_action(const model::Wizard& unit, double distance) const;
 };
 
 struct IsInMyRange {
@@ -85,7 +95,8 @@ struct GetTargetScore {
         const GetDefenceFactor get_defence_factor {context};
         const GetLifeRegeneration get_life_regeneration {context};
         const auto defence_factor = get_defence_factor(unit);
-        const auto max_damage = my_max_damage() * defence_factor
+        const auto distance = get_position(context.self()).distance(get_position(unit));
+        const auto max_damage = my_max_damage(distance) * defence_factor
                 - get_life_regeneration(unit) * context.game().getWizardActionCooldownTicks();
         damage_score *= defence_factor;
         if (unit.getLife() <= max_damage) {
@@ -95,7 +106,7 @@ struct GetTargetScore {
         }
     }
 
-    double my_max_damage() const;
+    double my_max_damage(double distance) const;
 };
 
 struct MakeTargetCandidates {

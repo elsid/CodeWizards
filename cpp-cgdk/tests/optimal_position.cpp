@@ -59,8 +59,8 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 557.21637798129905);
-    EXPECT_EQ(result, Point(1545.9859150247987, 765.95411170006753));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 538.35555306467802);
+    EXPECT_EQ(result, Point(1594.9913732224527, 888.31570216256966));
 }
 
 TEST(get_optimal_position, for_me_and_enemy_wizard_with_active_cooldown) {
@@ -189,8 +189,8 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard) {
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 1545.1872845280743);
-    EXPECT_EQ(result, Point(-379.0592719905103, 652.80047606672724));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 1530.8378982634581);
+    EXPECT_EQ(result, Point(-352.13551598347817, 615.47227738850791));
 }
 
 }

@@ -20,15 +20,6 @@ double get_distance_penalty(double value, double safe);
 Point get_optimal_position(const Context& context, const Target& target, double max_distance,
                            std::size_t initial_points_count, int max_function_calls);
 
-struct GetAttackRange {
-    const Context& context;
-
-    double operator ()(const model::Unit&) const;
-    double operator ()(const model::Building& unit) const;
-    double operator ()(const model::Minion& unit) const;
-    double operator ()(const model::Wizard& unit) const;
-};
-
 struct GetVisionRange {
     const Context& context;
 
@@ -56,13 +47,14 @@ struct GetRangedDamage {
     double operator ()(const Unit& unit, const Point& position) const {
         const GetAttackRange get_attack_range {context};
         const GetMaxDamage get_damage {context};
-        const auto attack_range = get_attack_range(unit) + context.self().getRadius();
         const auto current_distance = position.distance(get_position(unit));
         const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
+        const auto distance = std::min(current_distance, future_distance);
+        const auto attack_range = get_attack_range(unit, distance) + context.self().getRadius();
         const auto factor = attack_range >= current_distance || attack_range >= future_distance
                 ? 1.0
                 : get_distance_penalty(0.5 * (current_distance + future_distance) - attack_range, 0.5 * attack_range);
-        return factor * get_damage(unit);
+        return factor * get_damage(unit, distance);
     }
 };
 
@@ -135,16 +127,17 @@ struct GetUnitDangerPenalty {
         const GetMaxDamage get_damage {context};
         const GetAttackRange get_attack_range {context};
         const GetCurrentDamage get_current_damage {context};
-        const auto damage = sum_enemy_damage + damage_factor * (get_damage(unit) - get_current_damage(unit, position));
         const auto distance = std::min(position.distance(get_position(unit)),
                                        position.distance(get_position(unit) + get_speed(unit)));
+        const auto max_damage = get_damage(unit, distance);
+        const auto damage = sum_enemy_damage + damage_factor * (max_damage - get_current_damage(unit, position));
         const auto distance_factor = std::max(
             2 * damage / context.self().getLife(),
-            damage_factor * get_current_damage(unit, position) / get_damage(unit)
+            damage_factor * get_current_damage(unit, position) / max_damage
         );
         const double safe_distance = std::max(
             context.self().getCastRange() + context.game().getMagicMissileRadius(),
-            distance_factor * (get_attack_range(unit) + 2 * context.self().getRadius())
+            distance_factor * (get_attack_range(unit, distance) + 2 * context.self().getRadius())
         );
         return get_distance_penalty(distance, safe_distance);
     }

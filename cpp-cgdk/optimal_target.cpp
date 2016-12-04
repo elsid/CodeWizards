@@ -14,31 +14,76 @@
 
 namespace strategy {
 
-const std::vector<model::ActionType> GetMaxDamage::ATTACK_ACTIONS = {
+const std::array<model::ActionType, 4> GetMaxDamage::ATTACK_ACTIONS = {{
     model::ACTION_FIREBALL,
     model::ACTION_FROST_BOLT,
     model::ACTION_MAGIC_MISSILE,
     model::ACTION_STAFF,
-};
+}};
 
-double GetMaxDamage::operator ()(const model::Bonus&) const {
+double GetAttackRange::operator ()(const model::Unit&, double) const {
     return 0.0;
 }
 
-double GetMaxDamage::operator ()(const model::Tree&) const {
+double GetAttackRange::operator ()(const model::Building& unit, double) const {
+    return unit.getAttackRange();
+}
+
+double GetAttackRange::operator ()(const model::Minion& unit, double) const {
+    switch (unit.getType()) {
+        case model::_MINION_UNKNOWN_:
+            break;
+        case model::MINION_ORC_WOODCUTTER:
+            return context.game().getOrcWoodcutterAttackRange();
+        case model::MINION_FETISH_BLOWDART:
+            return context.game().getFetishBlowdartAttackRange() + context.game().getDartRadius();
+        case model::_MINION_COUNT_:
+            break;
+    }
+    std::ostringstream error;
+    error << "Invalid minion type: " << int(unit.getType())
+          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+    throw std::logic_error(error.str());
+}
+
+double GetAttackRange::operator ()(const model::Wizard& unit, double distance) const {
+    const GetMaxDamage get_max_damage {context};
+    return (*this)(unit, get_max_damage.next_attack_action(unit, distance));
+}
+
+double GetAttackRange::operator ()(const model::Wizard& unit, model::ActionType action) const {
+    switch (action) {
+        case model::ACTION_STAFF:
+            return context.game().getStaffRange();
+        case model::ACTION_MAGIC_MISSILE:
+            return unit.getCastRange() + context.game().getMagicMissileRadius() * 0.5;
+        case model::ACTION_FROST_BOLT:
+            return unit.getCastRange() + context.game().getFrostBoltRadius() * 0.5;
+        case model::ACTION_FIREBALL:
+            return unit.getCastRange() + context.game().getFireballRadius() * 0.5;
+        default:
+            return 0;
+    }
+}
+
+double GetMaxDamage::operator ()(const model::Bonus&, double) const {
     return 0.0;
 }
 
-double GetMaxDamage::operator ()(const model::Building& unit) const {
+double GetMaxDamage::operator ()(const model::Tree&, double) const {
+    return 0.0;
+}
+
+double GetMaxDamage::operator ()(const model::Building& unit, double) const {
     return (1.0 + status_factor(unit)) * unit.getDamage();
 }
 
-double GetMaxDamage::operator ()(const model::Minion& unit) const {
+double GetMaxDamage::operator ()(const model::Minion& unit, double) const {
     return (1.0 + status_factor(unit)) * unit.getDamage();
 }
 
-double GetMaxDamage::operator ()(const model::Wizard& unit) const {
-    const auto attack_action = next_attack_action(unit);
+double GetMaxDamage::operator ()(const model::Wizard& unit, double distance) const {
+    const auto attack_action = next_attack_action(unit, distance);
     return (1.0 + status_factor(unit) + action_factor(unit, attack_action)) * action_damage(attack_action);
 }
 
@@ -74,15 +119,30 @@ double GetMaxDamage::action_damage(model::ActionType attack_action) const {
     }
 }
 
-model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit) const {
+model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit, double distance) const {
+    const GetAttackRange get_attack_range {context};
     model::ActionType next_attack_action = model::ACTION_NONE;
     int min_ticks = std::numeric_limits<int>::max();
     for (const auto action : ATTACK_ACTIONS) {
         const auto skill = ACTIONS_SKILLS.at(model::ActionType(action));
         if (skill == model::_SKILL_UNKNOWN_ || has_skill(unit, skill)) {
             const auto ticks = context.self().getRemainingCooldownTicksByAction()[action];
-            if (min_ticks > ticks) {
+            if (min_ticks > ticks && distance <= get_attack_range(unit, model::ActionType(action))) {
                 min_ticks = ticks;
+                next_attack_action = action;
+            }
+        }
+    }
+    if (next_attack_action != model::ACTION_NONE) {
+        return next_attack_action;
+    }
+    double max_range = 0;
+    for (const auto action : ATTACK_ACTIONS) {
+        const auto skill = ACTIONS_SKILLS.at(model::ActionType(action));
+        if (skill == model::_SKILL_UNKNOWN_ || has_skill(unit, skill)) {
+            const auto range = get_attack_range(unit, model::ActionType(action));
+            if (max_range < range) {
+                max_range = range;
                 next_attack_action = action;
             }
         }
@@ -105,7 +165,6 @@ double GetDefenceFactor::status_factor(const model::LivingUnit& unit) const {
 double GetDefenceFactor::skills_factor(const model::Wizard& unit) const {
     return get_magical_damage_absorption_level(unit) * context.game().getMagicalDamageAbsorptionPerSkillLevel();
 }
-
 
 double GetLifeRegeneration::operator ()(const model::LivingUnit&) const {
     return 0;
@@ -184,9 +243,9 @@ double GetTargetScore::base(const model::Wizard& unit) const {
                           context.game().getWizardEliminationScoreFactor());
 }
 
-double GetTargetScore::my_max_damage() const {
+double GetTargetScore::my_max_damage(double distance) const {
     const GetMaxDamage get_max_damage {context};
-    return get_max_damage(context.self());
+    return get_max_damage(context.self(), distance);
 }
 
 bool MakeTargetCandidates::is_in_my_range(const model::Unit& unit) const {
@@ -233,7 +292,7 @@ struct GetOptimalTarget {
 
     const Context& context;
 
-    Target operator ()(const Iterators& begins, Iterators ends) const {
+    Target operator ()(const Iterators& begins, const Iterators& ends) const {
         const GetAttackRange get_attack_range {context};
         const LessByScore less_by_score {ends};
 
@@ -250,7 +309,7 @@ struct GetOptimalTarget {
                 if (!path.empty()) {
                     min_distance = std::min(min_distance, path.back().distance(get_position(*candidate->first)));
                 }
-                if (min_distance <= get_attack_range(context.self()) + candidate->first->getRadius()) {
+                if (min_distance <= get_attack_range(context.self(), min_distance) + candidate->first->getRadius()) {
                     result = get_id(*candidate->first);
                 }
             };
