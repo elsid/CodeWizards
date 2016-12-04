@@ -264,7 +264,37 @@ struct GetOptimalTarget {
             apply_to(iterators, max, [] (auto& it) { ++it; });
         }
 
+        if (!result.is_some()) {
+            double min_distance = std::numeric_limits<double>::max();
+
+            update_target<model::Bonus>(begins, ends, result, min_distance);
+            update_target<model::Building>(begins, ends, result, min_distance);
+            update_target<model::Minion>(begins, ends, result, min_distance);
+            update_target<model::Tree>(begins, ends, result, min_distance);
+            update_target<model::Wizard>(begins, ends, result, min_distance);
+        }
+
         return result;
+    }
+
+    template <class Unit>
+    void update_target(const Iterators& begins, const Iterators& ends, Target& target, double& min_distance) const {
+        if (std::get<Iterator<Unit>>(begins) == std::get<Iterator<Unit>>(ends)) {
+            return;
+        }
+
+        const auto less_by_distance = [&] (const auto& lhs, const auto& rhs) {
+            return get_position(*lhs.first).distance(get_position(context.self()))
+                    < get_position(*rhs.first).distance(get_position(context.self()));
+        };
+
+        const auto unit = std::min_element(std::get<Iterator<Unit>>(begins), std::get<Iterator<Unit>>(ends), less_by_distance);
+        const auto distance = get_position(*unit->first).distance(get_position(context.self()));
+
+        if (min_distance > distance) {
+            min_distance = distance;
+            target = get_id(*unit->first);
+        }
     }
 };
 
