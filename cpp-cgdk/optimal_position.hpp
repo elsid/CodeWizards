@@ -360,7 +360,7 @@ private:
         const auto target_position = get_position(*target);
         const auto unit_position = get_position(unit);
         const auto has_intersection = Circle(unit_position, unit.getRadius())
-                .has_intersection(Circle(get_position(context.self()), context.self().getRadius()), target_position);
+                .has_intersection(Circle(position, context.self().getRadius()), target_position);
 
         if (!has_intersection) {
             return 0.0;
