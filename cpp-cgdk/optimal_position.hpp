@@ -292,7 +292,8 @@ public:
             }
         }
 
-        const auto except_borders = get_sum_units_penalty(buildings, position)
+        return std::max(
+                get_sum_units_penalty(buildings, position)
                 + get_sum_units_penalty(minions, position)
                 + get_sum_units_penalty(trees, position)
                 + get_sum_wizards_penalty(wizards, position)
@@ -300,14 +301,18 @@ public:
                 + get_sum_projectiles_penalty(projectiles, position) * PROJECTILE_PENALTY_WEIGHT
                 + get_sum_friendly_fire_penalty(friend_wizards, position)
                 + get_sum_friendly_fire_penalty(friend_buildings, position)
-                + target_penalty;
+                + target_penalty,
+                get_borders_penalty(position)
+            );
+    }
 
-        const auto borders_distance_penalty = get_border_distance_penalty(position.x(), max_borders_penalty - except_borders)
-                + get_border_distance_penalty(context.game().getMapSize() - position.x(), max_borders_penalty - except_borders)
-                + get_border_distance_penalty(position.y(), max_borders_penalty - except_borders)
-                + get_border_distance_penalty(context.game().getMapSize() - position.y(), max_borders_penalty - except_borders);
-
-        return except_borders + borders_distance_penalty;
+    double get_borders_penalty(const Point& position) const {
+        return max_borders_penalty * (
+                get_borders_factor(position.x())
+                + get_borders_factor(context.game().getMapSize() - position.x())
+                + get_borders_factor(position.y())
+                + get_borders_factor(context.game().getMapSize() - position.y())
+            );
     }
 
 private:
@@ -372,12 +377,12 @@ private:
         return distance_to_tangent / max_distance;
     }
 
-    double get_border_distance_penalty(double distance, double max_penalty) const {
+    double get_borders_factor(double distance) const {
         const auto safe_distance = 4 * context.self().getRadius();
         if (distance < 0.5 * safe_distance) {
-            return max_penalty * get_distance_penalty(distance, safe_distance);
+            return get_distance_penalty(distance, safe_distance);
         } else {
-            return max_penalty * 0.5 * get_distance_penalty(distance, 2 * safe_distance);
+            return 0.5 * get_distance_penalty(distance, 2 * safe_distance);
         }
     }
 };

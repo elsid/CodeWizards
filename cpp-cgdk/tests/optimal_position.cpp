@@ -189,8 +189,8 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard) {
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 1530.8378982634581);
-    EXPECT_EQ(result, Point(-352.13551598347817, 615.47227738850791));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 722.62466203494353);
+    EXPECT_EQ(result, Point(382.48030677840217, 1185.7431747738578));
 }
 
 }
