@@ -42,7 +42,7 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
 #ifndef STRATEGY_DEBUG
     } catch (const std::exception& exception) {
 #ifdef STRATEGY_LOCAL
-        std::cerr << "[" << world.getTickIndex() << "] " << exception.what() << std::endl;
+        std::cerr << "[" << world.getTickIndex() << "] " << exception.what() << '\n';
 #endif
         strategy_.reset();
     }
