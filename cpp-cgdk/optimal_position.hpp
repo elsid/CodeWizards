@@ -397,7 +397,7 @@ Point get_optimal_position(const Context& context, const T* target, double max_d
                            std::size_t initial_points_count, int max_function_calls) {
     const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
     std::vector<std::pair<double, Point>> points;
-    points.reserve(initial_points_count + 1);
+    points.reserve(initial_points_count);
     points.emplace_back(minimize(get_position_penalty, get_position(context.self()), max_function_calls));
     std::size_t step = 0;
     std::generate_n(std::back_inserter(points), initial_points_count - 1,
