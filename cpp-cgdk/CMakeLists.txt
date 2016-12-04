@@ -71,8 +71,8 @@ target_link_libraries(cpp-cgdk
 )
 
 enable_testing()
+
 add_subdirectory(googletest)
-add_subdirectory(json)
 
 add_executable(cpp-cgdk-tests
     ${SOURCES}
