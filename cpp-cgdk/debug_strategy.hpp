@@ -67,7 +67,7 @@ private:
 
     template <class T>
     void visualize_positions_penalties(const Context& context, const T* target) {
-        const double max_distance = 1.3 * context.self().getVisionRange();
+        const double max_distance = 2 * context.self().getVisionRange();
         const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
 
         const auto self_position = get_position(context.self());
