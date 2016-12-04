@@ -378,12 +378,7 @@ private:
     }
 
     double get_borders_factor(double distance) const {
-        const auto safe_distance = 4 * context.self().getRadius();
-        if (distance < 0.5 * safe_distance) {
-            return get_distance_penalty(distance, safe_distance);
-        } else {
-            return 0.5 * get_distance_penalty(distance, 2 * safe_distance);
-        }
+        return get_distance_penalty(distance, 2 * context.self().getRadius());
     }
 };
 
