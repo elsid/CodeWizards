@@ -58,7 +58,8 @@ TEST(get_next_movement, all) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     EXPECT_EQ(get_next_movement(Point(), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 0, 0));
     EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(1, 0, 0));
@@ -92,7 +93,8 @@ TEST(get_optimal_movement, only_for_me) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const Path path({get_position(SELF), target});
@@ -124,7 +126,8 @@ TEST(get_optimal_movement, only_for_me_to_my_position) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const Path path({get_position(SELF)});
@@ -152,7 +155,8 @@ TEST(get_optimal_movement, only_for_me_not_direct) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point final_target(1200, 1100);
     const Path path({get_position(SELF), Point(1100, 1200), final_target});
@@ -210,7 +214,8 @@ TEST(get_optimal_movement, only_for_me_with_hastened) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const Path path({get_position(self), target});
@@ -281,7 +286,8 @@ TEST(get_optimal_movement, with_static_barriers) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto step_size = 3;

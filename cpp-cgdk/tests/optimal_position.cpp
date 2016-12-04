@@ -53,7 +53,8 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
@@ -104,7 +105,8 @@ TEST(get_optimal_position, for_me_and_enemy_wizard_with_active_cooldown) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
@@ -181,7 +183,8 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getWizards()[0];
     const auto result = get_optimal_position(context, &target, 1000, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
