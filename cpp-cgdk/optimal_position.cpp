@@ -79,13 +79,12 @@ double GetUnitIntersectionPenalty::base(const model::CircularUnit& unit, const P
                                 1.1 * context.self().getRadius() + unit.getRadius());
 }
 
-double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double damage_factor,
-                                         double sum_enemy_damage) const {
+double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double sum_enemy_damage) const {
     if (!is_enemy(unit, context.self().getFaction())) {
         return 0;
     }
     if (friend_units.empty()) {
-        return get_common(unit, position, damage_factor, sum_enemy_damage);
+        return get_common(unit, position, sum_enemy_damage);
     }
     const auto unit_position = get_position(unit);
     const auto nearest_friend = std::min_element(friend_units.begin(), friend_units.end(),
@@ -95,21 +94,21 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     if (unit_position.distance(get_position(**nearest_friend)) < unit_position.distance(position)) {
         return 0;
     }
-    return get_common(unit, position, damage_factor, sum_enemy_damage);
+    return get_common(unit, position, sum_enemy_damage);
 }
 
 double GetUnitAttackAbility::operator ()(const model::Building& unit) const {
     const auto last_seen = get_units<model::Building>(context.cache()).at(unit.getId()).last_seen();
     const auto remaining = std::max(unit.getRemainingActionCooldownTicks() - (context.world().getTickIndex() - last_seen), 0);
-    return 1.0 - double(remaining) / double(unit.getCooldownTicks());
+    return 1.0 - 0.5 * double(remaining) / double(unit.getCooldownTicks());
 }
 
 double GetUnitAttackAbility::operator ()(const model::Minion& unit) const {
-    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(unit.getCooldownTicks());
+    return 1.0 - 0.5 * double(unit.getRemainingActionCooldownTicks()) / double(unit.getCooldownTicks());
 }
 
 double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
-    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(context.game().getWizardActionCooldownTicks());
+    return 1.0 - 0.5 * double(unit.getRemainingActionCooldownTicks()) / double(context.game().getWizardActionCooldownTicks());
 }
 
 }
