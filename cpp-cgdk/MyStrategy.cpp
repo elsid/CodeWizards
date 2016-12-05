@@ -133,8 +133,7 @@ void MyStrategy::update_cache(const model::Wizard& self, const model::World& wor
 
         const auto is_in_range = [&] (auto other) {
             return unit.last_seen() < world.getTickIndex()
-                    && get_position(*other).distance(get_position(unit.value()))
-                    <= other->getVisionRange() - unit.value().getRadius();
+                    && get_position(*other).distance(get_position(unit.value())) < other->getVisionRange();
         };
 
         return buildings.end() != std::find_if(buildings.begin(), buildings.end(), is_in_range)
