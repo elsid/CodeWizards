@@ -281,7 +281,7 @@ bool BaseStrategy::need_apply_cast(const Context& context, const model::Circular
     const auto distance = get_position(target).distance(get_position(context.self()));
     const auto cast_target = get_position(context.self()) + direction * std::min(distance, context.self().getCastRange());
     const auto distance_to_target = get_position(target).distance(cast_target);
-    const auto lethal_area = radius + target.getRadius() * 0.5;
+    const auto lethal_area = radius + target.getRadius();
 
     if (distance_to_target > lethal_area) {
         return false;
