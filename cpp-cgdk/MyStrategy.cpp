@@ -71,7 +71,7 @@ struct CacheTtl<model::Minion> {
 
 template <>
 struct CacheTtl<model::Projectile> {
-    static constexpr const Tick value = 10;
+    static constexpr const Tick value = 1;
 };
 
 template <>
