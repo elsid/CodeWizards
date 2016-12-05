@@ -66,7 +66,7 @@ struct CacheTtl<model::Building> {
 
 template <>
 struct CacheTtl<model::Minion> {
-    static constexpr const Tick value = 30;
+    static constexpr const Tick value = 60;
 };
 
 template <>
@@ -81,7 +81,7 @@ struct CacheTtl<model::Tree> {
 
 template <>
 struct CacheTtl<model::Wizard> {
-    static constexpr const Tick value = 30;
+    static constexpr const Tick value = 60;
 };
 
 static const model::Bonus FAKE_TOP_BONUS(
