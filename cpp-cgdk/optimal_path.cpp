@@ -87,6 +87,11 @@ bool has_intersection_with_borders(const Circle& circle, double map_size) {
             || circle.position().y() + circle.radius() - map_size >= delta;
 }
 
+bool has_intersection_with_barriers(const Circle& barrier, const std::vector<Circle>& barriers) {
+    return barriers.end() != std::find_if(barriers.begin(), barriers.end(),
+        [&] (const Circle& v) { return v.has_intersection(barrier); });
+}
+
 bool has_intersection_with_barriers(const Circle& barrier, const Point& final_position, const std::vector<Circle>& barriers) {
     return barriers.end() != std::find_if(barriers.begin(), barriers.end(),
         [&] (const Circle& v) { return v.has_intersection(barrier, final_position); });

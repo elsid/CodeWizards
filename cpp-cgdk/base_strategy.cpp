@@ -260,7 +260,7 @@ bool BaseStrategy::need_apply_fireball(const Context& context, const model::Circ
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FIREBALL] == 0
             && context.self().getMana() >= context.game().getFireballManacost()
             && has_skill(context.self(), model::SKILL_FIREBALL)
-            && need_apply_cast(context, target, context.game().getFireballRadius());
+            && need_apply_cast(context, target, context.game().getFireballRadius(), context.game().getFireballExplosionMaxDamageRange());
 }
 
 bool BaseStrategy::need_apply_frostbolt(const Context& context, const model::CircularUnit& target) {
@@ -276,9 +276,9 @@ bool BaseStrategy::need_apply_magic_missile(const Context& context, const model:
             && need_apply_cast(context, target, context.game().getMagicMissileRadius());
 }
 
-bool BaseStrategy::need_apply_cast(const Context& context, const model::CircularUnit& target, double radius) {
+bool BaseStrategy::need_apply_cast(const Context& context, const model::CircularUnit& target, double radius, double explosion_radius) {
     const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + context.move().getCastAngle()));
-    const auto distance = get_position(target).distance(get_position(context.self()));
+    const auto distance = get_position(target).distance(get_position(context.self())) - target.getRadius() - radius + 1;
     const auto cast_target = get_position(context.self()) + direction * std::min(distance, context.self().getCastRange());
     const auto distance_to_target = get_position(target).distance(cast_target);
     const auto lethal_area = radius + target.getRadius();
@@ -294,7 +294,16 @@ bool BaseStrategy::need_apply_cast(const Context& context, const model::Circular
     barriers.reserve(friend_wizards.size());
     std::transform(friend_wizards.begin(), friend_wizards.end(), std::back_inserter(barriers), make_circle);
 
-    return !has_intersection_with_barriers(cast, cast_target, barriers);
+    if (has_intersection_with_barriers(cast, cast_target, barriers)) {
+        return false;
+    } else if (explosion_radius <= radius) {
+        return true;
+    }
+
+    const Circle explosion(cast_target, explosion_radius);
+
+    return !has_intersection_with_barriers(explosion, barriers)
+            && !explosion.has_intersection(Circle(get_position(context.self()), context.self().getRadius()));
 }
 
 }

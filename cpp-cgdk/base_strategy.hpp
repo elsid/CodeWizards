@@ -81,7 +81,7 @@ private:
     static bool need_apply_magic_missile(const Context& context, const model::CircularUnit& target);
     static bool need_apply_fireball(const Context& context, const model::CircularUnit& target);
     static bool need_apply_frostbolt(const Context& context, const model::CircularUnit& target);
-    static bool need_apply_cast(const Context& context, const model::CircularUnit& target, double radius);
+    static bool need_apply_cast(const Context& context, const model::CircularUnit& target, double radius, double explosion_radius = 0);
 };
 
 }
