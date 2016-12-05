@@ -347,6 +347,15 @@ private:
 
     template <class Unit>
     double get_elimination_score(const CachedUnit<Unit>& unit, const Point& position) const {
+        return get_base_elimination_score(unit, position);
+    }
+
+    double get_elimination_score(const CachedUnit<model::Building>& unit, const Point& position) const {
+        return unit.value().getType() == model::BUILDING_FACTION_BASE ? 0 : get_base_elimination_score(unit, position);
+    }
+
+    template <class Unit>
+    double get_base_elimination_score(const CachedUnit<Unit>& unit, const Point& position) const {
         const auto mean_life_change_speed = unit.mean_life_change_speed();
 
         if (!is_enemy(unit.value(), context.self().getFaction()) || mean_life_change_speed >= 0) {
