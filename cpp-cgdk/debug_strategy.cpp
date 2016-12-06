@@ -413,6 +413,14 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Building
 }
 
 void DebugStrategy::visualize_unit(const Context& context, const model::Minion& unit) {
+    double attack_range = unit.getType() == model::MINION_ORC_WOODCUTTER
+            ? context.game().getOrcWoodcutterAttackRange()
+            : context.game().getFetishBlowdartAttackRange();
+    debug_.circle(unit.getX(), unit.getY(), unit.getVisionRange(), 0x44FF44);
+    debug_.circle(unit.getX(), unit.getY(), attack_range, 0xFF4444);
+    debug_.text(unit.getX() + unit.getRadius(), unit.getY() + unit.getRadius(),
+                std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
+
     if (unit.getFaction() == context.self().getFaction()) {
         return;
     }
