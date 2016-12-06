@@ -11,13 +11,20 @@ BattleMode::Result BattleMode::apply(const Context& context) {
 }
 
 void BattleMode::update_target(const Context& context) {
+    const auto max_distances = {
+        context.game().getStaffRange() + context.self().getRadius(),
+        1.3 * context.self().getVisionRange(),
+    };
     destination_.first = false;
-    target_ = get_optimal_target(context, 1.3 * context.self().getVisionRange());
-    if (!target_.is_some()) {
-        return;
+    for (const auto max_distance : max_distances) {
+        target_ = get_optimal_target(context, max_distance);
+        if (!target_.is_some()) {
+            continue;
+        }
+        destination_ = {true, get_optimal_position(context, target_, 2 * context.self().getVisionRange(),
+                        OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)};
+        break;
     }
-    destination_ = {true, get_optimal_position(context, target_, 2 * context.self().getVisionRange(),
-                    OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)};
 }
 
 }
