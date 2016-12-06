@@ -565,5 +565,76 @@ TEST(get_optimal_position, for_me_with_critical_life_and_enemy_wizard) {
     EXPECT_EQ(result, Point(1686.736338913872, 985.31373489675354));
 }
 
+TEST(get_optimal_position, for_me_with_minion_in_staff_range) {
+    const model::Wizard self(
+        1, // Id
+        1000, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        M_PI / 4, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        1, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Minion enemy(
+        2, // Id
+        1060, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        25, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        model::MINION_ORC_WOODCUTTER, // Type
+        400, // VisionRange
+        12, // Damage
+        60, // CooldownTicks
+        0 // RemainingActionCooldownTicks
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self}, // Wizards
+        {enemy}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
+    const auto& target = world.getMinions()[0];
+    const auto max_distance = 1000;
+    const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
+                                             OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 523.29550091818544);
+    EXPECT_EQ(result, Point(541.16068070723418, 1068.1464748687265));
+}
+
 }
 }

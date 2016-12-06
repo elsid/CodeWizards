@@ -26,10 +26,6 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Bonus& value
     return stream << ")";
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Minion& /* value */) {
-    return stream;
-}
-
 inline std::ostream& operator <<(std::ostream& stream, const model::Projectile& /* value */) {
     return stream;
 }
@@ -132,6 +128,27 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Building& va
     stream << "    " << value.getType() << ", // Type\n";
     stream << "    " << value.getVisionRange() << ", // VisionRange\n";
     stream << "    " << value.getAttackRange() << ", // AttackRange\n";
+    stream << "    " << value.getDamage() << ", // Damage\n";
+    stream << "    " << value.getCooldownTicks() << ", // CooldownTicks\n";
+    stream << "    " << value.getRemainingActionCooldownTicks() << " // RemainingActionCooldownTicks\n";
+    return stream << ")";
+}
+
+inline std::ostream& operator <<(std::ostream& stream, const model::Minion& value) {
+    stream << "model::Minion(\n";
+    stream << "    " << value.getId() << ", // Id\n";
+    stream << "    " << value.getX() << ", // X\n";
+    stream << "    " << value.getY() << ", // Y\n";
+    stream << "    " << value.getSpeedX() << ", // SpeedX\n";
+    stream << "    " << value.getSpeedY() << ", // SpeedY\n";
+    stream << "    " << value.getAngle() << ", // Angle\n";
+    stream << "    " << value.getFaction() << ", // Faction\n";
+    stream << "    " << value.getRadius() << ", // Radius\n";
+    stream << "    " << value.getLife() << ", // Life\n";
+    stream << "    " << value.getMaxLife() << ", // MaxLife\n";
+    stream << "    " << value.getStatuses() << ", // Statuses\n";
+    stream << "    " << value.getType() << ", // Type\n";
+    stream << "    " << value.getVisionRange() << ", // VisionRange\n";
     stream << "    " << value.getDamage() << ", // Damage\n";
     stream << "    " << value.getCooldownTicks() << ", // CooldownTicks\n";
     stream << "    " << value.getRemainingActionCooldownTicks() << " // RemainingActionCooldownTicks\n";
