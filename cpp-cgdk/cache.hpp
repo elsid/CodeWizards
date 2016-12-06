@@ -56,7 +56,7 @@ public:
             [&] (auto sum, const auto& v) { return sum + v.first; });
         const auto life_change = std::accumulate(life_change_.begin(), life_change_.end(), 0,
             [&] (auto sum, const auto& v) { return sum + v.second; });
-        return double(life_change) / double(interval);
+        return double(life_change) / (interval ? double(interval) : 1);
     }
 
 private:
