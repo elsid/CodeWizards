@@ -87,10 +87,6 @@ struct GetCurrentDamage {
         return 1.0;
     }
 
-    double get_turn_factor(const model::Minion& unit, const Point& position) const {
-        return get_rotating_unit_turn_factor(unit, position);
-    }
-
     double get_turn_factor(const model::Wizard& unit, const Point& position) const {
         return get_rotating_unit_turn_factor(unit, position);
     }
