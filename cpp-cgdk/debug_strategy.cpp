@@ -5,6 +5,12 @@
 
 namespace strategy {
 
+static const std::unordered_map<model::LaneType, int> LANES_COLORS = {
+    {model::LANE_BOTTOM, 0xFF0000},
+    {model::LANE_MIDDLE, 0x00FF00},
+    {model::LANE_TOP, 0x0000FF},
+};
+
 static const std::unordered_map<model::ActionType, int> ACTIONS_COLORS = {
     {model::ACTION_STAFF, 0x00FF00},
     {model::ACTION_MAGIC_MISSILE, 0xFF00FF},
@@ -259,6 +265,11 @@ void DebugStrategy::visualize_graph(const Context& context) {
         debug_.fillCircle(node.second.x(), node.second.y(), 10, color);
         debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
         debug_.text(node.second.x() + 30, node.second.y() - 30, std::to_string(score).c_str(), color);
+        const auto lane_type = std::find_if(LANES_COLORS.begin(), LANES_COLORS.end(),
+            [&] (auto lane) { return base_->graph().lanes_nodes().at(lane.first).count(node.first); });
+        if (lane_type != LANES_COLORS.end()) {
+            debug_.circle(node.second.x(), node.second.y(), 15, lane_type->second);
+        }
     }
     const auto friend_base = nodes.at(base_->graph().friend_base());
     debug_.circle(friend_base.x(), friend_base.y(), 40, 0x00AA00);
