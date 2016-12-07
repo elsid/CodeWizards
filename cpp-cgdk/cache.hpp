@@ -10,6 +10,8 @@
 #include <vector>
 #include <numeric>
 
+#include "point.hpp"
+
 namespace strategy {
 
 inline int get_life(const model::Unit&) {
@@ -30,7 +32,12 @@ public:
     CachedUnit() = default;
 
     CachedUnit(const Value& value, Tick tick)
-        : value_(value), first_seen_(tick), last_seen_(tick), prev_life_change_(tick), prev_life_(get_life(value)) {}
+        : value_(value),
+          first_seen_(tick),
+          last_seen_(tick),
+          prev_life_change_(tick),
+          prev_life_(get_life(value)),
+          first_position_(value.getX(), value.getY()) {}
 
     const Value& value() const {
         return value_;
@@ -38,6 +45,10 @@ public:
 
     Tick last_seen() const {
         return last_seen_;
+    }
+
+    const Point& first_position() const {
+        return first_position_;
     }
 
     void set(const Value& value, Tick last_seen) {
@@ -65,6 +76,7 @@ private:
     Tick last_seen_ = 0;
     Tick prev_life_change_ = 0;
     int prev_life_ = 0;
+    Point first_position_;
     std::array<std::pair<Tick, int>, LIFE_CHANGES_SIZE> life_change_;
 };
 

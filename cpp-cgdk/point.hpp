@@ -65,6 +65,8 @@ public:
         return x() * other.y() - y() * other.x();
     }
 
+    BasicPoint<double> normalized() const;
+
 private:
     Value x_;
     Value y_;
@@ -120,6 +122,11 @@ inline bool operator >(const BasicPoint<T>& lhs, const BasicPoint<T>& rhs) {
 
 inline BasicPoint<int> operator %(const BasicPoint<int>& lhs, int rhs) {
     return BasicPoint<int>(lhs.x() % rhs, lhs.y() % rhs);
+}
+
+template <class T>
+BasicPoint<double> BasicPoint<T>::normalized() const {
+    return to_double() / norm();
 }
 
 inline std::ostream& operator <<(std::ostream& stream, const Point& value) {

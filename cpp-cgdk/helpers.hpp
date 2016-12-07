@@ -162,6 +162,10 @@ struct FilterUnits {
     static const T& get_unit(const T* value) {
         return *value;
     }
+
+    static const T& get_unit(const std::pair<const UnitId, T>& value) {
+        return value.second;
+    }
 };
 
 template <class T, class Predicate>
@@ -171,6 +175,11 @@ std::vector<const T*> filter_units(const std::vector<T>& units, const Predicate&
 
 template <class T, class Predicate>
 inline std::vector<const T*> filter_units(const std::vector<const T*>& units, const Predicate& predicate) {
+    return FilterUnits<T>::perform(units, predicate);
+}
+
+template <class T, class Predicate>
+inline std::vector<const T*> filter_units(const std::unordered_map<UnitId, T>& units, const Predicate& predicate) {
     return FilterUnits<T>::perform(units, predicate);
 }
 

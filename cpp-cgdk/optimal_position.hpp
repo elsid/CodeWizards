@@ -153,7 +153,6 @@ public:
         minions = initial_filter(get_units<model::Minion>(context.cache()));
         wizards = initial_filter(get_units<model::Wizard>(context.cache()));
         trees = initial_filter(get_units<model::Tree>(context.cache()));
-        projectiles = initial_filter(get_units<model::Projectile>(context.cache()));
         bonuses = initial_filter(get_units<model::Bonus>(context.cache()));
 
         const auto is_enemy = [&] (const auto& unit) {
@@ -176,8 +175,8 @@ public:
         const GetDefenceFactor get_defence_factor {context};
 
         my_defence_factor = get_defence_factor(context.self());
-        max_borders_penalty = double(bonuses.size() + buildings.size() + minions.size()
-                                 + projectiles.size() * PROJECTILE_PENALTY_WEIGHT + trees.size() + wizards.size());
+        max_borders_penalty = double(bonuses.size() + buildings.size() + minions.size() + trees.size() + wizards.size()
+                                     + get_units<model::Projectile>(context.cache()).size() * PROJECTILE_PENALTY_WEIGHT);
     }
 
     double operator ()(const Point& position) const {
@@ -220,8 +219,9 @@ public:
     }
 
     double get_projectiles_penalty(const Point& position) const {
+        const auto& projectiles = get_units<model::Projectile>(context.cache());
         return std::accumulate(projectiles.begin(), projectiles.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + this->get_projectile_penalty(*v, position); });
+            [&] (auto sum, auto v) { return sum + this->get_projectile_penalty(v.second, position); });
     }
 
     double get_elimination_score(const Point& position) const {
@@ -286,7 +286,6 @@ private:
     std::vector<const model::Bonus*> bonuses;
     std::vector<const model::Building*> buildings;
     std::vector<const model::Minion*> minions;
-    std::vector<const model::Projectile*> projectiles;
     std::vector<const model::Tree*> trees;
     std::vector<const model::Wizard*> wizards;
     std::vector<const model::Wizard*> enemy_wizards;
@@ -303,12 +302,63 @@ private:
         return 1 - get_distance_penalty(distance, 2 * context.self().getVisionRange());
     }
 
-    double get_projectile_penalty(const model::Projectile& unit, const Point& position) const {
-        const auto unit_speed = get_speed(unit);
-        const auto unit_position = get_position(unit);
-        const auto safe_distance = 2 * (context.self().getRadius() + unit.getRadius());
-        const auto distance_to = Line(unit_position, unit_position + unit_speed).distance(position);
+    double get_projectile_penalty(const CachedUnit<model::Projectile>& cached_unit, const Point& position) const {
+        const auto& unit = cached_unit.value();
+        const auto trajectory = get_projectile_trajectory(cached_unit);
+        const auto lethal_area = get_projectile_lethal_area(unit.getType());
+        const auto safe_distance = 2 * lethal_area + unit.getRadius();
+        const auto nearest = trajectory.nearest(position);
+        double distance_to;
+        if (trajectory.has_point(nearest)) {
+            distance_to = position.distance(nearest);
+        } else {
+            distance_to = std::min(position.distance(trajectory.begin()), position.distance(trajectory.end()));
+        }
         return get_distance_penalty(distance_to, safe_distance);
+    }
+
+    Line get_projectile_trajectory(const CachedUnit<model::Projectile>& cached_unit) const {
+        const auto& unit = cached_unit.value();
+        switch (unit.getType()) {
+            case model::PROJECTILE_MAGIC_MISSILE:
+            case model::PROJECTILE_FROST_BOLT:
+            case model::PROJECTILE_FIREBALL: {
+                const auto& wizards = get_units<model::Wizard>(context.history_cache());
+                const auto owner = wizards.find(cached_unit.value().getOwnerUnitId());
+                const auto range = owner == wizards.end() ? context.game().getWizardVisionRange()
+                                                          : owner->second.value().getCastRange();
+                return Line(cached_unit.first_position(), cached_unit.first_position()
+                            + get_speed(cached_unit.value()).normalized() * range);
+            }
+            case model::PROJECTILE_DART:
+                return Line(cached_unit.first_position(), cached_unit.first_position()
+                            + get_speed(cached_unit.value()).normalized() * context.game().getFetishBlowdartAttackRange());
+            default:
+                break;
+        }
+        std::ostringstream error;
+        error << "Invalid model::ProjectileType value: " << int(unit.getType())
+              << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+        throw std::logic_error(error.str());
+    }
+
+    double get_projectile_lethal_area(model::ProjectileType type) const {
+        switch (type) {
+            case model::PROJECTILE_MAGIC_MISSILE:
+                return context.game().getMagicMissileRadius();
+            case model::PROJECTILE_FROST_BOLT:
+                return context.game().getFrostBoltRadius();
+            case model::PROJECTILE_FIREBALL:
+                return context.game().getFireballExplosionMaxDamageRange();
+            case model::PROJECTILE_DART:
+                return context.game().getDartRadius();
+            default:
+                break;
+        }
+        std::ostringstream error;
+        error << "Invalid model::ProjectileType value: " << int(type)
+              << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+        throw std::logic_error(error.str());
     }
 
     double get_friendly_fire_penalty(const model::CircularUnit& unit, const Point& position) const {
