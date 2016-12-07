@@ -28,56 +28,56 @@ public:
 
 private:
     struct NodeInfo {
-        std::size_t enemy_wizards_count = 0;
-        std::size_t enemy_minions_count = 0;
-        std::size_t enemy_towers_count = 0;
-        std::size_t friend_wizards_count = 0;
-        std::size_t friend_minions_count = 0;
-        std::size_t friend_towers_count = 0;
-        bool has_bonus = false;
-        bool has_enemy_base = false;
-        bool has_friend_base = false;
+        double enemy_wizards_weight = 0;
+        double enemy_minions_weight = 0;
+        double enemy_towers_weight = 0;
+        double friend_wizards_weight = 0;
+        double friend_minions_weight = 0;
+        double friend_towers_weight = 0;
+        double bonus_weight = 0;
+        double enemy_base_weight = 0;
+        double friend_base_weight = 0;
         WorldGraph::Path path;
 
-        void add_other(const model::Unit&) {}
+        void add_other(const model::Unit&, double) {}
 
-        void add_other(const model::Bonus&) {
-            has_bonus = true;
+        void add_other(const model::Bonus&, double weight) {
+            bonus_weight = weight;
         }
 
-        void add_enemy(const model::Unit&) {}
+        void add_enemy(const model::Unit&, double) {}
 
-        void add_enemy(const model::Wizard&) {
-            ++enemy_wizards_count;
+        void add_enemy(const model::Wizard&, double weight) {
+            enemy_wizards_weight += weight;
         }
 
-        void add_enemy(const model::Minion&) {
-            ++enemy_minions_count;
+        void add_enemy(const model::Minion&, double weight) {
+            enemy_minions_weight += weight;
         }
 
-        void add_enemy(const model::Building& unit) {
+        void add_enemy(const model::Building& unit, double weight) {
             if (unit.getType() == model::BUILDING_FACTION_BASE) {
-                has_enemy_base = true;
+                enemy_base_weight = weight;
             } else {
-                ++enemy_towers_count;
+                enemy_towers_weight += weight;
             }
         }
 
-        void add_friend(const model::Unit&) {}
+        void add_friend(const model::Unit&, double) {}
 
-        void add_friend(const model::Wizard&) {
-            ++friend_wizards_count;
+        void add_friend(const model::Wizard&, double weight) {
+            friend_wizards_weight += weight;
         }
 
-        void add_friend(const model::Minion&) {
-            ++friend_minions_count;
+        void add_friend(const model::Minion&, double weight) {
+            friend_minions_weight += weight;
         }
 
-        void add_friend(const model::Building& unit) {
+        void add_friend(const model::Building& unit, double weight) {
             if (unit.getType() == model::BUILDING_FACTION_BASE) {
-                has_friend_base = true;
+                friend_base_weight = weight;
             } else {
-                ++friend_towers_count;
+                friend_towers_weight += weight;
             }
         }
     };
@@ -92,16 +92,23 @@ private:
     void fill_nodes_info() {
         for (const auto& v : get_units<Unit>(context_.cache())) {
             const auto& unit = v.second.value();
-            const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(unit)).first;
-            auto& node_info = nodes_info_[nearest_node];
-            if (unit.getFaction() == model::FACTION_ACADEMY || unit.getFaction() == model::FACTION_RENEGADES) {
-                if (unit.getFaction() == context_.self().getFaction()) {
-                    node_info.add_friend(unit);
-                } else {
-                    node_info.add_enemy(unit);
+            const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(unit));
+            const auto distance_to_nearest = get_position(unit).distance(nearest_node.second);
+            for (const auto& node : graph_.nodes()) {
+                const auto distance = get_position(unit).distance(node.second);
+                if (distance < context_.self().getVisionRange()) {
+                    const auto distance_weight = distance_to_nearest / (distance ? distance : 1.0);
+                    auto& node_info = nodes_info_[node.first];
+                    if (unit.getFaction() == model::FACTION_ACADEMY || unit.getFaction() == model::FACTION_RENEGADES) {
+                        if (unit.getFaction() == context_.self().getFaction()) {
+                            node_info.add_friend(unit, distance_weight);
+                        } else {
+                            node_info.add_enemy(unit, distance_weight);
+                        }
+                    } else {
+                        node_info.add_other(unit, distance_weight);
+                    }
                 }
-            } else {
-                node_info.add_other(unit);
             }
         }
     }

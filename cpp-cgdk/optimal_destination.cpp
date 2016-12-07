@@ -59,16 +59,16 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto& node_info = nodes_info_.at(node);
 
     const auto reduce_factor = 1.0 / (
-                node_info.enemy_minions_count * ENEMY_MINION_REDUCE_FACTOR
-                + node_info.enemy_wizards_count * ENEMY_WIZARD_REDUCE_FACTOR
-                + node_info.enemy_towers_count * ENEMY_TOWER_REDUCE_FACTOR
-                + node_info.has_enemy_base * ENEMY_BASE_REDUCE_FACTOR
-                + node_info.friend_minions_count * FRIEND_MINION_REDUCE_FACTOR
-                + node_info.friend_wizards_count * FRIEND_WIZARD_REDUCE_FACTOR
+                node_info.enemy_minions_weight * ENEMY_MINION_REDUCE_FACTOR
+                + node_info.enemy_wizards_weight * ENEMY_WIZARD_REDUCE_FACTOR
+                + node_info.enemy_towers_weight * ENEMY_TOWER_REDUCE_FACTOR
+                + node_info.enemy_base_weight * ENEMY_BASE_REDUCE_FACTOR
+                + node_info.friend_minions_weight * FRIEND_MINION_REDUCE_FACTOR
+                + node_info.friend_wizards_weight * FRIEND_WIZARD_REDUCE_FACTOR
                 + (1 + node_info.path.length) * PATH_LENGTH_REDUCE_FACTOR
             );
 
-    const auto bonus_score = node_info.has_bonus
+    const auto bonus_score = node_info.bonus_weight
             * context_.game().getBonusScoreAmount();
 
     if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
@@ -76,23 +76,23 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
     }
 
     const auto mult_factor = 1.0
-            + node_info.friend_towers_count * FRIEND_TOWER_MULT_FACTOR
-            + node_info.has_friend_base * FRIEND_BASE_MULT_FACTOR;
+            + node_info.friend_towers_weight * FRIEND_TOWER_MULT_FACTOR
+            + node_info.friend_base_weight * FRIEND_BASE_MULT_FACTOR;
 
-    const auto enemy_minions_score = node_info.enemy_minions_count
+    const auto enemy_minions_score = node_info.enemy_minions_weight
             * (context_.game().getMinionDamageScoreFactor() + context_.game().getMinionEliminationScoreFactor())
             * context_.game().getMinionLife();
 
-    const auto enemy_wizards_score = node_info.enemy_wizards_count
+    const auto enemy_wizards_score = node_info.enemy_wizards_weight
             * (context_.game().getWizardDamageScoreFactor() * WIZARD_DAMAGE_PROBABILITY
                + context_.game().getWizardEliminationScoreFactor() * WIZARD_ELIMINATION_PROBABILITY)
             * context_.game().getWizardBaseLife();
 
-    const auto enemy_towers_score = node_info.enemy_towers_count
+    const auto enemy_towers_score = node_info.enemy_towers_weight
             * (context_.game().getBuildingDamageScoreFactor() + context_.game().getBuildingEliminationScoreFactor())
             * context_.game().getGuardianTowerLife();
 
-    const auto enemy_base_score = node_info.has_enemy_base
+    const auto enemy_base_score = node_info.enemy_base_weight
             * context_.game().getVictoryScore();
 
     return (1 + enemy_minions_score + enemy_wizards_score + enemy_towers_score + enemy_base_score + bonus_score)
