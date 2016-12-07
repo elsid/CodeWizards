@@ -299,6 +299,8 @@ struct GetOptimalTarget {
         Target result;
 
         for (auto iterators = begins; iterators != ends;) {
+            context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+
             const auto max = max_element(iterators, less_by_score);
 
             const auto set_result = [&] (auto candidate) {
