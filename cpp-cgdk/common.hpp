@@ -21,7 +21,7 @@ private:
     UnitId value_;
 };
 
-const Tick MESSAGE_TICKS = 500;
+const Tick MESSAGE_TICKS = 3000;
 const int OPTIMAL_PATH_STEP_SIZE = 20;
 const Tick OPTIMAL_PATH_MAX_TICKS = 100;
 const int OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS = 100;
