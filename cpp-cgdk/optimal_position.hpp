@@ -306,7 +306,6 @@ private:
         const auto& unit = cached_unit.value();
         const auto trajectory = get_projectile_trajectory(cached_unit);
         const auto lethal_area = get_projectile_lethal_area(unit.getType());
-        const auto safe_distance = 2 * lethal_area + unit.getRadius();
         const auto nearest = trajectory.nearest(position);
         double distance_to;
         if (trajectory.has_point(nearest)) {
@@ -314,7 +313,11 @@ private:
         } else {
             distance_to = std::min(position.distance(trajectory.begin()), position.distance(trajectory.end()));
         }
-        return get_distance_penalty(distance_to, safe_distance);
+        if (distance_to <= lethal_area + unit.getRadius()) {
+            return 0.9 + 0.1 * line_factor(distance_to, lethal_area + unit.getRadius(), 0);
+        } else {
+            return 0.9 * line_factor(distance_to, 2 * (lethal_area + unit.getRadius()), lethal_area + unit.getRadius());
+        }
     }
 
     Line get_projectile_trajectory(const CachedUnit<model::Projectile>& cached_unit) const {
