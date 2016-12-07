@@ -58,7 +58,7 @@ inline std::ostream& operator <<(std::ostream& stream, model::Faction value) {
             return stream << "model::_FACTION_COUNT_";
     }
     std::ostringstream error;
-    error << "Invalid model::Faction value:: " << int(value)
+    error << "Invalid model::Faction value: " << int(value)
           << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
     throw std::logic_error(error.str());
 }
@@ -75,7 +75,7 @@ inline std::ostream& operator <<(std::ostream& stream, model::BuildingType value
             return stream << "model::_BUILDING_COUNT_";
     }
     std::ostringstream error;
-    error << "Invalid model::Faction value:: " << int(value)
+    error << "Invalid model::Faction value: " << int(value)
           << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
     throw std::logic_error(error.str());
 }
