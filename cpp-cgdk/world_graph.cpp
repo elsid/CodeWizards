@@ -53,7 +53,7 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
     lanes_nodes_[model::LANE_BOTTOM].insert(get_node(tiles - 1, tiles - 1));
     lanes_nodes_[model::LANE_BOTTOM].insert(get_node(tiles - 2, tiles - 2));
     lanes_nodes_[model::LANE_MIDDLE].insert(get_node(tiles / 2, tiles / 2));
-    lanes_nodes_[model::LANE_MIDDLE].insert(get_node(tiles / 2 + 1, tiles / 2 + 1));
+    lanes_nodes_[model::LANE_MIDDLE].insert(get_node(tiles / 2 - 1, tiles / 2 - 1));
 
     const auto add_arc = [&] (std::size_t src_x, std::size_t src_y, std::size_t dst_x, std::size_t dst_y) {
         graph_.arc(get_node(src_x, src_y), get_node(dst_x, dst_y),
