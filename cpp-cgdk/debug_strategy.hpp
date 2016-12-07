@@ -67,8 +67,8 @@ private:
 
     template <class T>
     void visualize_positions_penalties(const Context& context, const T* target) {
-        const double max_distance = 2 * context.self().getVisionRange();
-        const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
+        const double max_distance = context.self().getVisionRange();
+        const GetPositionPenalty<T> get_position_penalty(context, target, 2 * context.self().getVisionRange());
 
         const auto self_position = get_position(context.self());
         std::vector<std::pair<Point, double>> penalties;
