@@ -113,7 +113,7 @@ double GetMaxDamage::action_damage(model::ActionType attack_action) const {
         case model::ACTION_FROST_BOLT:
             return context.game().getFrostBoltDirectDamage();
         case model::ACTION_FIREBALL:
-            return context.game().getFireballExplosionMaxDamage();
+            return context.game().getFireballExplosionMaxDamage() + context.game().getBurningSummaryDamage();
         default:
             return 0;
     }
