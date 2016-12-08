@@ -10,6 +10,7 @@ namespace strategy {
 namespace tests {
 
 using namespace testing;
+
 TEST(GetTargetScore, for_me_and_enemy_wizard) {
     const model::Wizard enemy(
         2, // Id
@@ -225,6 +226,109 @@ TEST(get_optimal_target, for_me_enemy_wizard_and_enemy_building) {
     ASSERT_TRUE(result.is<model::Building>());
     EXPECT_EQ(result.unit<model::Building>(cache)->getId(), enemy_building.getId());
 }
+
+TEST(get_optimal_target, for_me_and_enemy_wizards_with_different_skills) {
+    const model::Wizard enemy_with_fireball(
+        2, // Id
+        1600, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        false, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {model::SKILL_STAFF_DAMAGE_BONUS_AURA_2, model::SKILL_FIREBALL}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Wizard enemy_with_frostbolt(
+        3, // Id
+        1600, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        false, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500 + 4 * 25, // CastRange
+        0, // Xp
+        0, // Level
+        {model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_2, model::SKILL_FROST_BOLT}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Wizard enemy_with_advanced_magic_missile(
+        4, // Id
+        1600, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        false, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {model::SKILL_RANGE_BONUS_AURA_2, model::SKILL_ADVANCED_MAGIC_MISSILE}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {enemy_with_fireball, enemy_with_frostbolt, enemy_with_advanced_magic_missile, SELF}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
+    const auto result = get_optimal_target(context, 1000);
+    ASSERT_TRUE(result.is<model::Wizard>());
+    EXPECT_EQ(result.unit<model::Wizard>(cache)->getId(), enemy_with_advanced_magic_missile.getId());
+}
+
 
 }
 }
