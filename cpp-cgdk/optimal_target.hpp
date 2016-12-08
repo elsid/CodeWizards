@@ -31,6 +31,7 @@ struct GetMaxDamage {
 
     double status_factor(const model::LivingUnit& unit) const;
     double action_factor(const model::Wizard& unit, model::ActionType attack_action) const;
+    double action_damage(model::ActionType attack_action, const model::Wizard& unit) const;
     double action_damage(model::ActionType attack_action) const;
     model::ActionType next_attack_action(const model::Wizard& unit, double distance) const;
 };

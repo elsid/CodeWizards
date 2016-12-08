@@ -84,7 +84,7 @@ double GetMaxDamage::operator ()(const model::Minion& unit, double) const {
 
 double GetMaxDamage::operator ()(const model::Wizard& unit, double distance) const {
     const auto attack_action = next_attack_action(unit, distance);
-    return (1.0 + status_factor(unit) + action_factor(unit, attack_action)) * action_damage(attack_action);
+    return action_damage(attack_action, unit);
 }
 
 double GetMaxDamage::status_factor(const model::LivingUnit& unit) const {
@@ -102,6 +102,10 @@ double GetMaxDamage::action_factor(const model::Wizard& unit, model::ActionType 
         default:
             return 0;
     }
+}
+
+double GetMaxDamage::action_damage(model::ActionType attack_action, const model::Wizard& unit) const {
+    return (1.0 + status_factor(unit) + action_factor(unit, attack_action)) * action_damage(attack_action);
 }
 
 double GetMaxDamage::action_damage(model::ActionType attack_action) const {
@@ -122,13 +126,16 @@ double GetMaxDamage::action_damage(model::ActionType attack_action) const {
 model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit, double distance) const {
     const GetAttackRange get_attack_range {context};
     model::ActionType next_attack_action = model::ACTION_NONE;
-    int min_ticks = std::numeric_limits<int>::max();
+    Tick min_ticks = std::numeric_limits<int>::max();
+    double max_damage = 0;
     for (const auto action : ATTACK_ACTIONS) {
         const auto skill = ACTIONS_SKILLS.at(model::ActionType(action));
         if (skill == model::_SKILL_UNKNOWN_ || has_skill(unit, skill)) {
-            const auto ticks = unit.getRemainingCooldownTicksByAction()[action];
-            if (min_ticks > ticks && distance <= get_attack_range(unit, model::ActionType(action))) {
+            const auto ticks = std::max(unit.getRemainingCooldownTicksByAction()[action], unit.getRemainingActionCooldownTicks());
+            const auto damage = action_damage(action, unit);
+            if ((min_ticks > ticks || (min_ticks == ticks && max_damage < damage)) && distance <= get_attack_range(unit, model::ActionType(action))) {
                 min_ticks = ticks;
+                max_damage = damage;
                 next_attack_action = action;
             }
         }
