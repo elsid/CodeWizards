@@ -126,7 +126,7 @@ model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit, do
     for (const auto action : ATTACK_ACTIONS) {
         const auto skill = ACTIONS_SKILLS.at(model::ActionType(action));
         if (skill == model::_SKILL_UNKNOWN_ || has_skill(unit, skill)) {
-            const auto ticks = context.self().getRemainingCooldownTicksByAction()[action];
+            const auto ticks = unit.getRemainingCooldownTicksByAction()[action];
             if (min_ticks > ticks && distance <= get_attack_range(unit, model::ActionType(action))) {
                 min_ticks = ticks;
                 next_attack_action = action;
