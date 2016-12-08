@@ -223,7 +223,7 @@ double GetTargetScore::base(const model::Bonus&) const {
 }
 
 double GetTargetScore::base(const model::Tree&) const {
-    return 2;
+    return 0.2;
 }
 
 double GetTargetScore::base(const model::Building& unit) const {
@@ -238,7 +238,7 @@ double GetTargetScore::base(const model::Building& unit) const {
 
 double GetTargetScore::base(const model::Minion& unit) const {
     if (unit.getFaction() == model::FACTION_NEUTRAL) {
-        return 1;
+        return 0.1;
     } else {
         return base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
                               context.game().getMinionEliminationScoreFactor()) + 1;
