@@ -56,11 +56,12 @@ double GetAttackRange::operator ()(const model::Wizard& unit, model::ActionType 
         case model::ACTION_STAFF:
             return context.game().getStaffRange();
         case model::ACTION_MAGIC_MISSILE:
-            return unit.getCastRange() + context.game().getMagicMissileRadius() * 0.5;
+            return unit.getCastRange() + context.game().getMagicMissileRadius();
         case model::ACTION_FROST_BOLT:
-            return unit.getCastRange() + context.game().getFrostBoltRadius() * 0.5;
+            return unit.getCastRange() + context.game().getFrostBoltRadius();
         case model::ACTION_FIREBALL:
-            return unit.getCastRange() + context.game().getFireballRadius() * 0.5;
+            return unit.getCastRange() + std::max(context.game().getFireballRadius(),
+                                                  context.game().getFireballExplosionMaxDamageRange());
         default:
             return 0;
     }

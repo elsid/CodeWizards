@@ -458,7 +458,9 @@ private:
         const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
         const auto distance = std::max(current_distance, future_distance);
         const auto range = get_attack_range(context.self(), distance);
-        return distance <= range ? 0.01 * line_factor(distance, 0, range) : 0.01 + line_factor(distance, range, 2 * range);
+        const auto damage = get_unit_current_damage(unit, position);
+        return (distance <= range ? 0.01 * line_factor(distance, 0, range) : 0.01 + line_factor(distance, range, 2 * range))
+                * line_factor(context.self().getLife(), damage, context.self().getMaxLife());
     }
 
     double get_target_penalty(const model::Bonus& unit, const Point& position) const {

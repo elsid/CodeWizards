@@ -100,15 +100,15 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
 double GetUnitAttackAbility::operator ()(const model::Building& unit) const {
     const auto last_seen = get_units<model::Building>(context.cache()).at(unit.getId()).last_seen();
     const auto remaining = std::max(unit.getRemainingActionCooldownTicks() - (context.world().getTickIndex() - last_seen), 0);
-    return 1.0 - 0.5 * double(remaining) / double(unit.getCooldownTicks());
+    return 1.0 - double(remaining) / double(unit.getCooldownTicks());
 }
 
 double GetUnitAttackAbility::operator ()(const model::Minion& unit) const {
-    return 1.0 - 0.5 * double(unit.getRemainingActionCooldownTicks()) / double(unit.getCooldownTicks());
+    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(unit.getCooldownTicks());
 }
 
 double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
-    return 1.0 - 0.5 * double(unit.getRemainingActionCooldownTicks()) / double(context.game().getWizardActionCooldownTicks());
+    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(context.game().getWizardActionCooldownTicks());
 }
 
 }
