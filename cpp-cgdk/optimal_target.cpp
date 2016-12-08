@@ -2,7 +2,6 @@
 #include "optimal_position.hpp"
 
 #include <algorithm>
-#include <cassert>
 
 #ifdef STRATEGY_DEBUG
 
