@@ -96,7 +96,6 @@ void biglag(long n, long npt, double *xopt, double *xpt, double *bmat,
     nptm = npt - n - 1;
     /* Set the first NPT components of HCOBLL to the leading elements of
      * the KNEW-th column of H. */
-    iterc = 0;
     i__1 = npt;
     for (k = 1; k <= i__1; ++k) hcol[k] = 0;
     i__1 = nptm;
@@ -1023,8 +1022,8 @@ double newuob(long n, long npt, double *x, double rhobeg, double rhoend,
        least 10*NDIM = 10*(NPT+N). Set some constants. */
 
     long xpt_dim1, xpt_offset, bmat_dim1, bmat_offset, zmat_dim1, zmat_offset,
-        i__1, i__2, i__3, i__, j, k, ih, nf, nh, ip, jp, np, nfm, idz, ipt, jpt,
-        nfmm, knew, kopt, nptm, ksave, nfsav, itemp, ktemp, itest, nftest;
+        i__1, i__2, i__3, i__, j, k, ih, nf, nh, ip, jp, np, nfm, idz = 0, ipt, jpt,
+        nfmm, knew = 0, kopt = 0, nptm, ksave, nfsav, itemp, ktemp, itest, nftest;
     double d__1, d__2, d__3, f, dx, dsq, rho, sum, fbeg, diff, beta, gisq,
         temp, suma, sumb, fopt, bsum, gqsq, xipt, xjpt, sumz, diffa, diffb,
         diffc, hdiag, alpha, delta = 0.0, recip, reciq, fsave, dnorm, ratio, dstep,
