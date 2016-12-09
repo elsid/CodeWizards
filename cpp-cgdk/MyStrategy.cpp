@@ -3,7 +3,7 @@
 #include "optimal_target.hpp"
 #include "cache.hpp"
 
-#ifdef STRATEGY_DEBUG
+#ifdef ELSID_STRATEGY_DEBUG
 
 #include "debug_strategy.hpp"
 
@@ -15,38 +15,52 @@
 
 #endif
 
-#ifdef STRATEGY_LOCAL
+#ifdef ELSID_STRATEGY_LOCAL
 
 #include <iostream>
 
 #endif
 
 void MyStrategy::move(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move) {
-#ifndef STRATEGY_DEBUG
-    try {
+    strategy::Profiler profiler;
+    add_fake_bonuses(world);
+    add_fake_enemy_buildings(world, self.getFaction() == model::FACTION_ACADEMY ? model::FACTION_RENEGADES : model::FACTION_ACADEMY);
+    update_cache(self, world);
+    strategy::Context context(self, world, game, move, cache_, history_cache_, profiler, strategy::Duration::max());
+#ifdef ELSID_STRATEGY_DEBUG
+    debug(context);
+#else
+    release(context);
 #endif
-        strategy::Profiler profiler;
-        add_fake_bonuses(world);
-        add_fake_enemy_buildings(world, self.getFaction() == model::FACTION_ACADEMY ? model::FACTION_RENEGADES : model::FACTION_ACADEMY);
-        update_cache(self, world);
-        strategy::Context context(self, world, game, move, cache_, history_cache_, profiler, strategy::Duration::max());
+}
+
+#ifdef ELSID_STRATEGY_DEBUG
+void MyStrategy::debug(strategy::Context& context) {
+    if (!strategy_) {
+        auto base = std::make_unique<strategy::BaseStrategy>(context);
+        strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(base));
+    }
+    strategy_->apply(context);
+}
+#endif
+
+void MyStrategy::release(strategy::Context& context) {
+    try {
         if (!strategy_) {
             auto base = std::make_unique<strategy::BaseStrategy>(context);
-#ifdef STRATEGY_DEBUG
-            strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(base));
-#else
             strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(base));
-#endif
         }
         strategy_->apply(context);
-#ifndef STRATEGY_DEBUG
+    } catch (const strategy::Timeout& exception) {
+#ifdef ELSID_STRATEGY_LOCAL
+        std::cerr << "[" << context.world().getTickIndex() << "] timeout: " << exception.what() << '\n';
+#endif
     } catch (const std::exception& exception) {
-#ifdef STRATEGY_LOCAL
-        std::cerr << "[" << world.getTickIndex() << "] " << exception.what() << '\n';
+#ifdef ELSID_STRATEGY_LOCAL
+        std::cerr << "[" << context.world().getTickIndex() << "] exception: " << exception.what() << '\n';
 #endif
         strategy_.reset();
     }
-#endif
 }
 
 namespace strategy {

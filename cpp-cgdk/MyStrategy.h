@@ -15,6 +15,11 @@ private:
     strategy::FullCache history_cache_;
     std::unique_ptr<strategy::Strategy> strategy_;
 
+#ifdef ELSID_STRATEGY_DEBUG
+    void debug(strategy::Context& context);
+#endif
+
+    void release(strategy::Context& context);
     void update_cache(const model::Wizard& self, const model::World& world);
     void add_fake_bonuses(const model::World& world);
     void add_fake_enemy_buildings(const model::World& world, model::Faction enemy_faction);

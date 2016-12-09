@@ -25,12 +25,12 @@ Duration TimeLimitedStrategy::get_iteration_time_limit(const Context& context) c
     const auto tick = context.world().getTickIndex();
     const auto ticks_count = context.world().getTickCount();
     const auto is_master = context.self().isMaster();
-    const auto max_time_for_current_iteration = Ms(Ms(get_full_time_limit(tick, is_master) - sum_time_).count() * 0.9);
+    const auto max_time_for_current_iteration = Ms(Ms(get_full_time_limit(tick, is_master) - sum_time_).count() * 0.7);
     const auto max_mean_time_for_future_iterations = (get_full_time_limit(ticks_count, is_master) - sum_time_)
             / double(ticks_count - tick);
     const auto recommended = Ms((Ms(max_time_for_current_iteration).count() * tick
                                  + Ms(max_mean_time_for_future_iterations).count() * (ticks_count - tick)) / ticks_count);
-    return Ms(std::min(Ms(max_time_for_current_iteration).count(), Ms(recommended).count()) * 0.9);
+    return Ms(std::min(std::min(Ms(max_time_for_current_iteration).count(), Ms(recommended).count()) * 0.7, Ms(1000).count()));
 }
 
 Duration TimeLimitedStrategy::get_full_time_limit(int tick, bool is_master) const {
