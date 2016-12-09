@@ -41,12 +41,15 @@ void MoveMode::update_path(const Context& context) {
         return;
     }
     const auto destination = get_optimal_destination(context, graph_, target_lane_);
-    if (destination_.first && destination_.second == destination) {
+    if (destination_.first && destination_.second == destination && path_node_ != path_.end()) {
         return;
     }
     destination_ = {true, destination};
     const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(context.self())).first;
     path_ = graph_.get_shortest_path(nearest_node, destination).nodes;
+    if (path_.empty()) {
+        path_.push_back(nearest_node);
+    }
     path_node_ = path_.begin();
 }
 
