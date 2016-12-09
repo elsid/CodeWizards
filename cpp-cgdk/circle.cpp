@@ -3,7 +3,7 @@
 #include <cmath>
 #include <tuple>
 
-#ifdef STRATEGY_DEBUG
+#ifdef ELSID_STRATEGY_DEBUG
 
 #include "debug/output.hpp"
 

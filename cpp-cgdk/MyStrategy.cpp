@@ -3,7 +3,7 @@
 #include "optimal_target.hpp"
 #include "cache.hpp"
 
-#ifdef STRATEGY_DEBUG
+#ifdef ELSID_STRATEGY_DEBUG
 
 #include "debug_strategy.hpp"
 
@@ -15,14 +15,14 @@
 
 #endif
 
-#ifdef STRATEGY_LOCAL
+#ifdef ELSID_STRATEGY_LOCAL
 
 #include <iostream>
 
 #endif
 
 void MyStrategy::move(const model::Wizard& self, const model::World& world, const model::Game& game, model::Move& move) {
-#ifndef STRATEGY_DEBUG
+#ifndef ELSID_STRATEGY_DEBUG
     try {
 #endif
         strategy::Profiler profiler;
@@ -32,16 +32,16 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
         strategy::Context context(self, world, game, move, cache_, history_cache_, profiler, strategy::Duration::max());
         if (!strategy_) {
             auto base = std::make_unique<strategy::BaseStrategy>(context);
-#ifdef STRATEGY_DEBUG
+#ifdef ELSID_STRATEGY_DEBUG
             strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(base));
 #else
             strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(base));
 #endif
         }
         strategy_->apply(context);
-#ifndef STRATEGY_DEBUG
+#ifndef ELSID_STRATEGY_DEBUG
     } catch (const std::exception& exception) {
-#ifdef STRATEGY_LOCAL
+#ifdef ELSID_STRATEGY_LOCAL
         std::cerr << "[" << world.getTickIndex() << "] " << exception.what() << '\n';
 #endif
     }
