@@ -282,6 +282,8 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
         closed.insert(step_state.position());
 
         for (std::size_t i = 0; i < shifts.size() + 1; ++i) {
+            context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+
             const auto shift = i == 0 ? target_int - step_state.position() : shifts[i - 1];
             const auto position = step_state.position() + shift;
             if (i != 0 && closed.count(position)) {
