@@ -22,7 +22,7 @@ std::pair<double, Point> minimize(const F& function, const Point& initial, long 
     const int number_of_interpolation_conditions = variables_count + 2;
 //    const long number_of_interpolation_conditions = (variables_count + 1) * (variables_count + 2) / 2;
     double variables_values[] = {initial.x(), initial.y()};
-    const double initial_trust_region_radius = 1e-1;
+    const double initial_trust_region_radius = 1;
     const double final_trust_region_radius = 1e3;
     const std::size_t working_space_size = NEWUOA_WORKING_SPACE_SIZE(variables_count, number_of_interpolation_conditions);
     double working_space[working_space_size];
