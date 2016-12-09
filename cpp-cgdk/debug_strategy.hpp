@@ -5,7 +5,7 @@
 
 #include "russian-ai-cup-visual/Debug.h"
 
-#ifdef ELSID_STRATEGY_DEBUG
+#ifdef STRATEGY_DEBUG
 
 #include "debug/output.hpp"
 

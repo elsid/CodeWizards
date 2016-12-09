@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#ifdef ELSID_STRATEGY_DEBUG
+#ifdef STRATEGY_DEBUG
 
 #include "debug/output.hpp"
 

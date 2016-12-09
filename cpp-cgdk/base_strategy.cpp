@@ -2,7 +2,7 @@
 #include "optimal_destination.hpp"
 #include "optimal_position.hpp"
 
-#ifdef ELSID_STRATEGY_DEBUG
+#ifdef STRATEGY_DEBUG
 
 #include "debug/output.hpp"
 

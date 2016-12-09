@@ -7,7 +7,7 @@
 #include <queue>
 #include <unordered_map>
 
-#ifdef ELSID_STRATEGY_DEBUG
+#ifdef STRATEGY_DEBUG
 
 #include "debug/output.hpp"
 

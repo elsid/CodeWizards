@@ -3,7 +3,7 @@
 #include "optimal_position.hpp"
 #include "optimal_path.hpp"
 
-#ifdef ELSID_STRATEGY_DEBUG
+#ifdef STRATEGY_DEBUG
 
 #include "debug/output.hpp"
 
