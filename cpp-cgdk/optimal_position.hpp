@@ -202,10 +202,6 @@ public:
     double operator ()(const Point& position) const {
         context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 
-        if (is_out_of_borders(position)) {
-            return get_borders_penalty(position);
-        }
-
         const auto units_danger_penalty = get_units_danger_penalty(position) * UNITS_DANGER_PENALTY_WEIGHT;
         const auto units_collision_penalty = get_units_collision_penalty(position) * UNITS_COLLISION_PENALTY_WEIGHT;
         const auto bonuses_penalty = get_bonuses_penalty(position) * BONUSES_PENALTY_WEIGHT;
@@ -227,13 +223,6 @@ public:
         const auto elimination_score = get_elimination_score(position) * ELIMINATION_SCORE_WEIGHT;
 
         return max_penalty - elimination_score;
-    }
-
-    bool is_out_of_borders(const Point& position) const {
-        return context.self().getRadius() >= position.x()
-            || position.x() >= context.game().getMapSize() - context.self().getRadius()
-            || context.self().getRadius() >= position.y()
-            || position.y() >= context.game().getMapSize() - context.self().getRadius();
     }
 
     double get_borders_penalty(const Point& position) const {
@@ -501,14 +490,14 @@ public:
     Point operator ()(const Context& context) const {
         const GetPositionPenalty<TargetUnit> get_position_penalty(context, target_, max_distance_);
         if (points_) {
-            return minimize(get_position(context.self()),
+            return minimize(context,
                 [&] (const Point& point) {
                     const auto result = get_position_penalty(point);
                     points_->emplace_back(point, result);
                     return result;
                 });
         } else {
-            return minimize(get_position(context.self()), get_position_penalty);
+            return minimize(context, get_position_penalty);
         }
     }
 
@@ -539,8 +528,12 @@ private:
     std::vector<std::pair<Point, double>>* points_ = nullptr;
 
     template <class Function>
-    Point minimize(const Point& initial_point, const Function& function) const {
-        return Minimize().max_function_calls_count(max_function_calls_)(initial_point, function).second;
+    Point minimize(const Context& context, const Function& function) const {
+        return Minimize()
+                .max_function_calls_count(max_function_calls_)
+                .lower_bound(Point(0, 0))
+                .upper_bound(Point(context.world().getWidth(), context.world().getHeight()))
+                (get_position(context.self()), function).second;
     }
 };
 

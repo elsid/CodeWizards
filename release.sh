@@ -52,10 +52,23 @@ cp retreat_mode.hpp ${DIR}
 cp time_limited_strategy.hpp ${DIR}
 cp world_graph.hpp ${DIR}
 
-cd ../newuoa-cpp/
+cd ../bobyqa-cpp/
 
-sed 's/<newuoa.h>/"newuoa.h"/' src/newuoa.cpp > ${DIR}/newuoa.cpp
-cp include/newuoa.h ${DIR}
+sed 's/<bobyqa.h>/"bobyqa.h"/' src/bobyqa.cpp > ${DIR}/bobyqa.cpp
+
+cp include/bobyqa.h ${DIR}
+
+cp src/altmov.cpp ${DIR}
+cp src/altmov.hpp ${DIR}
+cp src/bobyqb.hpp ${DIR}
+cp src/impl.hpp ${DIR}
+cp src/prelim.hpp ${DIR}
+cp src/rescue.hpp ${DIR}
+cp src/trsbox.cpp ${DIR}
+cp src/trsbox.hpp ${DIR}
+cp src/update.cpp ${DIR}
+cp src/update.hpp ${DIR}
+cp src/utils.hpp ${DIR}
 
 cd ${DIR}
 

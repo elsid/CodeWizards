@@ -45,7 +45,11 @@ set(SOURCES
 
     russian-ai-cup-visual/Debug.cpp
 
-    newuoa.cpp
+    altmov.cpp
+    bobyqa.cpp
+    trsbox.cpp
+    update.cpp
+
     base_strategy.cpp
     debug_strategy.cpp
     time_limited_strategy.cpp
