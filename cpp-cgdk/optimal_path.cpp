@@ -6,6 +6,7 @@
 #include <map>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
 
 #ifdef ELSID_STRATEGY_DEBUG
 
@@ -106,8 +107,12 @@ bool has_intersection_with_barriers(const Circle& barrier, const Point& final_po
 Path reconstruct_path(PointInt position, const std::map<PointInt, PointInt>& came_from, const Point& shift,
                       const PointInt& target, const Point& target_shift) {
     Path result;
+    std::set<PointInt> visited;
     result.reserve(came_from.size());
     while (true) {
+        if (!visited.insert(position).second) {
+            break;
+        }
         result.push_back(position.to_double() + (position == target ? target_shift : shift));
         const auto prev = came_from.find(position);
         if (prev == came_from.end()) {
