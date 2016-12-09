@@ -44,7 +44,6 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
 #ifdef STRATEGY_LOCAL
         std::cerr << "[" << world.getTickIndex() << "] " << exception.what() << '\n';
 #endif
-        strategy_.reset();
     }
 #endif
 }
