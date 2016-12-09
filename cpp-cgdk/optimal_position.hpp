@@ -187,7 +187,7 @@ public:
             return max_borders_penalty;
         }
 
-        const std::vector<double> penalties = {
+        const auto penalties = {
             get_units_danger_penalty(position) * UNITS_DANGER_PENALTY_WEIGHT,
             get_units_collision_penalty(position),
             get_bonuses_penalty(position),
