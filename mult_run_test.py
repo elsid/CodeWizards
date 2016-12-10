@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from time import time
+from time import time, sleep
 from shutil import copy
 from os import mkdir, chmod
 from os.path import join, exists
@@ -31,12 +31,15 @@ for run in range(int(argv[1])):
     config_path = join(run_path, 'config.properties')
     result_path = join(run_path, 'result.txt')
     log_path = join(run_path, 'game.log')
+    port = 32001 + (test_id + run) % 1000
     with open('local-runner.mult_run_test.properties') as src:
         with open(config_path, 'w') as dst:
-            dst.write(src.read().format(run=run, bin=command, port=32001 + test_id % 1000,
-                                        result=result_path, log=log_path))
+            dst.write(src.read().format(run=run, port=port, result=result_path, log=log_path))
     start = time()
     with AutoKillProcess(runner + [config_path]) as p:
+        sleep(3)
+        with AutoKillProcess(['bash', command, '127.0.0.1', str(port), '0000000000000000']) as strategy:
+            strategy.wait()
         p.wait()
     finish = time()
     with open(result_path) as f:
