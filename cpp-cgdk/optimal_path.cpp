@@ -250,11 +250,16 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
     PointInt closest_position = initial_position_int;
     double min_distance = std::numeric_limits<double>::max();
     std::size_t iterations = 0;
+    std::size_t current_max_iterations = max_iterations;
+    const auto time_limit = context.time_limit();
+    Duration max_duration(0);
 
     queue.push(StepState(0, target.distance(initial_position), 0, initial_position_int));
 
     while (!queue.empty()) {
         context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+
+        const auto iteration_start = Clock::now();
 
         const StepState step_state = queue.top();
         queue.pop();
@@ -281,7 +286,7 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
             break;
         }
 
-        if (++iterations >= max_iterations) {
+        if (++iterations >= current_max_iterations) {
             break;
         }
 
@@ -321,6 +326,14 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
             }
             came_from[position] = step_state.position();
             penalties[position] = penalty;
+        }
+
+        if (max_iterations != std::numeric_limits<std::size_t>::max()) {
+            const auto iteration_finish = Clock::now();
+            max_duration = std::max(max_duration, Duration(iteration_finish - iteration_start));
+            if (iterations > 3) {
+                current_max_iterations = std::min(current_max_iterations, std::size_t(std::floor(time_limit.count() / Duration(max_duration).count() * 0.5)));
+            }
         }
     }
 

@@ -173,6 +173,10 @@ public:
         time_limit_ = value;
     }
 
+    Duration time_left() const {
+        return time_limit() - profiler().duration();
+    }
+
     void check_timeout(const char* function, const char* file, int line) const {
         using Ms = std::chrono::duration<double, std::milli>;
         if (profiler().duration() > time_limit()) {
