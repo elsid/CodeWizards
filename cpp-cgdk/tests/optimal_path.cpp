@@ -169,7 +169,7 @@ TEST(get_optimal_path, with_static_barrier) {
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto result = get_optimal_path(context, target, step_size);
-    ASSERT_EQ(result.size(), 29);
+    ASSERT_EQ(result.size(), 29u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -247,7 +247,7 @@ TEST(get_optimal_path, with_dynamic_barrier_moving_in_same_direction) {
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto result = get_optimal_path(context, target, step_size);
-    ASSERT_EQ(result.size(), 47);
+    ASSERT_EQ(result.size(), 47u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -325,7 +325,7 @@ TEST(get_optimal_path, with_dynamic_barrier_moving_in_opposite_direction) {
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto result = get_optimal_path(context, target, step_size);
-    ASSERT_EQ(result.size(), 7);
+    ASSERT_EQ(result.size(), 7u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -403,7 +403,7 @@ TEST(get_optimal_path, with_dynamic_barrier_moving_in_crossing_direction) {
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto result = get_optimal_path(context, target, step_size);
-    ASSERT_EQ(result.size(), 13);
+    ASSERT_EQ(result.size(), 13u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -468,7 +468,7 @@ TEST(get_optimal_path, with_static_occupier) {
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto result = get_optimal_path(context, target, step_size);
-    ASSERT_EQ(result.size(), 61);
+    ASSERT_EQ(result.size(), 61u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target - Point(20, 35));
 }

@@ -105,7 +105,7 @@ TEST(get_optimal_movement, only_for_me) {
     ASSERT_FALSE(states.empty());
     EXPECT_EQ(states.front(), MovementState(0, get_position(SELF), SELF.getAngle()));
     EXPECT_EQ(states.back(), MovementState(71, target, 0.78539816339744828));
-    ASSERT_EQ(movements.size(), 71);
+    ASSERT_EQ(movements.size(), 71u);
     EXPECT_EQ(movements.front(), Movement(4, 0, 0));
     EXPECT_EQ(movements.back(), Movement(2.8427124746167487, 0, 0));
 }
@@ -164,10 +164,10 @@ TEST(get_optimal_movement, only_for_me_not_direct) {
     MovementsStates states;
     Movements movements;
     std::tie(states, movements) = get_optimal_movement(context, path, look_target);
-    ASSERT_EQ(states.size(), 94);
+    ASSERT_EQ(states.size(), 94u);
     EXPECT_EQ(states.front(), MovementState(0, get_position(SELF), SELF.getAngle()));
     EXPECT_EQ(states.back(), MovementState(93, final_target, -0.80858386837138296));
-    ASSERT_EQ(movements.size(), 93);
+    ASSERT_EQ(movements.size(), 93u);
     EXPECT_EQ(movements.front(), Movement(3.7947331922020551, 0.94868329805051366, 0.10471999999999999));
     EXPECT_EQ(movements.back(), Movement(3.329085623670311, 4.435233012416854e-15, 1.7763568394002505e-15));
 }
@@ -223,10 +223,10 @@ TEST(get_optimal_movement, only_for_me_with_hastened) {
     MovementsStates states;
     Movements movements;
     std::tie(states, movements) = get_optimal_movement(context, path, look_target);
-    ASSERT_EQ(states.size(), 56);
+    ASSERT_EQ(states.size(), 56u);
     EXPECT_EQ(states.front(), MovementState(0, get_position(self), self.getAngle()));
     EXPECT_EQ(states.back(), MovementState(55, target, 0.78539816339744828));
-    ASSERT_EQ(movements.size(), 55);
+    ASSERT_EQ(movements.size(), 55u);
     EXPECT_EQ(movements.front(), Movement(5.2000000000000002, 0, 0));
     EXPECT_EQ(movements.back(), Movement(2.042712474626196, 0, 0));
 }
@@ -296,10 +296,10 @@ TEST(get_optimal_movement, with_static_barriers) {
     MovementsStates states;
     Movements movements;
     std::tie(states, movements) = get_optimal_movement(context, path, look_target);
-    ASSERT_EQ(states.size(), 80);
+    ASSERT_EQ(states.size(), 80u);
     EXPECT_EQ(states.front(), MovementState(0, get_position(self), self.getAngle()));
     EXPECT_EQ(states.back(), MovementState(79, target, 0.98120377803346293));
-    ASSERT_EQ(movements.size(), 79);
+    ASSERT_EQ(movements.size(), 79u);
     EXPECT_EQ(movements.front(), Movement(2.8284271247461903, 2.1213203435596424, 0.10471999999999999));
     EXPECT_EQ(movements.back(), Movement(3.5373936406645727, -2.3858322392197627e-14, -8.992806499463768e-15));
 }
