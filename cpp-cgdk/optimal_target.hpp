@@ -33,7 +33,8 @@ struct GetMaxDamage {
     double action_factor(const model::Wizard& unit, model::ActionType attack_action) const;
     double action_damage(model::ActionType attack_action, const model::Wizard& unit) const;
     double action_damage(model::ActionType attack_action) const;
-    model::ActionType next_attack_action(const model::Wizard& unit, double distance) const;
+    Tick action_cooldown(model::ActionType attack_action, const model::Wizard& unit) const;
+    std::pair<model::ActionType, Tick> next_attack_action(const model::Wizard& unit, double distance) const;
 };
 
 struct IsInMyRange {

@@ -47,7 +47,7 @@ double GetAttackRange::operator ()(const model::Minion& unit, double) const {
 
 double GetAttackRange::operator ()(const model::Wizard& unit, double distance) const {
     const GetMaxDamage get_max_damage {context};
-    return (*this)(unit, get_max_damage.next_attack_action(unit, distance));
+    return (*this)(unit, get_max_damage.next_attack_action(unit, distance).first);
 }
 
 double GetAttackRange::operator ()(const model::Wizard& unit, model::ActionType action) const {
@@ -83,7 +83,7 @@ double GetMaxDamage::operator ()(const model::Minion& unit, double) const {
 }
 
 double GetMaxDamage::operator ()(const model::Wizard& unit, double distance) const {
-    const auto attack_action = next_attack_action(unit, distance);
+    const auto attack_action = next_attack_action(unit, distance).first;
     return action_damage(attack_action, unit);
 }
 
@@ -123,7 +123,7 @@ double GetMaxDamage::action_damage(model::ActionType attack_action) const {
     }
 }
 
-model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit, double distance) const {
+std::pair<model::ActionType, Tick> GetMaxDamage::next_attack_action(const model::Wizard& unit, double distance) const {
     const GetAttackRange get_attack_range {context};
     model::ActionType next_attack_action = model::ACTION_NONE;
     Tick min_ticks = std::numeric_limits<int>::max();
@@ -141,7 +141,7 @@ model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit, do
         }
     }
     if (next_attack_action != model::ACTION_NONE) {
-        return next_attack_action;
+        return {next_attack_action, min_ticks};
     }
     double max_range = 0;
     for (const auto action : ATTACK_ACTIONS) {
@@ -154,7 +154,23 @@ model::ActionType GetMaxDamage::next_attack_action(const model::Wizard& unit, do
             }
         }
     }
-    return next_attack_action;
+    return {next_attack_action, std::max(unit.getRemainingCooldownTicksByAction()[next_attack_action],
+                                         unit.getRemainingActionCooldownTicks())};
+}
+
+Tick GetMaxDamage::action_cooldown(model::ActionType attack_action, const model::Wizard& unit) const {
+    switch (attack_action) {
+        case model::ACTION_STAFF:
+            return context.game().getStaffCooldownTicks();
+        case model::ACTION_MAGIC_MISSILE:
+            return has_skill(unit, model::SKILL_ADVANCED_MAGIC_MISSILE) ? 0 : context.game().getMagicMissileCooldownTicks();
+        case model::ACTION_FROST_BOLT:
+            return context.game().getFrostBoltCooldownTicks();
+        case model::ACTION_FIREBALL:
+            return context.game().getFireballCooldownTicks();
+        default:
+            return 0;
+    }
 }
 
 double GetDefenceFactor::operator ()(const model::LivingUnit& unit) const {

@@ -454,13 +454,20 @@ private:
     template <class Unit>
     double get_target_penalty(const Unit& unit, const Point& position) const {
         const GetAttackRange get_attack_range {context};
+        const GetMaxDamage get_max_damage {context};
         const auto current_distance = position.distance(get_position(unit));
         const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
         const auto distance = std::max(current_distance, future_distance);
         const auto range = get_attack_range(context.self(), distance);
+        const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
+        const auto ticks_factor = 1 - line_factor(ticks_to_action, 0, context.game().getWizardActionCooldownTicks());
         const auto damage = get_unit_current_damage(unit, position);
-        return (distance <= range ? 0.01 * line_factor(distance, 0, range) : 0.01 + line_factor(distance, range, 2 * range))
-                * line_factor(context.self().getLife(), damage, context.self().getMaxLife());
+        if (distance <= range) {
+            return 0.01 * line_factor(distance, 0, range) * ticks_factor;
+        } else {
+            return (0.01 + line_factor(distance, range, 2 * range)
+                    * line_factor(context.self().getLife(), damage, context.self().getMaxLife())) * ticks_factor;
+        }
     }
 
     double get_target_penalty(const model::Bonus& unit, const Point& position) const {
