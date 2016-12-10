@@ -15,6 +15,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/googletest/googletest/include)
+include_directories(${CMAKE_SOURCE_DIR}/googletest/googlemock/include)
 
 set(SOURCES
     csimplesocket/ActiveSocket.cpp
