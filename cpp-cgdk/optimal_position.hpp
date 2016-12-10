@@ -127,10 +127,9 @@ struct GetUnitDangerPenalty {
         const auto min_distance = std::min(position.distance(get_position(unit)),
                                            position.distance(get_position(unit) + get_speed(unit)));
         const auto damage = sum_damage_to_me;
-        const auto distance_factor = (context.game().getWizardBaseLife() / context.game().getGuardianTowerDamage())
-                * damage / context.self().getLife();
+        const auto distance_factor = 2 * damage / context.self().getLife();
         const auto safe_distance = get_attack_range(context.self(), max_distance)
-                + (1.25 + distance_factor) * context.self().getRadius();
+                + (1 + distance_factor) * context.self().getRadius();
         return get_distance_penalty(min_distance, safe_distance);
     }
 };
