@@ -20,6 +20,14 @@ const std::vector<model::SkillType> SKILLS_PRIORITY = {
     model::SKILL_HASTE,
 };
 
+const std::unordered_map<model::SkillType, std::vector<model::SkillType>> SKILLS_OPPOSITE({
+    {model::SKILL_FIREBALL, {model::SKILL_FROST_BOLT, model::SKILL_HASTE}},
+    {model::SKILL_ADVANCED_MAGIC_MISSILE, {model::SKILL_FIREBALL, model::SKILL_SHIELD}},
+    {model::SKILL_FROST_BOLT, {model::SKILL_ADVANCED_MAGIC_MISSILE, model::SKILL_HASTE}},
+    {model::SKILL_SHIELD, {model::SKILL_FIREBALL, model::SKILL_FROST_BOLT}},
+    {model::SKILL_HASTE, {model::SKILL_HASTE, model::SKILL_FROST_BOLT}},
+});
+
 BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
           battle_mode_(std::make_shared<BattleMode>()),
@@ -56,6 +64,27 @@ void BaseStrategy::learn_skills(Context& context) {
         if (skill != model::_SKILL_UNKNOWN_) {
             context.move().setSkillToLearn(skill);
             return;
+        }
+    }
+    const auto& wizards = get_units<model::Wizard>(context.history_cache());
+    auto enemy_wizards = filter_units<model::Wizard>(wizards,
+        [&] (const auto& unit) { return unit.getFaction() != context.self().getFaction(); });
+    std::sort(enemy_wizards.begin(), enemy_wizards.end(),
+        [] (auto lhs, auto rhs) { return lhs->getXp() > rhs->getXp(); });
+    for (const auto& unit : enemy_wizards) {
+        if (std::abs(unit->getXp() - context.self().getXp()) > 100
+                && get_position(context.self()).distance(get_position(*unit)) < 1.3 * context.self().getVisionRange()) {
+            for (const auto skill_opposite : SKILLS_OPPOSITE) {
+                if (has_skill(*unit, skill_opposite.first)) {
+                    for (const auto top : skill_opposite.second) {
+                        const auto skill = next_to_learn(context.self(), top);
+                        if (skill != model::_SKILL_UNKNOWN_) {
+                            context.move().setSkillToLearn(skill);
+                            return;
+                        }
+                    }
+                }
+            }
         }
     }
     for (const auto top : SKILLS_PRIORITY) {
