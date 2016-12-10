@@ -36,13 +36,13 @@ void BaseStrategy::apply(Context &context) {
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     apply_mode(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
-    update_movements(context);
-    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     apply_move(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     apply_action(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     learn_skills(context);
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+    update_movements(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 }
 
@@ -68,7 +68,7 @@ void BaseStrategy::learn_skills(Context& context) {
 }
 
 void BaseStrategy::select_mode(const Context& context) {
-    const IsInMyRange is_in_vision_range {context, 0.95 * context.self().getVisionRange()};
+    const IsInMyRange is_in_vision_range {context, 1.3 * context.self().getVisionRange()};
 
     const auto bonuses = get_units<model::Bonus>(context.world());
     const auto has_near_bonuses = bonuses.end() != std::find_if(bonuses.begin(), bonuses.end(), is_in_vision_range);
