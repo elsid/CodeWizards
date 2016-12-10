@@ -11,4 +11,5 @@ class AutoKillProcess:
         return self.__process
 
     def __exit__(self, *_):
-        self.__process.terminate()
+        if self.__process.returncode is None:
+            self.__process.terminate()
