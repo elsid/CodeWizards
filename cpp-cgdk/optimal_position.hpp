@@ -126,10 +126,10 @@ struct GetUnitDangerPenalty {
                                            position.distance(get_position(unit) + get_speed(unit)));
         const auto min_distance = std::min(position.distance(get_position(unit)),
                                            position.distance(get_position(unit) + get_speed(unit)));
-        const auto damage = sum_damage_to_me;
-        const auto distance_factor = 2 * damage / context.self().getLife();
-        const auto safe_distance = get_attack_range(unit, max_distance)
-                + (1 + distance_factor) * context.self().getRadius();
+        const auto distance_factor = double(context.self().getMaxLife()) / double(context.game().getGuardianTowerDamage())
+                * sum_damage_to_me / context.self().getLife();
+        const auto safe_distance = 1 + context.self().getRadius() + std::max(context.game().getStaffRange(),
+                distance_factor * get_attack_range(unit, max_distance));
         return get_distance_penalty(min_distance, safe_distance);
     }
 };
@@ -194,6 +194,7 @@ public:
             get_friendly_fire_penalty(position),
             get_target_penalty(position),
             get_borders_penalty(position),
+            get_distance_penalty(position),
         };
 
         const auto max_penalty = *std::max_element(penalties.begin(), penalties.end());
@@ -279,6 +280,10 @@ public:
         return target ? get_target_penalty(*target, position) : 0;
     }
 
+    double get_distance_penalty(const Point& position) const {
+        return 0.1 * line_factor(get_position(context.self()).distance(position), 0, max_distance);
+    }
+
 private:
     const Context& context;
     const Target* const target;
@@ -299,7 +304,7 @@ private:
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
         const auto distance = position.distance(get_position(unit));
-        return 1 - get_distance_penalty(distance, 2 * context.self().getVisionRange());
+        return line_factor(distance, 0, max_distance);
     }
 
     double get_projectile_penalty(const CachedUnit<model::Projectile>& cached_unit, const Point& position) const {
@@ -316,7 +321,7 @@ private:
         if (distance_to <= lethal_area + unit.getRadius()) {
             return 0.9 + 0.1 * line_factor(distance_to, lethal_area + unit.getRadius(), 0);
         } else {
-            return 0.9 * line_factor(distance_to, 2 * (lethal_area + unit.getRadius()), lethal_area + unit.getRadius());
+            return 0.9 * line_factor(distance_to, 4 * (lethal_area + unit.getRadius()), lethal_area + unit.getRadius());
         }
     }
 
@@ -422,7 +427,7 @@ private:
     }
 
     double get_borders_factor(double distance) const {
-        return get_distance_penalty(distance, 2 * context.self().getRadius());
+        return line_factor(distance, 2 * context.self().getRadius(), 0);
     }
 
     template <class Unit>
@@ -460,7 +465,7 @@ private:
         const auto distance = std::max(current_distance, future_distance);
         const auto range = get_attack_range(context.self(), distance);
         const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
-        const auto ticks_factor = 1 - line_factor(ticks_to_action, 0, context.game().getWizardActionCooldownTicks());
+        const auto ticks_factor = line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
         const auto damage = get_unit_current_damage(unit, position);
         if (distance <= range) {
             return 0.01 * line_factor(distance, 0, range) * ticks_factor;
