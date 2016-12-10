@@ -128,7 +128,7 @@ struct GetUnitDangerPenalty {
                                            position.distance(get_position(unit) + get_speed(unit)));
         const auto damage = sum_damage_to_me;
         const auto distance_factor = 2 * damage / context.self().getLife();
-        const auto safe_distance = get_attack_range(context.self(), max_distance)
+        const auto safe_distance = get_attack_range(unit, max_distance)
                 + (1 + distance_factor) * context.self().getRadius();
         return get_distance_penalty(min_distance, safe_distance);
     }
