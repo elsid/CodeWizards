@@ -245,6 +245,7 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
     std::map<PointInt, PointInt> came_from;
     std::map<PointInt, double> penalties;
     std::priority_queue<StepState, std::deque<StepState>> queue;
+    bool found_path = false;
     PointInt final_position;
     PointInt closest_position = initial_position_int;
     double min_distance = std::numeric_limits<double>::max();
@@ -276,6 +277,7 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
                 }
             }
             final_position = step_state.position();
+            found_path = true;
             break;
         }
 
@@ -284,7 +286,6 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
         }
 
         if (step_state.tick() > max_ticks) {
-            final_position = closest_position;
             break;
         }
 
@@ -321,6 +322,10 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
             came_from[position] = step_state.position();
             penalties[position] = penalty;
         }
+    }
+
+    if (!found_path) {
+        final_position = closest_position;
     }
 
     return reconstruct_path(final_position, came_from, global_shift, target_int, target - target.to_int().to_double());
