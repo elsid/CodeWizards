@@ -45,7 +45,7 @@
 #include "newuoa.h"
 
 #ifdef NEWUOA_DEBUG
-#define NEWUOA_DEBUG_LOG(what) NEWUOA_DEBUG_LOG(what)
+#define NEWUOA_DEBUG_LOG(what) fprintf(stderr, what)
 #else
 #define NEWUOA_DEBUG_LOG(what)
 #endif
