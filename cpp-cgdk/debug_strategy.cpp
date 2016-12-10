@@ -246,10 +246,14 @@ void DebugStrategy::visualize_graph(const Context& context) {
     const GetNodeScore get_node_score(context, base_->graph(), base_->move_mode().target_lane());
     const auto& nodes = base_->graph().nodes();
     const auto& arcs = base_->graph().arcs();
+    Matrix visualized_arcs(nodes.size(), 0);
     for (const auto& src : nodes) {
         for (const auto& dst : nodes) {
-            if (arcs.get(src.first, dst.first) != std::numeric_limits<double>::max()) {
+            if (arcs.get(src.first, dst.first) != std::numeric_limits<double>::max()
+                    && !visualized_arcs.get(src.first, dst.first)) {
                 debug_.line(src.second.x(), src.second.y(), dst.second.x(), dst.second.y(), 0xAAAAAA);
+                visualized_arcs.set(src.first, dst.first, 1);
+                visualized_arcs.set(dst.first, src.first, 1);
             }
         }
     }
