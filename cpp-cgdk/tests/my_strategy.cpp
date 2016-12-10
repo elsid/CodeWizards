@@ -59,7 +59,7 @@ TEST(MyStrategy, initial) {
     EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), -2.1213203435596424);
     EXPECT_DOUBLE_EQ(move.getTurn(), -0.10471999999999999);
     EXPECT_EQ(move.getAction(), model::_ACTION_UNKNOWN_);
-    EXPECT_EQ(move.getSkillToLearn(), model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1);
+    EXPECT_EQ(move.getSkillToLearn(), model::_SKILL_UNKNOWN_);
     EXPECT_EQ(move.getStatusTargetId(), -1);
 }
 
@@ -111,7 +111,7 @@ TEST(MyStrategy, with_useless_message) {
     EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), -2.1213203435596424);
     EXPECT_DOUBLE_EQ(move.getTurn(), -0.10471999999999999);
     EXPECT_EQ(move.getAction(), model::_ACTION_UNKNOWN_);
-    EXPECT_EQ(move.getSkillToLearn(), model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1);
+    EXPECT_EQ(move.getSkillToLearn(), model::_SKILL_UNKNOWN_);
     EXPECT_EQ(move.getStatusTargetId(), -1);
 }
 
@@ -163,7 +163,7 @@ TEST(MyStrategy, with_useful_message) {
     EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), -2.1213203435596424);
     EXPECT_DOUBLE_EQ(move.getTurn(), -0.10471999999999999);
     EXPECT_EQ(move.getAction(), model::_ACTION_UNKNOWN_);
-    EXPECT_EQ(move.getSkillToLearn(), model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1);
+    EXPECT_EQ(move.getSkillToLearn(), model::_SKILL_UNKNOWN_);
     EXPECT_EQ(move.getStatusTargetId(), -1);
 }
 
@@ -241,7 +241,7 @@ TEST(MyStrategy, with_near_enemy) {
     EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.075336201466536051);
     EXPECT_DOUBLE_EQ(move.getTurn(), 0.024994793618920159);
     EXPECT_EQ(move.getAction(), model::ACTION_MAGIC_MISSILE);
-    EXPECT_EQ(move.getSkillToLearn(), model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1);
+    EXPECT_EQ(move.getSkillToLearn(), model::_SKILL_UNKNOWN_);
     EXPECT_EQ(move.getStatusTargetId(), -1);
 }
 

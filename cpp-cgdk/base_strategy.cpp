@@ -12,13 +12,13 @@
 
 namespace strategy {
 
-const std::vector<model::SkillType> SKILLS_PRIORITY = {
-    model::SKILL_FIREBALL,
-    model::SKILL_ADVANCED_MAGIC_MISSILE,
-    model::SKILL_FROST_BOLT,
-    model::SKILL_SHIELD,
-    model::SKILL_HASTE,
-};
+const std::unordered_map<model::SkillType, std::vector<model::SkillType>> SKILLS_OPPOSITE({
+    {model::SKILL_FIREBALL, {model::SKILL_FROST_BOLT, model::SKILL_HASTE}},
+    {model::SKILL_ADVANCED_MAGIC_MISSILE, {model::SKILL_FIREBALL, model::SKILL_SHIELD}},
+    {model::SKILL_FROST_BOLT, {model::SKILL_ADVANCED_MAGIC_MISSILE, model::SKILL_HASTE}},
+    {model::SKILL_SHIELD, {model::SKILL_FIREBALL, model::SKILL_FROST_BOLT}},
+    {model::SKILL_HASTE, {model::SKILL_HASTE, model::SKILL_FROST_BOLT}},
+});
 
 BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
@@ -31,6 +31,8 @@ BaseStrategy::BaseStrategy(const Context& context)
 }
 
 void BaseStrategy::apply(Context &context) {
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+    handle_messages(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     select_mode(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
@@ -46,25 +48,86 @@ void BaseStrategy::apply(Context &context) {
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 }
 
-void BaseStrategy::learn_skills(Context& context) {
+void BaseStrategy::handle_messages(const Context& context) {
     if (!context.self().getMessages().empty()) {
-        skill_to_learn_ = context.self().getMessages().back().getSkillToLearn();
+        skill_from_message_ = context.self().getMessages().back().getSkillToLearn();
     }
-    if (skill_to_learn_ != model::_SKILL_UNKNOWN_ && skill_to_learn_ != model::_SKILL_COUNT_
-            && !has_skill(context.self(), skill_to_learn_)) {
-        const auto skill = next_to_learn(context.self(), skill_to_learn_);
+}
+
+void BaseStrategy::learn_skills(Context& context) {
+    for (; prev_level_ < context.self().getLevel(); ++prev_level_) {
+        std::array<int, model::_SKILL_COUNT_> skills_priorities = {{
+            4, // SKILL_RANGE_BONUS_PASSIVE_1
+            4, // SKILL_RANGE_BONUS_AURA_1
+            4, // SKILL_RANGE_BONUS_PASSIVE_2
+            4, // SKILL_RANGE_BONUS_AURA_2
+            4, // SKILL_ADVANCED_MAGIC_MISSILE
+            3, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
+            3, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
+            3, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
+            3, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
+            3, // SKILL_FROST_BOLT
+            5, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
+            5, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
+            5, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
+            5, // SKILL_STAFF_DAMAGE_BONUS_AURA_2
+            5, // SKILL_FIREBALL
+            1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1
+            1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_1
+            1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2
+            1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_2
+            1, // SKILL_HASTE
+            2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1
+            2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1
+            2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2
+            2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2
+            2, // SKILL_SHIELD
+        }};
+        for (const auto skill : context.self().getSkills()) {
+            skills_priorities[skill] = 0;
+        }
+        if (skill_from_message_ != model::_SKILL_UNKNOWN_ && skill_from_message_ != model::_SKILL_COUNT_
+                && !has_skill(context.self(), skill_from_message_)) {
+            skills_priorities[skill_from_message_] += 5;
+        }
+        model::SkillType opposite;
+        int opposite_priority;
+        std::tie(opposite, opposite_priority) = get_opposite_skill(context);
+        if (opposite != model::_SKILL_UNKNOWN_) {
+            skills_priorities[opposite] += opposite_priority;
+        }
+        const auto max = std::max_element(skills_priorities.begin(), skills_priorities.end());
+        const auto skill = next_to_learn(context.self(), model::SkillType(max - skills_priorities.begin()));
         if (skill != model::_SKILL_UNKNOWN_) {
             context.move().setSkillToLearn(skill);
             return;
         }
     }
-    for (const auto top : SKILLS_PRIORITY) {
-        const auto skill = next_to_learn(context.self(), top);
-        if (skill != model::_SKILL_UNKNOWN_) {
-            context.move().setSkillToLearn(skill);
-            return;
+}
+
+std::pair<model::SkillType, int> BaseStrategy::get_opposite_skill(const Context& context) const {
+    const auto& wizards = get_units<model::Wizard>(context.history_cache());
+    auto enemy_wizards = filter_units<model::Wizard>(wizards,
+        [&] (const auto& unit) { return unit.getFaction() != context.self().getFaction(); });
+    std::sort(enemy_wizards.begin(), enemy_wizards.end(),
+        [] (auto lhs, auto rhs) { return lhs->getXp() > rhs->getXp(); });
+    for (const auto& unit : enemy_wizards) {
+        const auto level_diff = unit->getLevel() > context.self().getLevel();
+        const auto distance = get_position(context.self()).distance(get_position(*unit));
+        if (level_diff > 0 && distance < 1.5 * context.self().getVisionRange()) {
+            for (const auto skill : unit->getSkills()) {
+                const auto opposite = SKILLS_OPPOSITE.find(skill);
+                if (opposite != SKILLS_OPPOSITE.end()) {
+                    for (const auto top : opposite->second) {
+                        if (!has_skill(context.self(), top)) {
+                            return {top, 2 * level_diff};
+                        }
+                    }
+                }
+            }
         }
     }
+    return {model::_SKILL_UNKNOWN_, 0};
 }
 
 void BaseStrategy::select_mode(const Context& context) {

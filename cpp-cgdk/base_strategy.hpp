@@ -62,8 +62,10 @@ private:
     Movements movements_;
     MovementsStates::const_iterator state_;
     Movements::const_iterator movement_;
-    model::SkillType skill_to_learn_ = model::_SKILL_UNKNOWN_;
+    int prev_level_ = 0;
+    model::SkillType skill_from_message_ = model::_SKILL_UNKNOWN_;
 
+    void handle_messages(const Context& context);
     void select_mode(const Context& context);
     void apply_mode(const Context& context);
     void update_movements(const Context& context);
@@ -74,6 +76,7 @@ private:
     void use_move_mode();
     void use_battle_mode();
     void calculate_movements(const Context& context);
+    std::pair<model::SkillType, int> get_opposite_skill(const Context& Context) const;
 
     bool need_apply_haste(const Context& context) const;
     bool need_apply_shield(const Context& context) const;
