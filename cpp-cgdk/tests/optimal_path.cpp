@@ -468,9 +468,9 @@ TEST(get_optimal_path, with_static_occupier) {
     const Point target(1200, 1200);
     const auto step_size = 3;
     const auto result = get_optimal_path(context, target, step_size);
-    ASSERT_EQ(result.size(), 58);
+    ASSERT_EQ(result.size(), 61);
     EXPECT_EQ(result.front(), get_position(self));
-    EXPECT_EQ(result.back(), target - Point(29, 29));
+    EXPECT_EQ(result.back(), target - Point(20, 35));
 }
 
 }

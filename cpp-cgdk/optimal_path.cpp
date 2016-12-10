@@ -188,7 +188,7 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
             }
         }
 
-        const auto max_distance_error = occupier.first ? occupier.second.radius() + barrier.radius() + step_size : step_size;
+        const auto max_distance_error = occupier.first ? occupier.second.radius() + barrier.radius() + 1 : 1;
 
         return TickState(std::move(dynamic_barriers), occupier, max_distance_error);
     };
