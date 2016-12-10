@@ -71,7 +71,7 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
         1100, // Y
         0, // SpeedX
         0, // SpeedY
-        0, // Angle
+        - 3 * M_PI / 4, // Angle
         model::FACTION_RENEGADES, // Faction
         35, // Radius
         100, // Life
@@ -124,7 +124,7 @@ TEST(get_optimal_position, for_me_and_enemy_wizard_with_active_cooldown) {
         1100, // Y
         0, // SpeedX
         0, // SpeedY
-        0, // Angle
+        - 3 * M_PI / 4, // Angle
         model::FACTION_RENEGADES, // Faction
         35, // Radius
         100, // Life
@@ -203,7 +203,7 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard_with_max_cooldo
         1100, // Y
         0, // SpeedX
         0, // SpeedY
-        0, // Angle
+        - 3 * M_PI / 4, // Angle
         model::FACTION_RENEGADES, // Faction
         35, // Radius
         100, // Life
@@ -282,7 +282,7 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard_with_half_coold
         1100, // Y
         0, // SpeedX
         0, // SpeedY
-        0, // Angle
+        - 3 * M_PI / 4, // Angle
         model::FACTION_RENEGADES, // Faction
         35, // Radius
         100, // Life
@@ -361,7 +361,7 @@ TEST(get_optimal_position, for_me_with_half_life_and_enemy_wizard) {
         1100, // Y
         0, // SpeedX
         0, // SpeedY
-        0, // Angle
+        - 3 * M_PI / 4, // Angle
         model::FACTION_RENEGADES, // Faction
         35, // Radius
         100, // Life
@@ -440,7 +440,7 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard) {
         1100, // Y
         0, // SpeedX
         0, // SpeedY
-        0, // Angle
+        - 3 * M_PI / 4, // Angle
         model::FACTION_RENEGADES, // Faction
         35, // Radius
         100, // Life
@@ -519,7 +519,7 @@ TEST(get_optimal_position, for_me_with_critical_life_and_enemy_wizard) {
         1100, // Y
         0, // SpeedX
         0, // SpeedY
-        0, // Angle
+        - 3 * M_PI / 4, // Angle
         model::FACTION_RENEGADES, // Faction
         35, // Radius
         100, // Life
@@ -572,7 +572,7 @@ TEST(get_optimal_position, for_me_with_low_life_and_minion_in_staff_range) {
         1000, // Y
         0, // SpeedX
         0, // SpeedY
-        M_PI / 4, // Angle
+        0, // Angle
         model::FACTION_ACADEMY, // Faction
         35, // Radius
         1, // Life
@@ -643,7 +643,7 @@ TEST(get_optimal_position, for_me_with_full_life_and_enemy_building_with_inactiv
         1000, // Y
         0, // SpeedX
         0, // SpeedY
-        M_PI / 4, // Angle
+        0, // Angle
         model::FACTION_ACADEMY, // Faction
         35, // Radius
         100, // Life
@@ -715,7 +715,7 @@ TEST(get_optimal_position, for_me_with_full_life_and_enemy_building_with_active_
         1000, // Y
         0, // SpeedX
         0, // SpeedY
-        M_PI / 4, // Angle
+        0, // Angle
         model::FACTION_ACADEMY, // Faction
         35, // Radius
         100, // Life
@@ -787,7 +787,7 @@ TEST(get_optimal_position, for_me_with_full_life_and_max_cooldown_and_enemy_buil
         1000, // Y
         0, // SpeedX
         0, // SpeedY
-        M_PI / 4, // Angle
+        0, // Angle
         model::FACTION_ACADEMY, // Faction
         35, // Radius
         100, // Life
@@ -859,7 +859,7 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_building_with_inactive
         1000, // Y
         0, // SpeedX
         0, // SpeedY
-        M_PI / 4, // Angle
+        0, // Angle
         model::FACTION_ACADEMY, // Faction
         35, // Radius
         36, // Life
@@ -931,7 +931,7 @@ TEST(get_optimal_position, for_me_low_life_and_enemy_building_with_half_cooldown
         1000, // Y
         0, // SpeedX
         0, // SpeedY
-        M_PI / 4, // Angle
+        0, // Angle
         model::FACTION_ACADEMY, // Faction
         35, // Radius
         36, // Life
@@ -1003,7 +1003,7 @@ TEST(get_optimal_position, for_me_low_life_and_enemy_building_with_active_cooldo
         1000, // Y
         0, // SpeedX
         0, // SpeedY
-        M_PI / 4, // Angle
+        0, // Angle
         model::FACTION_ACADEMY, // Faction
         35, // Radius
         36, // Life
