@@ -2,7 +2,7 @@
 
 from time import time
 from shutil import copy
-from os import mkdir
+from os import mkdir, chmod
 from os.path import join, exists
 from sys import argv
 from collections import Counter
@@ -22,13 +22,18 @@ scores = list()
 for run in range(int(argv[1])):
     print('run %s ...' % run)
     run_path = join(test_path, str(run))
+    command = join(run_path, 'run.sh')
     mkdir(run_path)
+    run_log = join(run_path, 'run.log')
+    with open(command, 'w') as f:
+        f.write('%s ${@} &> %s\n' % (binary, run_log))
+    chmod(command, 0o755)
     config_path = join(run_path, 'config.properties')
     result_path = join(run_path, 'result.txt')
     log_path = join(run_path, 'game.log')
     with open('local-runner.mult_run_test.properties') as src:
         with open(config_path, 'w') as dst:
-            dst.write(src.read().format(run=run, bin=binary, port=32001 + test_id % 1000,
+            dst.write(src.read().format(run=run, bin=command, port=32001 + test_id % 1000,
                                         result=result_path, log=log_path))
     start = time()
     with AutoKillProcess(runner + [config_path]) as p:
