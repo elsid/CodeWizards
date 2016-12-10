@@ -113,8 +113,8 @@ TEST(get_optimal_position, for_me_and_enemy_wizard) {
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 530.90221113197788);
-    EXPECT_EQ(result, Point(596.61397629173155, 931.30006247777749));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 528.1949086649729);
+    EXPECT_EQ(result, Point(588.68315373316841, 1232.4573299721096));
 }
 
 TEST(get_optimal_position, for_me_and_enemy_wizard_with_active_cooldown) {
@@ -166,8 +166,8 @@ TEST(get_optimal_position, for_me_and_enemy_wizard_with_active_cooldown) {
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 526.61940235890881);
-    EXPECT_EQ(result, Point(598.72131956232136, 938.60706496406374));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 524.26129325238276);
+    EXPECT_EQ(result, Point(1592.3036005237484, 919.75830528422546));
 }
 
 TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard_with_max_cooldown) {
@@ -245,8 +245,8 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard_with_max_cooldo
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 541.28857820362009);
-    EXPECT_EQ(result, Point(752.67947148956921, 684.83524310349799));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 540.56541021059559);
+    EXPECT_EQ(result, Point(593.15702765680464, 912.06074358329397));
 }
 
 TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard_with_half_cooldown) {
@@ -324,8 +324,8 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard_with_half_coold
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 565.54325682080207);
-    EXPECT_EQ(result, Point(535.93868406171009, 1059.0853669520991));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 564.97579881668435);
+    EXPECT_EQ(result, Point(654.97943321529101, 751.92766788041456));
 }
 
 TEST(get_optimal_position, for_me_with_half_life_and_enemy_wizard) {
@@ -403,8 +403,8 @@ TEST(get_optimal_position, for_me_with_half_life_and_enemy_wizard) {
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 546.0984091417846);
-    EXPECT_EQ(result, Point(572.94567624576587, 1242.958778251477));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 543.46070864190312);
+    EXPECT_EQ(result, Point(572.39711688016007, 969.67448614644945));
 }
 
 TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard) {
@@ -482,8 +482,8 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_wizard) {
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 578.28554862595149);
-    EXPECT_EQ(result, Point(558.50355800381237, 1302.9674334840126));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 577.55913683375343);
+    EXPECT_EQ(result, Point(1439.0523694698452, 632.43391130554187));
 }
 
 TEST(get_optimal_position, for_me_with_critical_life_and_enemy_wizard) {
@@ -561,8 +561,8 @@ TEST(get_optimal_position, for_me_with_critical_life_and_enemy_wizard) {
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 609.80184515079839);
-    EXPECT_EQ(result, Point(1589.9286372825877, 736.91843792372924));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 610.64874368770563);
+    EXPECT_EQ(result, Point(569.19903354296071, 798.10229849227699));
 }
 
 TEST(get_optimal_position, for_me_with_low_life_and_minion_in_staff_range) {
@@ -632,8 +632,8 @@ TEST(get_optimal_position, for_me_with_low_life_and_minion_in_staff_range) {
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 545.09684471697494);
-    EXPECT_EQ(result, Point(544.13287962852803, 1176.1013465026519));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 544.84634804627319);
+    EXPECT_EQ(result, Point(644.58339030753712, 1352.5430234325743));
 }
 
 TEST(get_optimal_position, for_me_with_full_life_and_enemy_building_with_inactive_cooldown) {
@@ -704,8 +704,8 @@ TEST(get_optimal_position, for_me_with_full_life_and_enemy_building_with_inactiv
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 539.38635015844079);
-    EXPECT_EQ(result, Point(981.68600319717189, 1149.2924494256893));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 535.71789772946056);
+    EXPECT_EQ(result, Point(964.54735520419865, 983.14381036965324));
 }
 
 TEST(get_optimal_position, for_me_with_full_life_and_enemy_building_with_active_cooldown) {
@@ -776,8 +776,8 @@ TEST(get_optimal_position, for_me_with_full_life_and_enemy_building_with_active_
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 526.47919825695931);
-    EXPECT_EQ(result, Point(976.9767861302056, 939.77488936828831));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 524.24283462543633);
+    EXPECT_EQ(result, Point(976.20980924831304, 978.21960219775576));
 }
 
 TEST(get_optimal_position, for_me_with_low_life_and_enemy_building_with_inactive_cooldown) {
@@ -849,7 +849,7 @@ TEST(get_optimal_position, for_me_with_low_life_and_enemy_building_with_inactive
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
     EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 627.9999493416301);
-    EXPECT_EQ(result, Point(872.0000634999102, 1000.1269998943077));
+    EXPECT_EQ(result, Point(872.0000634999102, 1000.1269998943069));
 }
 
 TEST(get_optimal_position, for_me_low_life_and_enemy_building_with_half_cooldown) {
@@ -920,8 +920,8 @@ TEST(get_optimal_position, for_me_low_life_and_enemy_building_with_half_cooldown
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 567.59910006177893);
-    EXPECT_EQ(result, Point(933.12369383474254, 971.3644993168524));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 565.10267932101794);
+    EXPECT_EQ(result, Point(935.05691815603268, 986.57046343190666));
 }
 
 TEST(get_optimal_position, for_me_low_life_and_enemy_building_with_active_cooldown) {
@@ -992,8 +992,8 @@ TEST(get_optimal_position, for_me_low_life_and_enemy_building_with_active_cooldo
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance, OPTIMAL_POSITION_INITIAL_POINTS_COUNT,
                                              OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 535.54639650655554);
-    EXPECT_EQ(result, Point(964.61205051392142, 986.9736284311806));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 533.86653572185685);
+    EXPECT_EQ(result, Point(976.43894100064608, 1104.3901119030518));
 }
 
 }
