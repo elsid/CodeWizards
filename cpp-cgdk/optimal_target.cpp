@@ -276,13 +276,12 @@ bool MakeTargetCandidates::is_in_my_range(const model::CircularUnit& unit) const
 }
 
 bool MakeTargetCandidates::is_in_my_range(const model::Tree& unit) const {
-    const auto factor = get_speed(context.self()).norm() < 1 ? 2 : 1;
-    return get_position(unit).distance(get_position(context.self())) <= factor * unit.getRadius() + context.game().getStaffRange();
+    return get_position(unit).distance(get_position(context.self())) <= unit.getRadius() + 0.9 * context.game().getStaffRange();
 }
 
 bool MakeTargetCandidates::is_in_my_range(const model::Minion& unit) const {
     if (unit.getFaction() == model::FACTION_NEUTRAL) {
-        return get_position(unit).distance(get_position(context.self())) <= unit.getRadius() + context.game().getStaffRange();
+        return get_position(unit).distance(get_position(context.self())) <= unit.getRadius() + 0.8 * context.game().getStaffRange();
     } else {
         return is_in_my_range(static_cast<const model::CircularUnit&>(unit));
     }
