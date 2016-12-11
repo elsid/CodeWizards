@@ -73,6 +73,7 @@ private:
     void apply_move(Context& context);
     void apply_action(Context& context);
     void learn_skills(Context& Context);
+    void command(Context& context);
 
     void use_move_mode();
     void use_battle_mode();
