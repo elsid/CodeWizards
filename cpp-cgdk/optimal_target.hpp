@@ -132,7 +132,9 @@ struct MakeTargetCandidates {
         for (const auto& cached_unit : units) {
             if (is_candidate(cached_unit)) {
                 const auto& unit = cached_unit.second.value();
-                result.emplace_back(&unit, get_target_score(unit));
+                if (const auto score = get_target_score(unit)) {
+                    result.emplace_back(&unit, score);
+                }
             }
         }
         std::sort(result.begin(), result.end(),
