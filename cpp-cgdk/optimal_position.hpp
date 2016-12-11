@@ -183,7 +183,7 @@ public:
         context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 
         if (is_out_of_borders(position)) {
-            return max_borders_penalty;
+            return get_borders_penalty(position);
         }
 
         const auto penalties = {
@@ -211,12 +211,14 @@ public:
     }
 
     double get_borders_penalty(const Point& position) const {
-        return max_borders_penalty * (
-                get_borders_factor(position.x())
-                + get_borders_factor(context.game().getMapSize() - position.x())
-                + get_borders_factor(position.y())
-                + get_borders_factor(context.game().getMapSize() - position.y())
-            );
+        const std::array<double, 4> factors = {{
+            get_borders_factor(position.x()),
+            get_borders_factor(context.game().getMapSize() - position.x()),
+            get_borders_factor(position.y()),
+            get_borders_factor(context.game().getMapSize() - position.y()),
+        }};
+        const auto max_factor = std::max_element(factors.begin(), factors.end());
+        return max_borders_penalty * *max_factor;
     }
 
     double get_projectiles_penalty(const Point& position) const {
@@ -427,7 +429,7 @@ private:
     }
 
     double get_borders_factor(double distance) const {
-        return line_factor(distance, 2 * context.self().getRadius(), 0);
+        return std::max(0.0, (2 * context.self().getRadius() - distance) / (2 * context.self().getRadius()));
     }
 
     template <class Unit>
