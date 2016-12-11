@@ -322,7 +322,8 @@ bool BaseStrategy::need_apply_fireball(const Context& context, const model::Circ
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FIREBALL] == 0
             && context.self().getMana() >= context.game().getFireballManacost()
             && has_skill(context.self(), model::SKILL_FIREBALL)
-            && need_apply_cast(context, target, context.game().getFireballRadius(), context.game().getFireballExplosionMaxDamageRange());
+            && need_apply_cast(context, target, context.game().getFireballRadius(),
+                               context.game().getFireballExplosionMinDamageRange());
 }
 
 bool BaseStrategy::need_apply_frostbolt(const Context& context, const model::CircularUnit& target) {
