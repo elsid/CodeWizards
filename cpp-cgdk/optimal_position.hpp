@@ -130,7 +130,11 @@ struct GetUnitDangerPenalty {
                 * sum_damage_to_me / context.self().getLife();
         const auto safe_distance = 1 + context.self().getRadius() + std::max(context.game().getStaffRange(),
                 distance_factor * get_attack_range(unit, max_distance));
-        return get_distance_penalty(min_distance, safe_distance);
+        if (min_distance <= safe_distance) {
+            return get_distance_penalty(min_distance, safe_distance);
+        } else {
+            return - 0.01 * line_factor(min_distance - safe_distance, 0, 2 * context.self().getVisionRange());
+        }
     }
 };
 
@@ -287,7 +291,8 @@ public:
     }
 
     double get_distance_penalty(const Point& position) const {
-        return 0.1 * line_factor(get_position(context.self()).distance(position), 0, max_distance);
+        const auto sign = context.self().getLife() > context.self().getMaxLife() / 2 ? 1 : -1;
+        return 0.1 * sign * line_factor(get_position(context.self()).distance(position), 0, max_distance);
     }
 
 private:
@@ -473,11 +478,11 @@ private:
         const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
         const auto ticks_factor = line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
         const auto damage = get_unit_current_damage(unit, position);
+        const auto life_factor = line_factor(context.self().getLife(), damage, context.self().getMaxLife());
         if (distance <= range) {
-            return 0.01 * line_factor(distance, 0, range) * ticks_factor;
+            return 0.01 * line_factor(distance, 0, range) * ticks_factor * life_factor;
         } else {
-            return (0.01 + line_factor(distance, range, 2 * range)
-                    * line_factor(context.self().getLife(), damage, context.self().getMaxLife())) * ticks_factor;
+            return (0.01 + line_factor(distance - range, 0, 2 * context.self().getVisionRange())) * life_factor * ticks_factor;
         }
     }
 
