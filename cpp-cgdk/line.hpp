@@ -29,6 +29,9 @@ public:
     }
 
     double signed_distance(const Point& point) const {
+        if (begin() == end()) {
+            return begin().distance(point);
+        }
         return (
             (begin_.y() - end_.y()) * point.x()
             + (end_.x() - begin_.x()) * point.y()
