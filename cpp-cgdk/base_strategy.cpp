@@ -153,7 +153,7 @@ void BaseStrategy::select_mode(const Context& context) {
     if (context.self().getLife() < context.self().getMaxLife() / 2) {
         max_distance = std::max(context.game().getStaffRange(),
                                 line_factor(context.self().getRemainingActionCooldownTicks(), context.game().getWizardActionCooldownTicks(), 0)
-                                * context.self().getVisionRange() * 0.8);
+                                * context.self().getVisionRange());
     } else if (mode_ == battle_mode_) {
         max_distance = (0.3 + line_factor(mode_ticks_, BATTLE_MODE_TICKS, 0)) * context.self().getVisionRange();
     } else {
