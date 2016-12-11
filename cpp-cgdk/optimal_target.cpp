@@ -201,7 +201,7 @@ double GetLifeRegeneration::operator ()(const model::Wizard& unit) const {
 
 double GetTargetScore::distance_probability(const model::Unit& unit) const {
     const auto distance = get_position(context.self()).distance(get_position(unit));
-    return line_factor(distance, 2 * context.self().getCastRange(), 0);
+    return line_factor(distance, 2 * get_max_distance_for_unit_candidate(context), 0);
 }
 
 double GetTargetScore::angle_probability(const model::Unit& unit) const {
