@@ -100,6 +100,16 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
         return (1 + enemy_minions_score + enemy_wizards_score + enemy_towers_score + enemy_base_score + bonus_score)
                 * reduce_factor * mult_factor;
     } else {
+        const auto min = std::min_element(node_info.path.nodes.begin(), node_info.path.nodes.end(),
+            [&] (auto lhs, auto rhs) {
+                if (lhs == node) {
+                    return true;
+                } else if (rhs == node) {
+                    return false;
+                } else {
+                    return (*this)(lhs) < (*this)(rhs);
+                }
+            });
         return (node_info.friend_towers_weight
                 + node_info.friend_base_weight
                 + node_info.friend_minions_weight
@@ -108,7 +118,8 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
                 - node_info.enemy_wizards_weight
                 - node_info.enemy_towers_weight
                 - node_info.enemy_base_weight
-                - node_info.path.length / 400);
+                - node_info.path.length / 400
+                + (*min != node ? (*this)(*min) : 0));
     }
 }
 
