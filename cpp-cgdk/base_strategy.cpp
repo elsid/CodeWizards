@@ -155,7 +155,8 @@ void BaseStrategy::select_mode(const Context& context) {
                                 line_factor(context.self().getRemainingActionCooldownTicks(), context.game().getWizardActionCooldownTicks(), 0)
                                 * context.self().getVisionRange());
     } else if (mode_ == battle_mode_) {
-        max_distance = (0.3 + line_factor(mode_ticks_, BATTLE_MODE_TICKS, 0)) * context.self().getVisionRange();
+        max_distance = (0.3 + line_factor(mode_ticks_, BATTLE_MODE_TICKS, BATTLE_MODE_TICKS - context.game().getWizardActionCooldownTicks()))
+                * context.self().getVisionRange();
     } else {
         max_distance = 1.3 * context.self().getVisionRange();
     }
