@@ -3,8 +3,7 @@
 
 #include "world_graph.hpp"
 #include "context.hpp"
-#include "optimal_target.hpp"
-#include "optimal_position.hpp"
+#include "helpers.hpp"
 
 namespace strategy {
 
