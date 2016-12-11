@@ -131,8 +131,18 @@ std::pair<model::SkillType, int> BaseStrategy::get_opposite_skill(const Context&
 }
 
 void BaseStrategy::select_mode(const Context& context) {
-    const auto max_distance = context.self().getLife() < context.self().getMaxLife() / 3
-            ? context.game().getStaffRange() : 1.3 * context.self().getVisionRange();
+    double max_distance;
+
+    if (context.self().getLife() < context.self().getMaxLife() / 2) {
+        max_distance = std::max(context.game().getStaffRange(),
+                                line_factor(context.self().getRemainingActionCooldownTicks(), context.game().getWizardActionCooldownTicks(), 0)
+                                * context.self().getVisionRange() * 0.8);
+    } else if (mode_ == battle_mode_) {
+        max_distance = (0.3 + line_factor(mode_ticks_, BATTLE_MODE_TICKS, 0)) * context.self().getVisionRange();
+    } else {
+        max_distance = 1.3 * context.self().getVisionRange();
+    }
+
     const IsInMyRange is_in_vision_range {context, max_distance};
 
     const auto bonuses = get_units<model::Bonus>(context.world());
@@ -262,12 +272,20 @@ void BaseStrategy::apply_action(Context& context) {
 
 void BaseStrategy::use_move_mode() {
     if (mode_ != move_mode_) {
+        mode_ticks_ = 0;
         mode_ = move_mode_;
         move_mode_->reset();
+    } else {
+        ++mode_ticks_;
     }
 }
 
 void BaseStrategy::use_battle_mode() {
+    if (mode_ != battle_mode_) {
+        mode_ticks_ = 0;
+    } else {
+        ++mode_ticks_;
+    }
     mode_ = battle_mode_;
 }
 

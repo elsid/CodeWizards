@@ -64,6 +64,7 @@ private:
     Movements::const_iterator movement_;
     int prev_level_ = 0;
     model::SkillType skill_from_message_ = model::_SKILL_UNKNOWN_;
+    Tick mode_ticks_ = 0;
 
     void handle_messages(const Context& context);
     void select_mode(const Context& context);

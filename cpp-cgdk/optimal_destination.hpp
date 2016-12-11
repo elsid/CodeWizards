@@ -22,11 +22,6 @@ public:
     static constexpr const double WIZARD_DAMAGE_PROBABILITY = 0.25;
     static constexpr const double WIZARD_ELIMINATION_PROBABILITY = 0.05;
 
-    GetNodeScore(const Context& context, const WorldGraph& graph, model::LaneType target_lane);
-
-    double operator ()(WorldGraph::Node node) const;
-
-private:
     struct NodeInfo {
         double enemy_wizards_weight = 0;
         double enemy_minions_weight = 0;
@@ -82,6 +77,15 @@ private:
         }
     };
 
+    GetNodeScore(const Context& context, const WorldGraph& graph, model::LaneType target_lane);
+
+    double operator ()(WorldGraph::Node node) const;
+
+    const std::vector<NodeInfo>& nodes_info() const {
+        return nodes_info_;
+    }
+
+private:
     const Context& context_;
     const WorldGraph& graph_;
     model::LaneType target_lane_;
@@ -89,8 +93,8 @@ private:
     WorldGraph::Node self_nearest_node_;
 
     template <class Unit>
-    void fill_nodes_info() {
-        for (const auto& v : get_units<Unit>(context_.cache())) {
+    void fill_nodes_info(const typename std::unordered_map<UnitId, CachedUnit<Unit>>& units) {
+        for (const auto& v : units) {
             const auto& unit = v.second.value();
             const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(unit));
             const auto distance_to_nearest = get_position(unit).distance(nearest_node.second);
@@ -112,6 +116,15 @@ private:
             }
         }
     }
+};
+
+struct GetLaneScore {
+    const Context& context;
+    const WorldGraph& graph;
+    const GetNodeScore& get_node_score;
+
+    double operator ()(model::LaneType lane) const;
+    double get_lane_length(model::LaneType lane) const;
 };
 
 WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position);
