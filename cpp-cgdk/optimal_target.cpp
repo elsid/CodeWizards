@@ -287,6 +287,40 @@ bool MakeTargetCandidates::is_in_my_range(const model::Minion& unit) const {
     }
 }
 
+struct SetResult {
+    const Context& context;
+    Target& result;
+
+    template <class Iterator>
+    void operator ()(Iterator candidate) {
+        impl(*candidate->first);
+    }
+
+    template <class Unit>
+    void impl(const Unit& candidate) {
+        const GetAttackRange get_attack_range {context};
+        const auto optimal_position = get_optimal_position(context, &candidate, 2 * context.self().getVisionRange(),
+            OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
+        const auto path = get_optimal_path(context, optimal_position, OPTIMAL_PATH_STEP_SIZE,
+                                           OPTIMAL_PATH_MAX_TICKS, 100);
+        auto min_distance = get_position(context.self()).distance(get_position(candidate));
+        if (!path.empty()) {
+            min_distance = std::min(min_distance, path.back().distance(get_position(candidate)));
+        }
+        if (min_distance <= get_attack_range(context.self(), min_distance) + candidate.getRadius()) {
+            result = get_id(candidate);
+        }
+    }
+
+    void impl(const model::Tree& candidate) {
+        const GetAttackRange get_attack_range {context};
+        auto min_distance = get_position(context.self()).distance(get_position(candidate));
+        if (min_distance <= get_attack_range(context.self(), min_distance) + candidate.getRadius()) {
+            result = get_id(candidate);
+        }
+    }
+};
+
 struct GetOptimalTarget {
     template <class Unit>
     using Iterator = typename MakeTargetCandidates::Result<Unit>::const_iterator;
@@ -315,29 +349,15 @@ struct GetOptimalTarget {
     const Context& context;
 
     Target operator ()(const Iterators& begins, const Iterators& ends) const {
-        const GetAttackRange get_attack_range {context};
         const LessByScore less_by_score {ends};
 
         Target result;
+        SetResult set_result {context, result};
 
         for (auto iterators = begins; iterators != ends;) {
             context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 
             const auto max = max_element(iterators, less_by_score);
-
-            const auto set_result = [&] (auto candidate) {
-                const auto optimal_position = get_optimal_position(context, candidate->first, 2 * context.self().getVisionRange(),
-                    OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-                const auto path = get_optimal_path(context, optimal_position, OPTIMAL_PATH_STEP_SIZE,
-                                                   OPTIMAL_PATH_MAX_TICKS, OPTIMAL_PATH_MAX_ITERATIONS);
-                auto min_distance = get_position(context.self()).distance(get_position(*candidate->first));
-                if (!path.empty()) {
-                    min_distance = std::min(min_distance, path.back().distance(get_position(*candidate->first)));
-                }
-                if (min_distance <= get_attack_range(context.self(), min_distance) + candidate->first->getRadius()) {
-                    result = get_id(*candidate->first);
-                }
-            };
 
             apply_to(iterators, max, set_result);
 
