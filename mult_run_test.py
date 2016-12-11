@@ -16,7 +16,10 @@ if not exists('tests'):
     mkdir('tests')
 mkdir(test_path)
 binary = join(test_path, 'cpp-cgdk')
-copy('cpp-cgdk-release/bin/cpp-cgdk', binary)
+if len(argv) > 2:
+    copy(argv[2], binary)
+else:
+    copy('cpp-cgdk-release/bin/cpp-cgdk', binary)
 positions = Counter()
 scores = list()
 for run in range(int(argv[1])):
