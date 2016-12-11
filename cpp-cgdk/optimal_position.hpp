@@ -186,7 +186,9 @@ public:
             return get_borders_penalty(position);
         }
 
-        const auto penalties = {
+        const auto base_shift = 1;
+
+        std::array<double, 8> penalties = {{
             get_units_danger_penalty(position) * UNITS_DANGER_PENALTY_WEIGHT,
             get_units_collision_penalty(position),
             get_bonuses_penalty(position),
@@ -195,7 +197,9 @@ public:
             get_target_penalty(position),
             get_borders_penalty(position),
             get_distance_penalty(position),
-        };
+        }};
+
+        std::for_each(penalties.begin(), penalties.end(), [&] (auto& v) { v += base_shift; });
 
         const auto max_penalty = *std::max_element(penalties.begin(), penalties.end());
         const auto score = get_elimination_score(position) * ELIMINATION_SCORE_WEIGHT;
