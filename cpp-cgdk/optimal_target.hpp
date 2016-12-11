@@ -43,7 +43,7 @@ struct IsInMyRange {
 
     template <class T>
     bool operator ()(const T& unit) const {
-        return get_position(unit).distance(get_position(context.self())) + unit.getRadius() <= max_distance;
+        return get_position(unit).distance(get_position(context.self())) - unit.getRadius() <= max_distance;
     }
 };
 
