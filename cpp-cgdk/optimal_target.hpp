@@ -119,13 +119,19 @@ struct MakeTargetCandidates {
     const double max_distance;
 
     template <class Unit>
+    bool is_candidate(const std::pair<const UnitId, CachedUnit<Unit>>& cached_unit) const {
+        const auto& unit = cached_unit.second.value();
+        return unit.getFaction() != context.self().getFaction() && is_in_my_range(unit);
+    }
+
+    template <class Unit>
     Result<Unit> operator ()(const std::unordered_map<UnitId, CachedUnit<Unit>>& units) const {
         const GetTargetScore get_target_score {context};
         Result<Unit> result;
         result.reserve(units.size());
         for (const auto& cached_unit : units) {
-            const auto& unit = cached_unit.second.value();
-            if (unit.getFaction() != context.self().getFaction() && is_in_my_range(unit)) {
+            if (is_candidate(cached_unit)) {
+                const auto& unit = cached_unit.second.value();
                 result.emplace_back(&unit, get_target_score(unit));
             }
         }
@@ -139,6 +145,11 @@ struct MakeTargetCandidates {
     bool is_in_my_range(const model::Minion& unit) const;
 };
 
+double get_max_distance_for_tree_candidate(const Context& context);
+double get_max_distance_for_neutral_minion_candidate(const Context& context);
+double get_max_distance_for_unit_candidate(const Context& context);
+
+bool has_candidates(const Context& context, double max_distance);
 Target get_optimal_target(const Context& context, double max_distance);
 
 }

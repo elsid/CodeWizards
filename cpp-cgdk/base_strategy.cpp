@@ -148,53 +148,14 @@ std::pair<model::SkillType, int> BaseStrategy::get_opposite_skill(const Context&
 }
 
 void BaseStrategy::select_mode(const Context& context) {
-    double max_distance;
+    double max_distance = get_max_distance_for_unit_candidate(context);
 
-    if (context.self().getLife() < context.self().getMaxLife() / 2) {
-        max_distance = std::max(context.game().getStaffRange(),
-                                line_factor(context.self().getRemainingActionCooldownTicks(), context.game().getWizardActionCooldownTicks(), 0)
-                                * context.self().getVisionRange());
-    } else if (mode_ == battle_mode_) {
-        max_distance = (0.3 + line_factor(mode_ticks_, BATTLE_MODE_TICKS, BATTLE_MODE_TICKS - context.game().getWizardActionCooldownTicks()))
-                * context.self().getVisionRange();
-    } else {
-        max_distance = 1.3 * context.self().getVisionRange();
+    if (mode_ == battle_mode_) {
+        max_distance = context.game().getStaffRange() + (max_distance - context.game().getStaffRange())
+                * line_factor(mode_ticks_, BATTLE_MODE_TICKS, BATTLE_MODE_TICKS - context.game().getWizardActionCooldownTicks());
     }
 
-    const IsInMyRange is_in_vision_range {context, max_distance};
-
-    const auto bonuses = get_units<model::Bonus>(context.world());
-    const auto has_near_bonuses = bonuses.end() != std::find_if(bonuses.begin(), bonuses.end(), is_in_vision_range);
-
-    if (has_near_bonuses) {
-        return use_battle_mode();
-    }
-
-    const auto is_enemy_in_node_range = [&] (const auto& unit) {
-        return is_enemy(unit, context.self().getFaction()) && is_in_vision_range(unit);
-    };
-
-    const auto& buildings = get_units<model::Building>(context.world());
-    const auto& minions = get_units<model::Minion>(context.world());
-    const auto& wizards = get_units<model::Wizard>(context.world());
-    const auto& trees = get_units<model::Tree>(context.world());
-
-    const auto is_in_staff_range = [&] (const auto& unit) {
-        return get_position(context.self()).distance(get_position(unit)) <= unit.getRadius() + context.game().getStaffRange();
-    };
-
-    const auto is_neutral_in_staff_range = [&] (const auto& unit) {
-        return unit.getFaction() == model::FACTION_NEUTRAL && is_in_staff_range(unit);
-    };
-
-    const auto has_near_potential_targets =
-            buildings.end() != std::find_if(buildings.begin(), buildings.end(), is_enemy_in_node_range)
-        || minions.end() != std::find_if(minions.begin(), minions.end(), is_enemy_in_node_range)
-        || wizards.end() != std::find_if(wizards.begin(), wizards.end(), is_enemy_in_node_range)
-        || trees.end() != std::find_if(trees.begin(), trees.end(), is_in_staff_range)
-        || minions.end() != std::find_if(minions.begin(), minions.end(), is_neutral_in_staff_range);
-
-    if (has_near_potential_targets) {
+    if (has_candidates(context, max_distance)) {
         use_battle_mode();
     } else {
         use_move_mode();

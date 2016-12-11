@@ -272,16 +272,19 @@ double GetTargetScore::my_max_damage(double distance) const {
 }
 
 bool MakeTargetCandidates::is_in_my_range(const model::CircularUnit& unit) const {
-    return get_position(unit).distance(get_position(context.self())) + unit.getRadius() <= max_distance;
+    const auto distance = get_position(unit).distance(get_position(context.self()));
+    return distance <= max_distance + unit.getRadius();
 }
 
 bool MakeTargetCandidates::is_in_my_range(const model::Tree& unit) const {
-    return get_position(unit).distance(get_position(context.self())) <= unit.getRadius() + 0.9 * context.game().getStaffRange();
+    const auto distance = get_position(unit).distance(get_position(context.self()));
+    return distance <= std::min(max_distance, get_max_distance_for_tree_candidate(context)) + unit.getRadius();
 }
 
 bool MakeTargetCandidates::is_in_my_range(const model::Minion& unit) const {
     if (unit.getFaction() == model::FACTION_NEUTRAL) {
-        return get_position(unit).distance(get_position(context.self())) <= unit.getRadius() + 0.8 * context.game().getStaffRange();
+        const auto distance = get_position(unit).distance(get_position(context.self()));
+        return distance <= std::min(max_distance, get_max_distance_for_neutral_minion_candidate(context)) + unit.getRadius();
     } else {
         return is_in_my_range(static_cast<const model::CircularUnit&>(unit));
     }
@@ -401,6 +404,33 @@ struct GetOptimalTarget {
         }
     }
 };
+
+double get_max_distance_for_tree_candidate(const Context& context) {
+    return 0.9 * context.game().getStaffRange();
+}
+
+double get_max_distance_for_neutral_minion_candidate(const Context& context) {
+    return 0.8 * context.game().getStaffRange();
+}
+
+double get_max_distance_for_unit_candidate(const Context& context) {
+    return 1.3 * context.self().getVisionRange();
+}
+
+bool has_candidates(const Context& context, double max_distance) {
+    const MakeTargetCandidates make_target_candidates {context, max_distance};
+
+    const auto has = [&] (const auto& units) {
+        return units.end() != std::find_if(units.begin(), units.end(),
+            [&] (const auto& v) { return make_target_candidates.is_candidate(v); });
+    };
+
+    return has(get_units<model::Bonus>(context.cache()))
+               || has(get_units<model::Building>(context.cache()))
+               || has(get_units<model::Minion>(context.cache()))
+               || has(get_units<model::Tree>(context.cache()))
+               || has(get_units<model::Wizard>(context.cache()));
+}
 
 Target get_optimal_target(const Context& context, double max_distance) {
     const MakeTargetCandidates make_target_candidates {context, max_distance};
