@@ -131,7 +131,9 @@ std::pair<model::SkillType, int> BaseStrategy::get_opposite_skill(const Context&
 }
 
 void BaseStrategy::select_mode(const Context& context) {
-    const IsInMyRange is_in_vision_range {context, 1.3 * context.self().getVisionRange()};
+    const auto max_distance = context.self().getLife() < context.self().getMaxLife() / 3
+            ? context.game().getStaffRange() : 1.3 * context.self().getVisionRange();
+    const IsInMyRange is_in_vision_range {context, max_distance};
 
     const auto bonuses = get_units<model::Bonus>(context.world());
     const auto has_near_bonuses = bonuses.end() != std::find_if(bonuses.begin(), bonuses.end(), is_in_vision_range);

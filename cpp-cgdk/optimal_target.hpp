@@ -43,7 +43,7 @@ struct IsInMyRange {
 
     template <class T>
     bool operator ()(const T& unit) const {
-        return get_position(unit).distance(get_position(context.self())) <= max_distance;
+        return get_position(unit).distance(get_position(context.self())) + unit.getRadius() <= max_distance;
     }
 };
 
@@ -134,7 +134,7 @@ struct MakeTargetCandidates {
         return result;
     }
 
-    bool is_in_my_range(const model::Unit& unit) const;
+    bool is_in_my_range(const model::CircularUnit& unit) const;
     bool is_in_my_range(const model::Tree& unit) const;
     bool is_in_my_range(const model::Minion& unit) const;
 };

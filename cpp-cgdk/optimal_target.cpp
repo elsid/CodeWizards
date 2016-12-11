@@ -271,8 +271,8 @@ double GetTargetScore::my_max_damage(double distance) const {
     return get_max_damage(context.self(), distance);
 }
 
-bool MakeTargetCandidates::is_in_my_range(const model::Unit& unit) const {
-    return get_position(unit).distance(get_position(context.self())) <= max_distance;
+bool MakeTargetCandidates::is_in_my_range(const model::CircularUnit& unit) const {
+    return get_position(unit).distance(get_position(context.self())) + unit.getRadius() <= max_distance;
 }
 
 bool MakeTargetCandidates::is_in_my_range(const model::Tree& unit) const {
@@ -284,7 +284,7 @@ bool MakeTargetCandidates::is_in_my_range(const model::Minion& unit) const {
     if (unit.getFaction() == model::FACTION_NEUTRAL) {
         return get_position(unit).distance(get_position(context.self())) <= unit.getRadius() + context.game().getStaffRange();
     } else {
-        return is_in_my_range(static_cast<const model::Unit&>(unit));
+        return is_in_my_range(static_cast<const model::CircularUnit&>(unit));
     }
 }
 

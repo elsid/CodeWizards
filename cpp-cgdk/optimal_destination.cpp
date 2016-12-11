@@ -95,8 +95,20 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto enemy_base_score = node_info.enemy_base_weight
             * context_.game().getVictoryScore();
 
-    return (1 + enemy_minions_score + enemy_wizards_score + enemy_towers_score + enemy_base_score + bonus_score)
-            * reduce_factor * mult_factor;
+    if (context_.self().getLife() > context_.self().getMaxLife() / 3) {
+        return (1 + enemy_minions_score + enemy_wizards_score + enemy_towers_score + enemy_base_score + bonus_score)
+                * reduce_factor * mult_factor;
+    } else {
+        return (node_info.friend_towers_weight
+                + node_info.friend_base_weight
+                + node_info.friend_minions_weight
+                + node_info.friend_wizards_weight
+                - node_info.enemy_minions_weight
+                - node_info.enemy_wizards_weight
+                - node_info.enemy_towers_weight
+                - node_info.enemy_base_weight
+                - node_info.path.length / 400);
+    }
 }
 
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane) {

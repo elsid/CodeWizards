@@ -12,7 +12,7 @@ BattleMode::Result BattleMode::apply(const Context& context) {
 
 void BattleMode::update_target(const Context& context) {
     const auto max_distances = {
-        context.game().getStaffRange() + context.self().getRadius(),
+        context.game().getStaffRange(),
         1.3 * context.self().getVisionRange(),
     };
     destination_.first = false;
