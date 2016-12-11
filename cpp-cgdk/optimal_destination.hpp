@@ -7,6 +7,29 @@
 
 namespace strategy {
 
+enum class TowerNumber {
+    FIRST,
+    SECOND,
+    UNKNOWN,
+};
+
+class TowersOrder {
+public:
+    TowersOrder(const Context& context);
+
+    model::LaneType get_lane(const model::Building& unit) const;
+    TowerNumber get_number(const model::Building& unit) const;
+    const Point& get_enemy_tower(model::LaneType lane, TowerNumber number) const;
+
+private:
+    const Context& context_;
+    std::array<std::array<Point, 2>, 3> friend_towers_;
+    std::array<std::array<Point, 2>, 3> enemy_towers_;
+
+    model::LaneType get_lane(const model::Building& unit, const std::array<std::array<Point, 2>, 3>& towers) const;
+    TowerNumber get_number(const model::Building& unit, const std::array<Point, 2>& towers) const;
+};
+
 class GetNodeScore {
 public:
     static constexpr const double ENEMY_WIZARD_REDUCE_FACTOR = 16.0;
@@ -83,6 +106,8 @@ public:
     const std::vector<NodeInfo>& nodes_info() const {
         return nodes_info_;
     }
+
+    int get_tower_number(const model::Building& unit) const;
 
 private:
     const Context& context_;

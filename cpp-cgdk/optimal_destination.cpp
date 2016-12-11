@@ -13,6 +13,65 @@
 
 namespace strategy {
 
+TowersOrder::TowersOrder(const Context& context)
+    : context_(context),
+      friend_towers_({{
+        {{Point(1370.66, 3650),
+          Point(2312.13, 3950)}}, // TOP
+        {{Point(902.613, 2768.1),
+          Point(1929.29, 2400)}}, // MIDDLE
+        {{Point(50, 2693.26),
+          Point(350, 1656.75)}}, // BOTTOM
+      }}),
+      enemy_towers_({{
+        {{Point(context.world().getWidth() - 1370.66, context.world().getHeight() - 3650),
+          Point(context.world().getWidth() - 2312.13, context.world().getHeight() - 3950)}}, // TOP
+        {{Point(context.world().getWidth() - 902.613, context.world().getHeight() - 2768.1),
+          Point(context.world().getWidth() - 1929.29, context.world().getHeight() - 2400)}}, // MIDDLE
+        {{Point(context.world().getWidth() - 50, context.world().getHeight() - 2693.26),
+          Point(context.world().getWidth() - 350, context.world().getHeight() - 1656.75)}}, // BOTTOM
+      }}) {
+}
+
+model::LaneType TowersOrder::get_lane(const model::Building& unit) const {
+    if (unit.getFaction() == context_.self().getFaction()) {
+        return get_lane(unit, friend_towers_);
+    } else {
+        return get_lane(unit, enemy_towers_);
+    }
+}
+
+TowerNumber TowersOrder::get_number(const model::Building& unit) const {
+    const auto lane = get_lane(unit);
+    if (unit.getFaction() == context_.self().getFaction()) {
+        return get_number(unit, friend_towers_[lane]);
+    } else {
+        return get_number(unit, enemy_towers_[lane]);
+    }
+}
+
+const Point& TowersOrder::get_enemy_tower(model::LaneType lane, TowerNumber number) const {
+    return enemy_towers_[lane][std::size_t(number)];
+}
+
+model::LaneType TowersOrder::get_lane(const model::Building& unit, const std::array<std::array<Point, 2>, 3>& towers) const {
+    const auto lane = std::find_if(towers.begin(), towers.end(),
+        [&] (const auto& v) { return this->get_number(unit, v) != TowerNumber::UNKNOWN; });
+    if (lane == towers.end()) {
+        std::ostringstream error;
+        error << "Lane not found for tower with id " << unit.getId()
+              << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+        throw std::logic_error(error.str());
+    }
+    return model::LaneType(lane - towers.begin());
+}
+
+TowerNumber TowersOrder::get_number(const model::Building& unit, const std::array<Point, 2>& towers) const {
+    const auto number = std::find_if(towers.begin(), towers.end(),
+        [&] (const auto& v) { return get_position(unit).distance(v) < 100; });
+    return number == towers.end() ? TowerNumber::UNKNOWN : TowerNumber(number - towers.begin());
+}
+
 template <class Predicate>
 std::vector<WorldGraph::Pair> filter_nodes(const WorldGraph::Nodes& nodes, const Predicate& predicate) {
     std::vector<WorldGraph::Pair> result;

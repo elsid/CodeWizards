@@ -159,10 +159,36 @@ TEST(get_optimal_target, for_me_and_friend_wizard) {
 }
 
 TEST(get_optimal_target, for_me_enemy_wizard_and_enemy_building) {
+    static const model::Wizard self(
+        1, // Id
+        2500, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        M_PI / 4, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
     const model::Wizard enemy_wizard(
         2, // Id
-        1200, // X
-        1000, // Y
+        3097.3869999999997, // X
+        1231.9, // Y
         0, // SpeedX
         0, // SpeedY
         0, // Angle
@@ -187,8 +213,8 @@ TEST(get_optimal_target, for_me_enemy_wizard_and_enemy_building) {
     );
     const model::Building enemy_building(
         3, // Id
-        1000, // X
-        1200, // Y
+        3097.3869999999997, // X
+        1231.9, // Y
         0, // SpeedX
         0, // SpeedY
         0, // Angle
@@ -210,7 +236,7 @@ TEST(get_optimal_target, for_me_enemy_wizard_and_enemy_building) {
         4000, // Width
         4000, // Height
         {}, // Players
-        {enemy_wizard, SELF}, // Wizards
+        {enemy_wizard, self}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -221,7 +247,7 @@ TEST(get_optimal_target, for_me_enemy_wizard_and_enemy_building) {
     const Profiler profiler;
     FullCache cache;
     update_cache(cache, world);
-    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto result = get_optimal_target(context, 1000);
     ASSERT_TRUE(result.is<model::Building>());
     EXPECT_EQ(result.unit<model::Building>(cache)->getId(), enemy_building.getId());

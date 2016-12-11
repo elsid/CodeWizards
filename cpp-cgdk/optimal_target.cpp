@@ -1,5 +1,6 @@
 #include "optimal_target.hpp"
 #include "optimal_position.hpp"
+#include "optimal_destination.hpp"
 
 #include <algorithm>
 
@@ -243,13 +244,35 @@ double GetTargetScore::base(const model::Tree&) const {
 }
 
 double GetTargetScore::base(const model::Building& unit) const {
-    const auto by_damage = base_by_damage(unit, context.game().getBuildingDamageScoreFactor(),
-                                          context.game().getBuildingEliminationScoreFactor());
+    const TowersOrder tower_order(context);
+    bool immortal = true;
+    double add = 0;
+
+    const auto is_tower_exists = [&] (const auto& position) {
+        const auto& buildings = get_units<model::Building>(context.cache());
+        return buildings.end() != std::find_if(buildings.begin(), buildings.end(),
+            [&] (const auto& v) { return get_position(v.second.value()).distance(position) < 100; });
+    };
+
     if (unit.getType() == model::BUILDING_FACTION_BASE) {
-        return context.game().getVictoryScore() + by_damage;
+        const auto lanes = {model::LANE_TOP, model::LANE_MIDDLE, model::LANE_BOTTOM};
+        immortal = lanes.end() == std::find_if_not(lanes.begin(), lanes.end(),
+            [&] (auto lane) { return is_tower_exists(tower_order.get_enemy_tower(lane, TowerNumber::FIRST)); });
+        if (!immortal) {
+            add += context.game().getVictoryScore();
+        }
     } else {
-        return by_damage;
+        const auto lane = tower_order.get_lane(unit);
+        const auto second = tower_order.get_enemy_tower(lane, TowerNumber::SECOND);
+        if (get_position(unit).distance(second) < 100) {
+            immortal = false;
+        } else {
+            immortal = is_tower_exists(second);
+        }
     }
+
+    return immortal ? 0 : add + base_by_damage(unit, context.game().getBuildingDamageScoreFactor(),
+                                               context.game().getBuildingEliminationScoreFactor());
 }
 
 double GetTargetScore::base(const model::Minion& unit) const {
