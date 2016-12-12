@@ -114,17 +114,10 @@ void BaseStrategy::learn_skills(Context& context) {
 void BaseStrategy::command(Context& context) {
     if (context.world().getTickIndex() == 0) {
         context.move().setMessages({
-            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
-            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
-            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
-            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
-        });
-    } else if (context.world().getTickIndex() == 1000) {
-        context.move().setMessages({
-            model::Message(model::LANE_BOTTOM, model::_SKILL_UNKNOWN_, {}),
-            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
-            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
             model::Message(model::LANE_TOP, model::_SKILL_UNKNOWN_, {}),
+            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
+            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
+            model::Message(model::LANE_BOTTOM, model::_SKILL_UNKNOWN_, {}),
         });
     }
 }
