@@ -16,20 +16,9 @@ double get_distance_penalty(double value, double safe) {
 
 Point get_optimal_position(const Context& context, const Target& target, double max_distance,
                            std::size_t initial_points_count, int max_function_calls) {
-    if (const auto unit = target.unit<model::Bonus>(context.cache())) {
+    return target.apply(context.cache(), [&] (const auto unit) {
         return get_optimal_position(context, unit, max_distance, initial_points_count, max_function_calls);
-    } else if (const auto unit = target.unit<model::Building>(context.cache())) {
-        return get_optimal_position(context, unit, max_distance, initial_points_count, max_function_calls);
-    } else if (const auto unit = target.unit<model::Minion>(context.cache())) {
-        return get_optimal_position(context, unit, max_distance, initial_points_count, max_function_calls);
-    } else if (const auto unit = target.unit<model::Wizard>(context.cache())) {
-        return get_optimal_position(context, unit, max_distance, initial_points_count, max_function_calls);
-    } else if (const auto unit = target.unit<model::Tree>(context.cache())) {
-        return get_optimal_position(context, unit, max_distance, initial_points_count, max_function_calls);
-    }
-    std::ostringstream error;
-    error << "Target is not set in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
-    throw std::logic_error(error.str());
+    });
 }
 
 double GetVisionRange::operator ()(const model::Unit&) const {

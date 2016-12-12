@@ -109,6 +109,42 @@ public:
         return nullptr;
     }
 
+    template <class Function>
+    auto apply(const FullCache& cache, Function function) const {
+        if (is<model::Bonus>()) {
+            return function(unit<model::Bonus>(cache));
+        } else if (is<model::Building>()) {
+            return function(unit<model::Building>(cache));
+        } else if (is<model::Minion>()) {
+            return function(unit<model::Minion>(cache));
+        } else if (is<model::Wizard>()) {
+            return function(unit<model::Wizard>(cache));
+        } else if (is<model::Tree>()) {
+            return function(unit<model::Tree>(cache));
+        }
+        std::ostringstream error;
+        error << "Target is not set in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+        throw std::logic_error(error.str());
+    }
+
+    template <class Function>
+    auto apply_cached(const FullCache& cache, Function function) const {
+        if (is<model::Bonus>()) {
+            return function(cached_unit<model::Bonus>(cache));
+        } else if (is<model::Building>()) {
+            return function(cached_unit<model::Building>(cache));
+        } else if (is<model::Minion>()) {
+            return function(cached_unit<model::Minion>(cache));
+        } else if (is<model::Wizard>()) {
+            return function(cached_unit<model::Wizard>(cache));
+        } else if (is<model::Tree>()) {
+            return function(cached_unit<model::Tree>(cache));
+        }
+        std::ostringstream error;
+        error << "Target is not set in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+        throw std::logic_error(error.str());
+    }
+
 private:
     std::tuple<
         std::pair<bool, Id<model::Bonus>>,

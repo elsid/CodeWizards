@@ -192,19 +192,25 @@ void BaseStrategy::apply_move(Context& context) {
         context.move().setStrafeSpeed(movement_->strafe_speed());
     }
 
-    if (const auto target = target_.circular_unit(context.cache())) {
-        const Bounds bounds(context);
-        const auto turn = bounds.limit_turn(context.self().getAngleTo(*target), 0);
-//        const auto direction = get_position(*target) + get_speed(*target) - get_position(context.self());
-//        const auto turn = bounds.limit_turn(normalize_angle(direction.absolute_rotation() - context.self().getAngle()), 0);
+    if (target_.is_some()) {
+        target_.apply(context.cache(), [&] (const auto target) {
+            if (!target) {
+                return;
+            }
 
-        context.move().setTurn(turn);
+            const Bounds bounds(context);
+            const auto turn = bounds.limit_turn(context.self().getAngleTo(*target), 0);
+    //        const auto direction = get_position(*target) + get_speed(*target) - get_position(context.self());
+    //        const auto turn = bounds.limit_turn(normalize_angle(direction.absolute_rotation() - context.self().getAngle()), 0);
 
-        if (target_.is<model::Bonus>()) {
-            return;
-        }
+            context.move().setTurn(turn);
 
-        context.move().setCastAngle(turn);
+            if (this->target_.is<model::Bonus>()) {
+                return;
+            }
+
+            context.move().setCastAngle(turn);
+        });
     } else if (movement_ != movements_.end()) {
         context.move().setTurn(movement_->turn());
     }
