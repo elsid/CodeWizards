@@ -152,6 +152,7 @@ struct GetLaneScore {
 };
 
 WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position);
+std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context, const WorldGraph& graph);
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane);
 
 }

@@ -218,13 +218,18 @@ double GetLaneScore::get_lane_length(model::LaneType lane) const {
     }
 }
 
+std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context, const WorldGraph& graph) {
+    const GetNodeScore get_node_score(context, graph, model::_LANE_UNKNOWN_);
+    const GetLaneScore get_lane_score {context, graph, get_node_score};
+    const auto lanes = {model::LANE_TOP, model::LANE_MIDDLE, model::LANE_BOTTOM};
+    std::array<double, model::_LANE_COUNT_> lanes_score = {{0, 0, 0}};
+    std::transform(lanes.begin(), lanes.end(), lanes_score.begin(), [&] (auto lane) { return get_lane_score(lane); });
+    return lanes_score;
+}
+
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane) {
     if (target_lane == model::_LANE_UNKNOWN_) {
-        const GetNodeScore get_node_score(context, graph, target_lane);
-        const GetLaneScore get_lane_score {context, graph, get_node_score};
-        const auto lanes = {model::LANE_TOP, model::LANE_MIDDLE, model::LANE_BOTTOM};
-        std::array<double, model::_LANE_COUNT_> lanes_score = {{0, 0, 0}};
-        std::transform(lanes.begin(), lanes.end(), lanes_score.begin(), [&] (auto lane) { return get_lane_score(lane); });
+        const auto lanes_score = get_lanes_scores(context, graph);
         target_lane = model::LaneType(std::max_element(lanes_score.begin(), lanes_score.end()) - lanes_score.begin());
     }
     const GetNodeScore get_node_score(context, graph, target_lane);
