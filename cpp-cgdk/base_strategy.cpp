@@ -129,7 +129,7 @@ std::pair<model::SkillType, int> BaseStrategy::get_opposite_skill(const Context&
     std::sort(enemy_wizards.begin(), enemy_wizards.end(),
         [] (auto lhs, auto rhs) { return lhs->getXp() > rhs->getXp(); });
     for (const auto& unit : enemy_wizards) {
-        const auto level_diff = unit->getLevel() > context.self().getLevel();
+        const auto level_diff = unit->getLevel() - context.self().getLevel();
         const auto distance = get_position(context.self()).distance(get_position(*unit));
         if (level_diff > 0 && distance < 1.5 * context.self().getVisionRange()) {
             for (const auto skill : unit->getSkills()) {
