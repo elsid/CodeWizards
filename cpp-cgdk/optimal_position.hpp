@@ -372,7 +372,7 @@ private:
             case model::PROJECTILE_FROST_BOLT:
                 return context.game().getFrostBoltRadius();
             case model::PROJECTILE_FIREBALL:
-                return context.game().getFireballExplosionMaxDamageRange();
+                return context.game().getFireballExplosionMinDamageRange();
             case model::PROJECTILE_DART:
                 return context.game().getDartRadius();
             default:
