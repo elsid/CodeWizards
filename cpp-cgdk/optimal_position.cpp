@@ -86,7 +86,7 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
                     < unit_position.distance(get_position(*rhs)) - rhs->getRadius();
         });
     const auto distance_to_nearest = unit_position.distance(get_position(**nearest_friend)) - (**nearest_friend).getRadius();
-    if (distance_to_me - distance_to_nearest > 1) {
+    if (distance_to_me - distance_to_nearest > context.self().getRadius()) {
         return - 0.01 * line_factor(distance_to_me - distance_to_nearest, 0, 2 * context.self().getVisionRange());
     }
     return get_common(unit, position, sum_enemy_damage);
