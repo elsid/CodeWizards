@@ -112,4 +112,30 @@ double line_factor(double value, double zero_at, double one_at) {
     return std::min(1.0, std::max(0.0, (value - zero_at) / (one_at - zero_at)));
 }
 
+double get_projectile_radius(model::ProjectileType type, const model::Game& game) {
+    switch (type) {
+        case model::PROJECTILE_MAGIC_MISSILE:
+            return game.getMagicMissileRadius();
+        case model::PROJECTILE_FROST_BOLT:
+            return game.getFrostBoltRadius();
+        case model::PROJECTILE_FIREBALL:
+            return game.getFireballRadius();
+        default:
+            return 0;
+    }
+}
+
+double get_projectile_speed(model::ProjectileType type, const model::Game& game) {
+    switch (type) {
+        case model::PROJECTILE_MAGIC_MISSILE:
+            return game.getMagicMissileSpeed();
+        case model::PROJECTILE_FROST_BOLT:
+            return game.getFrostBoltSpeed();
+        case model::PROJECTILE_FIREBALL:
+            return game.getFireballSpeed();
+        default:
+            return 0;
+    }
+}
+
 }

@@ -70,8 +70,7 @@ private:
     void select_mode(const Context& context);
     void apply_mode(const Context& context);
     void update_movements(const Context& context);
-    void apply_move(Context& context);
-    void apply_action(Context& context);
+    void apply_move_and_action(Context& context);
     void learn_skills(Context& Context);
     void command(Context& context);
 
@@ -80,13 +79,15 @@ private:
     void calculate_movements(const Context& context);
     std::pair<model::SkillType, int> get_opposite_skill(const Context& Context) const;
 
-    bool need_apply_haste(const Context& context) const;
-    bool need_apply_shield(const Context& context) const;
-    static bool need_apply_staff(const Context& context, const model::CircularUnit& target);
-    static bool need_apply_magic_missile(const Context& context, const model::CircularUnit& target);
-    static bool need_apply_fireball(const Context& context, const model::CircularUnit& target);
-    static bool need_apply_frostbolt(const Context& context, const model::CircularUnit& target);
-    static bool need_apply_cast(const Context& context, const model::CircularUnit& target, double radius, double explosion_radius = 0);
+    std::vector<model::ActionType> get_actions_by_priority_order(Context& context) const;
+
+    bool can_apply_haste(const Context& context) const;
+    bool can_apply_shield(const Context& context) const;
+    static bool can_apply_staff(const Context& context, const model::CircularUnit& target);
+    static bool can_apply_magic_missile(const Context& context, const model::CircularUnit& target);
+    static bool can_apply_fireball(const Context& context, const model::CircularUnit& target);
+    static bool can_apply_frostbolt(const Context& context, const model::CircularUnit& target);
+    static bool can_apply_cast(const Context& context, const model::CircularUnit& target, double radius, double explosion_radius = 0);
 };
 
 }

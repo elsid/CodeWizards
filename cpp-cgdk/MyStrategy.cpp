@@ -34,6 +34,8 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
             auto base = std::make_unique<strategy::BaseStrategy>(context);
 #ifdef ELSID_STRATEGY_DEBUG
             strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(base));
+#elif defined(ELSID_STRATEGY_BASE)
+            strategy_ = std::move(base);
 #else
             strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(base));
 #endif

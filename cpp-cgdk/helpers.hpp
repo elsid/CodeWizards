@@ -5,6 +5,7 @@
 
 #include "model/World.h"
 #include "model/ActionType.h"
+#include "model/Game.h"
 
 #include <tuple>
 
@@ -288,5 +289,21 @@ template <class Function, class ... Values>
 auto apply_to(const std::tuple<Values ...>& values, std::size_t index, Function function) {
     return ApplyToConst<sizeof ... (Values), Values ...>::perform(values, index, function);
 }
+
+constexpr model::ProjectileType get_projectile_type_by_action(model::ActionType action) {
+    switch (action) {
+        case model::ACTION_MAGIC_MISSILE:
+            return model::PROJECTILE_MAGIC_MISSILE;
+        case model::ACTION_FROST_BOLT:
+            return model::PROJECTILE_FROST_BOLT;
+        case model::ACTION_FIREBALL:
+            return model::PROJECTILE_FIREBALL;
+        default:
+            return model::_PROJECTILE_UNKNOWN_;
+    }
+}
+
+double get_projectile_radius(model::ProjectileType type, const model::Game& game);
+double get_projectile_speed(model::ProjectileType type, const model::Game& game);
 
 }

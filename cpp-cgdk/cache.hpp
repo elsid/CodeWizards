@@ -26,7 +26,7 @@ template <class T>
 class CachedUnit {
 public:
     static constexpr std::size_t LIFE_CHANGES_SIZE = 5;
-    static constexpr std::size_t SPEEDS_SIZE = 5;
+    static constexpr std::size_t SPEEDS_SIZE = 10;
 
     using Value = T;
 

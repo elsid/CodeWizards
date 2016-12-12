@@ -245,5 +245,83 @@ TEST(MyStrategy, with_near_enemy) {
     EXPECT_EQ(move.getStatusTargetId(), -1);
 }
 
+TEST(MyStrategy, with_near_moving_enemy) {
+    static const model::Wizard self(
+        1, // Id
+        400, // X
+        3000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    static const model::Wizard enemy(
+        2, // Id
+        800, // X
+        3000, // Y
+        0, // SpeedX
+        4, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self, enemy}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    MyStrategy().move(self, world, GAME, move);
+    EXPECT_DOUBLE_EQ(move.getCastAngle(), 0.10081151732406143);
+    EXPECT_DOUBLE_EQ(move.getMinCastDistance(), 355);
+    EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9999366724172019);
+    EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.016881109760649167);
+    EXPECT_DOUBLE_EQ(move.getTurn(), 0.0099996666866652376);
+    EXPECT_EQ(move.getAction(), model::ACTION_MAGIC_MISSILE);
+    EXPECT_EQ(move.getSkillToLearn(), model::_SKILL_UNKNOWN_);
+    EXPECT_EQ(move.getStatusTargetId(), -1);
+}
+
 }
 }
