@@ -25,7 +25,8 @@ inline int get_life(const model::LivingUnit& unit) {
 template <class T>
 class CachedUnit {
 public:
-    static constexpr const std::size_t LIFE_CHANGES_SIZE = 5;
+    static constexpr std::size_t LIFE_CHANGES_SIZE = 5;
+    static constexpr std::size_t SPEEDS_SIZE = 5;
 
     using Value = T;
 
@@ -37,7 +38,9 @@ public:
           last_seen_(tick),
           prev_life_change_(tick),
           prev_life_(get_life(value)),
-          first_position_(value.getX(), value.getY()) {}
+          first_position_(value.getX(), value.getY()) {
+        std::fill(speeds_.begin(), speeds_.end(), Point(value.getSpeedX(), value.getSpeedY()));
+    }
 
     const Value& value() const {
         return value_;
@@ -53,6 +56,8 @@ public:
 
     void set(const Value& value, Tick last_seen) {
         value_ = value;
+        std::rotate(speeds_.rbegin(), speeds_.rbegin() + 1, speeds_.rend());
+        speeds_.front() = Point(value.getSpeedX(), value.getSpeedY());
         last_seen_ = last_seen;
         if (const auto life_change = get_life(value) - prev_life_) {
             std::rotate(life_change_.rbegin(), life_change_.rbegin() + 1, life_change_.rend());
@@ -70,6 +75,11 @@ public:
         return double(life_change) / (interval ? double(interval) : 1);
     }
 
+    Point mean_speed() const {
+        const auto sum_speed = std::accumulate(speeds_.begin(), speeds_.end(), Point(0, 0), std::plus<Point>());
+        return sum_speed / speeds_.size();
+    }
+
 private:
     Value value_;
     Tick first_seen_ = 0;
@@ -78,6 +88,7 @@ private:
     int prev_life_ = 0;
     Point first_position_;
     std::array<std::pair<Tick, int>, LIFE_CHANGES_SIZE> life_change_;
+    std::array<Point, SPEEDS_SIZE> speeds_;
 };
 
 template <class T>

@@ -86,7 +86,10 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     if (friend_units.empty()) {
         return get_common(unit, position, sum_enemy_damage);
     }
-    const auto unit_position = get_position(unit);
+    const Bounds my_bounds(context);
+    const auto time_to_position = get_position(context.self()).distance(position) / my_bounds.max_speed(0);
+    const auto& cached_unit = get_units<model::Minion>(context.cache()).at(unit.getId());
+    const auto unit_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;
     const auto nearest_friend = std::min_element(friend_units.begin(), friend_units.end(),
         [&] (auto lhs, auto rhs) {
             return unit_position.distance(get_position(*lhs)) < unit_position.distance(get_position(*rhs));

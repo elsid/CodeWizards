@@ -121,11 +121,15 @@ struct GetUnitDangerPenalty {
 
     template <class T>
     double get_common(const T& unit, const Point& position, double sum_damage_to_me) const {
+        const Bounds my_bounds(context);
+        const auto time_to_position = get_position(context.self()).distance(position) / my_bounds.max_speed(0);
+        const auto& cached_unit = get_units<T>(context.cache()).at(unit.getId());
+        const auto unit_future_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;
         const GetAttackRange get_attack_range {context};
-        const auto max_distance = std::max(position.distance(get_position(unit)),
-                                           position.distance(get_position(unit) + get_speed(unit)));
-        const auto min_distance = std::min(position.distance(get_position(unit)),
-                                           position.distance(get_position(unit) + get_speed(unit)));
+        const auto current_distance = position.distance(get_position(unit));
+        const auto future_distance = position.distance(unit_future_position);
+        const auto max_distance = std::max(current_distance, future_distance);
+        const auto min_distance = std::min(current_distance, future_distance);
         const auto distance_factor = double(context.self().getMaxLife()) / double(context.game().getGuardianTowerDamage())
                 * sum_damage_to_me / context.self().getLife();
         const auto safe_distance = 1 + context.self().getRadius() + std::max(context.game().getStaffRange(),
