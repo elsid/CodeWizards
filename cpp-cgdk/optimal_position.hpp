@@ -103,7 +103,7 @@ struct GetCurrentDamage {
         const auto turn_ticks = turn / unit_bounds.max_turn(0);
         const auto distance = position.distance(my_position);
         const auto move_ticks = distance / my_bounds.max_strafe_speed(std::ceil(turn_ticks));
-        const auto max_cast_angle = M_PI / 12.0;
+        const auto max_cast_angle = context.game().getStaffSector() / 2;
         return turn_ticks > move_ticks ? 1.0 - std::max(0.0, future_angle - max_cast_angle) / (M_PI - max_cast_angle) : 1.0;
     }
 };

@@ -367,16 +367,20 @@ void DebugStrategy::visualize_units(const Context& context) {
 }
 
 void DebugStrategy::visualize_unit(const Context& context, const model::Wizard& unit) {
+    const GetMaxDamage get_max_damage {context};
+    const GetAttackRange get_attack_range {context};
+    const auto range = get_attack_range(unit, get_max_damage.next_attack_action(unit, context.game().getMapSize()).first);
     debug_.circle(unit.getX(), unit.getY(), unit.getVisionRange(), 0x44FF44);
     debug_.circle(unit.getX(), unit.getY(), unit.getCastRange(), 0xFF4444);
     debug_.circle(unit.getX(), unit.getY(), context.game().getStaffRange(), 0xFF2222);
-    const auto missile_direction = Point(1, 0).rotated(normalize_angle(unit.getAngle() + context.move().getCastAngle()));
-    const auto missile_min_target = get_position(unit) + missile_direction * context.move().getMinCastDistance();
-    const auto missile_max_target = get_position(unit)
-            + missile_direction * std::min(unit.getCastRange(), context.move().getMaxCastDistance());
-    debug_.line(missile_min_target.x(), missile_min_target.y(), missile_max_target.x(), missile_max_target.y(), 0xFF4444);
-    debug_.circle(missile_min_target.x(), missile_min_target.y(), context.game().getMagicMissileRadius(), 0xFF4444);
-    debug_.circle(missile_max_target.x(), missile_max_target.y(), context.game().getMagicMissileRadius(), 0xFF4444);
+    const auto missile_direction_left = Point(1, 0).rotated(normalize_angle(unit.getAngle() - context.game().getStaffSector() / 2));
+    const auto missile_direction_right = Point(1, 0).rotated(normalize_angle(unit.getAngle() + context.game().getStaffSector() / 2));
+    const auto missile_max_target_left = get_position(unit) + missile_direction_left * range;
+    const auto missile_max_target_right = get_position(unit) + missile_direction_right * range;
+    debug_.line(unit.getX(), unit.getY(), missile_max_target_left.x(), missile_max_target_left.y(), 0xFF4444);
+    debug_.line(unit.getX(), unit.getY(), missile_max_target_right.x(), missile_max_target_right.y(), 0xFF4444);
+    debug_.arc(unit.getX(), unit.getY(), range, normalize_angle(unit.getAngle() - context.game().getStaffSector() / 2),
+               context.game().getStaffSector(), 0xFF4444);
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() + unit.getRadius(),
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
 
