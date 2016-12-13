@@ -193,8 +193,7 @@ public:
           action_(action),
           unit_position_(get_position(target.value())),
           unit_speed_(target.mean_speed()),
-          unit_speed_norm_(unit_speed_.norm()),
-          unit_radius_(target.value().getRadius()) {
+          unit_speed_norm_(unit_speed_.norm()) {
     }
 
     double operator ()(double cast_angle) const {
@@ -222,7 +221,7 @@ public:
         const auto unit_target = unit_position_ + unit_speed_ * unit_time;
         const auto distance = projectile_target.distance(unit_target);
 
-        if (distance > projectile_radius + unit_radius_ - 1) {
+        if (distance > projectile_radius) {
             return std::numeric_limits<double>::max();
         }
 
@@ -239,7 +238,6 @@ private:
     Point unit_position_;
     Point unit_speed_;
     double unit_speed_norm_;
-    double unit_radius_;
 };
 
 void BaseStrategy::apply_move_and_action(Context& context) {
