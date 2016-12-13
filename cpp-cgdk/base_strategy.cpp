@@ -212,7 +212,6 @@ public:
             return std::numeric_limits<double>::max();
         }
 
-        const auto projectile_radius = get_projectile_radius(projectile_type, context_.game());
         const auto projectile_time = intersection.distance(my_position) / projectile_speed_norm;
         const auto projectile_path_length = std::min(projectile_speed_norm * projectile_time,
                                                      context_.self().getCastRange());
@@ -221,7 +220,7 @@ public:
         const auto unit_target = unit_position_ + unit_speed_ * unit_time;
         const auto distance = projectile_target.distance(unit_target);
 
-        if (distance > projectile_radius) {
+        if (distance > 1) {
             return std::numeric_limits<double>::max();
         }
 
@@ -292,9 +291,8 @@ void BaseStrategy::apply_move_and_action(Context& context) {
             const auto unit_position = get_position(*target);
             const auto nearest = trajectory.nearest(unit_position);
             const auto distance_to_target = nearest.distance(unit_position);
-            const auto lethal_area = projectile_radius + target->getRadius();
 
-            if (distance_to_target < lethal_area && trajectory.has_point(nearest)) {
+            if (distance_to_target < 1 && trajectory.has_point(nearest)) {
                 context.move().setCastAngle(cast_angle);
                 apply = true;
             }
