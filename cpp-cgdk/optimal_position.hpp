@@ -479,8 +479,7 @@ private:
         const auto range = context.game().getStaffRange();
         const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
         const auto ticks_factor = line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
-        const auto damage = get_unit_current_damage(unit, position);
-        const auto life_factor = line_factor(context.self().getLife(), damage, context.self().getMaxLife());
+        const auto life_factor = double(context.self().getLife()) / double(context.self().getMaxLife());
         if (distance <= range) {
             return 0.01 * line_factor(distance, 0, range) * ticks_factor * life_factor;
         } else {
