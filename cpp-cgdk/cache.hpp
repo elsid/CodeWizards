@@ -56,7 +56,9 @@ public:
 
     void set(const Value& value, Tick last_seen) {
         value_ = value;
-        std::rotate(speeds_.rbegin(), speeds_.rbegin() + 1, speeds_.rend());
+        const auto shift = std::min(speeds_.size(), std::size_t(last_seen - last_seen_));
+        std::rotate(speeds_.rbegin(), speeds_.rbegin() + shift, speeds_.rend());
+        std::fill_n(speeds_.begin() + 1, shift - 1, Point());
         speeds_.front() = Point(value.getSpeedX(), value.getSpeedY());
         last_seen_ = last_seen;
         if (const auto life_change = get_life(value) - prev_life_) {
