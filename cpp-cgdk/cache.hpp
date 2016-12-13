@@ -39,7 +39,7 @@ public:
           prev_life_change_(tick),
           prev_life_(get_life(value)),
           first_position_(value.getX(), value.getY()) {
-        std::fill(speeds_.begin(), speeds_.end(), Point(value.getSpeedX(), value.getSpeedY()));
+        speeds_.front() = Point(value.getSpeedX(), value.getSpeedY());
     }
 
     const Value& value() const {
