@@ -2,7 +2,7 @@
 
 from time import time, sleep
 from shutil import copy
-from os import mkdir, chmod
+from os import mkdir, chmod, environ
 from os.path import join, exists
 from sys import argv
 from collections import Counter
@@ -41,9 +41,11 @@ for run in range(int(argv[1])):
     start = time()
     with AutoKillProcess(runner + [config_path]) as p:
         sleep(3)
-        with AutoKillProcess(['bash', command, '127.0.0.1', str(port), '0000000000000000']) as strategy:
+        with AutoKillProcess(['bash', command, '127.0.0.1', str(port), '0000000000000000'], env=environ) as strategy:
             strategy.wait()
         p.wait()
+    with open(run_log) as f:
+        print(f.read())
     finish = time()
     with open(result_path) as f:
         lines = [v for v in f]
