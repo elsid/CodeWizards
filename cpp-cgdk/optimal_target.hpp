@@ -66,9 +66,9 @@ struct GetLifeRegeneration {
 
 struct GetTargetScore {
     static constexpr const double BUILDING_HIT_PROBABILITY = 1.0;
-    static constexpr const double MINION_HIT_PROBABILITY = 0.8;
+    static constexpr const double MINION_HIT_PROBABILITY = 1.0;
     static constexpr const double TREE_HIT_PROBABILITY = 1.0;
-    static constexpr const double WIZARD_HIT_PROBABILITY = 0.5;
+    static constexpr const double WIZARD_HIT_PROBABILITY = 0.25;
 
     const Context& context;
 
