@@ -236,13 +236,13 @@ public:
     double get_projectiles_penalty(const Point& position) const {
         const auto& projectiles = get_units<model::Projectile>(context.cache());
         return std::accumulate(projectiles.begin(), projectiles.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + this->get_projectile_penalty(v.second, position); });
+            [&] (auto max, auto v) { return std::max(max, this->get_projectile_penalty(v.second, position)); });
     }
 
     double get_elimination_score(const Point& position) const {
         const auto get_sum_elimination_score = [&] (const auto& units) {
             return std::accumulate(units.begin(), units.end(), 0.0,
-                [&] (auto sum, const auto& v) { return sum + this->get_elimination_score(v.second, position); });
+                [&] (auto max, const auto& v) { return std::max(max, this->get_elimination_score(v.second, position)); });
         };
 
         return get_sum_elimination_score(get_units<model::Building>(context.cache()))
@@ -282,7 +282,7 @@ public:
 
     double get_bonuses_penalty(const Point& position) const {
         return std::accumulate(bonuses.begin(), bonuses.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + this->get_bonus_penalty(*v, position); });
+            [&] (auto max, auto v) { return std::max(max, this->get_bonus_penalty(*v, position)); });
     }
 
     double get_friendly_fire_penalty(const Point& position) const {
@@ -455,20 +455,20 @@ private:
     double get_units_danger_penalty(const std::vector<const Unit*>& units, const Point& position, double sum_damage_to_me) const {
         const GetUnitDangerPenalty get_unit_danger_penalty {context, friend_units};
         return std::accumulate(units.begin(), units.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + get_unit_danger_penalty(*v, position, sum_damage_to_me); });
+            [&] (auto max, auto v) { return std::max(max, get_unit_danger_penalty(*v, position, sum_damage_to_me)); });
     }
 
     template <class Unit>
     double get_units_collision_penalty(const std::vector<const Unit*>& units, const Point& position) const {
         const GetUnitIntersectionPenalty get_unit_collision_penalty {context};
         return std::accumulate(units.begin(), units.end(), 0.0,
-           [&] (auto sum, auto v) { return sum + get_unit_collision_penalty(*v, position); });
+           [&] (auto max, auto v) { return std::max(max, get_unit_collision_penalty(*v, position)); });
     }
 
     template <class Unit>
     double get_friendly_fire_penalty(const std::vector<const Unit*>& units, const Point& position) const {
         return std::accumulate(units.begin(), units.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + this->get_friendly_fire_penalty(*v, position); });
+            [&] (auto max, auto v) { return std::max(max, this->get_friendly_fire_penalty(*v, position)); });
     }
 
     template <class Unit>
