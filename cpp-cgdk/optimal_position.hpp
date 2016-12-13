@@ -55,7 +55,8 @@ struct GetRangedDamage {
                 ? 1.0
                 : get_distance_penalty(std::min(current_distance, future_distance) - attack_range,
                                        2 * context.self().getRadius());
-        return factor * get_damage(unit, distance);
+        const auto damage = get_damage(unit, distance);
+        return factor * damage;
     }
 };
 
