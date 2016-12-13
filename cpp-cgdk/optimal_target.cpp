@@ -327,12 +327,8 @@ struct SetResult {
         const GetAttackRange get_attack_range {context};
         const auto optimal_position = get_optimal_position(context, &candidate, 2 * context.self().getVisionRange(),
             OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
-        const auto path = get_optimal_path(context, optimal_position, OPTIMAL_PATH_STEP_SIZE,
-                                           OPTIMAL_PATH_MAX_TICKS, 100);
-        auto min_distance = get_position(context.self()).distance(get_position(candidate));
-        if (!path.empty()) {
-            min_distance = std::min(min_distance, path.back().distance(get_position(candidate)));
-        }
+        auto min_distance = std::min(get_position(context.self()).distance(get_position(candidate)),
+                                     optimal_position.distance(get_position(candidate)));
         if (min_distance <= get_attack_range(context.self(), min_distance) + candidate.getRadius()) {
             result = get_id(candidate);
         }
