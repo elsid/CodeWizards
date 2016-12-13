@@ -473,11 +473,12 @@ private:
 
     template <class Unit>
     double get_target_penalty(const Unit& unit, const Point& position) const {
+        const GetAttackRange get_attack_range {context};
         const GetMaxDamage get_max_damage {context};
         const auto current_distance = position.distance(get_position(unit));
         const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
         const auto distance = std::max(current_distance, future_distance);
-        const auto range = context.game().getStaffRange();
+        const auto range = get_attack_range(context.self(), distance);
         const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
         const auto ticks_factor = line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
         const auto damage = get_unit_current_damage(unit, position);
