@@ -57,7 +57,7 @@ TEST(GetTargetScore, for_me_and_enemy_wizard) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const GetTargetScore get_target_score {context};
-    EXPECT_DOUBLE_EQ(get_target_score(enemy), 1.1935156858580329);
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 1.6947922739184067);
 }
 
 TEST(get_optimal_target, for_me_and_enemy_wizard) {
@@ -354,7 +354,6 @@ TEST(get_optimal_target, for_me_and_enemy_wizards_with_different_skills) {
     ASSERT_TRUE(result.is<model::Wizard>());
     EXPECT_EQ(result.unit<model::Wizard>(cache)->getId(), enemy_with_advanced_magic_missile.getId());
 }
-
 
 }
 }
