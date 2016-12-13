@@ -239,6 +239,97 @@ private:
     double unit_speed_norm_;
 };
 
+struct ApplyCast {
+    Context& context;
+
+    template <class Unit>
+    bool operator ()(const CachedUnit<Unit>& target, model::ActionType action) {
+        const GetTimeDelta get_time_delta(context, target, action);
+        return (*this)(target.value(), action, get_time_delta);
+    }
+
+    template <class Unit>
+    bool operator ()(const Unit& target, model::ActionType action, const GetTimeDelta& get_time_delta) {
+        const auto unit_speed_norm = get_time_delta.unit_speed_norm();
+        const auto projectile_type = get_projectile_type_by_action(action);
+        const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
+        double cast_angle;
+        bool apply = false;
+
+        if (unit_speed_norm == 0) {
+            cast_angle = get_cast_angle_for_static(target);
+            const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
+            const auto my_position = get_position(context.self());
+            const Line trajectory(my_position, my_position + direction * context.self().getCastRange());
+            const auto unit_position = get_position(target);
+            const auto projectile_target = trajectory.nearest(unit_position);
+            const auto distance_to_target = projectile_target.distance(unit_position);
+
+            if (distance_to_target < 1 && trajectory.has_point(projectile_target)) {
+                apply = true;
+            }
+        } else {
+            const auto distance = get_position(context.self()).distance(get_position(target));
+            const auto precision = std::min(projectile_radius / distance * M_1_PI, INVERTED_PHI);
+            const std::size_t iterations = std::ceil(std::log(precision) / std::log(INVERTED_PHI));
+            cast_angle = golden_section(get_time_delta, - M_PI / 12, M_PI / 12, iterations);
+            const auto time_delta = get_time_delta(cast_angle);
+
+            if (time_delta < 1) {
+                apply = true;
+            }
+        }
+
+        if (apply) {
+            const auto distance = get_position(context.self()).distance(get_position(target));
+            const auto type = get_projectile_type_by_action(action);
+            const auto radius = get_projectile_radius(type, context.game());
+            context.move().setCastAngle(cast_angle);
+            context.move().setMinCastDistance(distance - target.getRadius() - radius);
+            context.move().setAction(action);
+            return true;
+        }
+
+        return false;
+    }
+
+    bool operator ()(const CachedUnit<model::Wizard>& target, model::ActionType action) {
+        return (*this)(target.value(), action);
+    }
+
+    bool operator ()(const model::Wizard& target, model::ActionType action) {
+        const auto cast_angle = get_cast_angle_for_static(target);
+        const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
+        const auto my_position = get_position(context.self());
+        const Line trajectory(my_position, my_position + direction * context.self().getCastRange());
+        const auto unit_position = get_position(target);
+        const auto projectile_target = trajectory.nearest(unit_position);
+        const auto projectile_type = get_projectile_type_by_action(action);
+        const auto projectile_speed_norm = get_projectile_speed(projectile_type, context.game());
+        const auto projectile_time = projectile_target.distance(my_position) / projectile_speed_norm;
+        const auto unit_bounds = make_unit_bounds(context, target);
+        const auto future_max_distance =  unit_position.distance(projectile_target) + unit_bounds.max_speed(0) * projectile_time;
+        const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
+
+        if (future_max_distance < target.getRadius() + projectile_radius) {
+            const auto distance = get_position(context.self()).distance(get_position(target));
+            const auto type = get_projectile_type_by_action(action);
+            const auto radius = get_projectile_radius(type, context.game());
+            context.move().setCastAngle(cast_angle);
+            context.move().setMinCastDistance(distance - target.getRadius() - radius);
+            context.move().setAction(action);
+            return true;
+        }
+
+        return false;
+    }
+
+    double get_cast_angle_for_static(const model::Unit& target) const {
+        const auto angle = context.self().getAngleTo(target);
+        return std::min(M_PI / 12, std::max(- M_PI / 12, angle));
+    }
+};
+
 void BaseStrategy::apply_move_and_action(Context& context) {
     if (movement_ != movements_.end()) {
         context.move().setSpeed(movement_->speed());
@@ -274,47 +365,12 @@ void BaseStrategy::apply_move_and_action(Context& context) {
             break;
         }
 
-        const auto get_time_delta = target_.apply_cached(context.cache(),
-            [&] (const auto target) { return GetTimeDelta(context, *target, action); });
+        ApplyCast apply_cast {context};
 
-        const auto unit_speed_norm = get_time_delta.unit_speed_norm();
-        const auto projectile_type = get_projectile_type_by_action(action);
-        const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
-        double cast_angle;
-        bool apply = false;
+        const auto applied = target_.apply_cached(context.cache(),
+            [&] (const auto target) { return apply_cast(*target, action); });
 
-        if (unit_speed_norm == 0) {
-            const auto angle = context.self().getAngleTo(*target);
-            cast_angle = std::min(M_PI / 12, std::max(- M_PI / 12, angle));
-            const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
-            const auto my_position = get_position(context.self());
-            const Line trajectory(my_position, my_position + direction * context.self().getCastRange());
-            const auto unit_position = get_position(*target);
-            const auto nearest = trajectory.nearest(unit_position);
-            const auto distance_to_target = nearest.distance(unit_position);
-
-            if (distance_to_target < 1 && trajectory.has_point(nearest)) {
-                apply = true;
-            }
-        } else {
-            const auto distance = get_position(context.self()).distance(get_position(*target));
-            const auto precision = std::min(projectile_radius / distance * M_1_PI, INVERTED_PHI);
-            const std::size_t iterations = std::ceil(std::log(precision) / std::log(INVERTED_PHI));
-            cast_angle = golden_section(get_time_delta, - M_PI / 12, M_PI / 12, iterations);
-            const auto time_delta = get_time_delta(cast_angle);
-
-            if (time_delta < 1) {
-                apply = true;
-            }
-        }
-
-        if (apply) {
-            const auto distance = get_position(context.self()).distance(get_position(*target));
-            const auto type = get_projectile_type_by_action(action);
-            const auto radius = get_projectile_radius(type, context.game());
-            context.move().setCastAngle(cast_angle);
-            context.move().setMinCastDistance(distance - target->getRadius() - radius);
-            context.move().setAction(action);
+        if (applied) {
             break;
         }
     }
