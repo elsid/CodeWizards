@@ -123,17 +123,13 @@ struct GetUnitDangerPenalty {
     double get_common(const T& unit, const Point& position, double sum_damage_to_me) const {
         const Bounds my_bounds(context);
         const auto time_to_position = get_position(context.self()).distance(position) / my_bounds.max_speed(0);
-        const auto& cached_unit = get_units<T>(context.cache()).at(unit.getId());
-        const auto unit_future_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;
         const GetAttackRange get_attack_range {context};
         const auto current_distance = position.distance(get_position(unit));
-        const auto future_distance = position.distance(unit_future_position);
-        const auto max_distance = std::max(current_distance, future_distance);
+        const auto future_distance = position.distance(get_position(unit) + get_speed(unit) * time_to_position);
         const auto min_distance = std::min(current_distance, future_distance);
-        const auto distance_factor = double(context.self().getMaxLife()) / double(context.game().getGuardianTowerDamage())
-                * sum_damage_to_me / context.self().getLife();
-        const auto safe_distance = 1 + context.self().getRadius() + std::max(context.game().getStaffRange(),
-                distance_factor * get_attack_range(unit, max_distance));
+        const auto distance_factor = 3 * sum_damage_to_me / context.self().getLife();
+        const auto safe_distance = 2 * context.self().getRadius() + std::max(context.game().getStaffRange(),
+                distance_factor * get_attack_range(unit, min_distance));
         if (min_distance <= safe_distance) {
             return get_distance_penalty(min_distance, safe_distance);
         } else {
@@ -202,7 +198,7 @@ public:
             get_bonuses_penalty(position),
             get_projectiles_penalty(position) * PROJECTILE_PENALTY_WEIGHT,
             get_friendly_fire_penalty(position),
-            get_target_penalty(position),
+            get_target_penalty(position) * TARGET_PENALTY_WEIGHT,
             get_borders_penalty(position),
             get_distance_penalty(position),
         }};
@@ -480,8 +476,7 @@ private:
         const auto range = context.game().getStaffRange();
         const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
         const auto ticks_factor = line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
-        const auto damage = get_unit_current_damage(unit, position);
-        const auto life_factor = line_factor(context.self().getLife(), damage, context.self().getMaxLife());
+        const auto life_factor = double(context.self().getLife()) / double(context.self().getMaxLife());
         if (distance <= range) {
             return 0.01 * line_factor(distance, 0, range) * ticks_factor * life_factor;
         } else {
