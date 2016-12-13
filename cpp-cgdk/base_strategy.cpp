@@ -280,11 +280,12 @@ void BaseStrategy::apply_move_and_action(Context& context) {
         const auto unit_speed_norm = get_time_delta.unit_speed_norm();
         const auto projectile_type = get_projectile_type_by_action(action);
         const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
+        double cast_angle;
         bool apply = false;
 
         if (unit_speed_norm == 0) {
             const auto angle = context.self().getAngleTo(*target);
-            const auto cast_angle = std::min(M_PI / 12, std::max(- M_PI / 12, angle));
+            cast_angle = std::min(M_PI / 12, std::max(- M_PI / 12, angle));
             const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
             const auto my_position = get_position(context.self());
             const Line trajectory(my_position, my_position + direction * context.self().getCastRange());
@@ -293,18 +294,16 @@ void BaseStrategy::apply_move_and_action(Context& context) {
             const auto distance_to_target = nearest.distance(unit_position);
 
             if (distance_to_target < 1 && trajectory.has_point(nearest)) {
-                context.move().setCastAngle(cast_angle);
                 apply = true;
             }
         } else {
             const auto distance = get_position(context.self()).distance(get_position(*target));
             const auto precision = std::min(projectile_radius / distance * M_1_PI, INVERTED_PHI);
             const std::size_t iterations = std::ceil(std::log(precision) / std::log(INVERTED_PHI));
-            const auto cast_angle = golden_section(get_time_delta, - M_PI / 12, M_PI / 12, iterations);
+            cast_angle = golden_section(get_time_delta, - M_PI / 12, M_PI / 12, iterations);
             const auto time_delta = get_time_delta(cast_angle);
 
             if (time_delta < 1) {
-                context.move().setCastAngle(cast_angle);
                 apply = true;
             }
         }
@@ -313,6 +312,7 @@ void BaseStrategy::apply_move_and_action(Context& context) {
             const auto distance = get_position(context.self()).distance(get_position(*target));
             const auto type = get_projectile_type_by_action(action);
             const auto radius = get_projectile_radius(type, context.game());
+            context.move().setCastAngle(cast_angle);
             context.move().setMinCastDistance(distance - target->getRadius() - radius);
             context.move().setAction(action);
             break;
