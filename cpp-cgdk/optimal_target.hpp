@@ -104,7 +104,7 @@ struct GetTargetScore {
         if (unit.getLife() <= max_damage) {
             return max_damage * (damage_score + elimination_score);
         } else {
-            return max_damage * damage_score;
+            return max_damage * (damage_score + elimination_score * max_damage / unit.getLife());
         }
     }
 
