@@ -287,7 +287,7 @@ public:
 
     double get_friendly_fire_penalty(const Point& position) const {
         return get_friendly_fire_penalty(friend_buildings, position)
-                + get_friendly_fire_penalty(friend_wizards, position);
+                + get_friendly_fire_penalty(trees, position);
     }
 
     double get_target_penalty(const Point& position) const {
