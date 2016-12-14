@@ -15,6 +15,10 @@
 
 namespace strategy {
 
+const double PROJECTILE_PENALTY_WEIGHT = 1.1;
+const double ELIMINATION_SCORE_WEIGHT = 1;
+const double UNITS_DANGER_PENALTY_WEIGHT = 1.1;
+
 double get_distance_penalty(double value, double safe);
 
 Point get_optimal_position(const Context& context, const Target& target, double max_distance,
