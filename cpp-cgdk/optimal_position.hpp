@@ -18,7 +18,7 @@ namespace strategy {
 double get_distance_penalty(double value, double safe);
 
 Point get_optimal_position(const Context& context, const Target& target, double max_distance,
-                           std::size_t initial_points_count, int max_function_calls);
+                           long max_function_calls = OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
 
 struct GetVisionRange {
     const Context& context;
@@ -485,27 +485,14 @@ private:
 
 template <class T>
 Point get_optimal_position(const Context& context, const T* target, double max_distance,
-                           std::size_t initial_points_count, int max_function_calls) {
+                           long max_function_calls = OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS) {
     const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
-    std::vector<std::pair<double, Point>> points;
-    points.reserve(initial_points_count);
-    points.emplace_back(minimize(get_position_penalty, get_position(context.self()), max_function_calls));
-    std::size_t step = 0;
-    std::generate_n(std::back_inserter(points), initial_points_count - 1,
-        [&] {
-            context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
-            const auto angle = normalize_angle(2.0 * M_PI * double(step++) / double(initial_points_count));
-            const auto initial = get_position(context.self()) + Point(1, 0).rotated(angle) * 0.25 * context.self().getVisionRange();
-            return minimize(get_position_penalty, initial, max_function_calls);
-        });
-    const auto result = std::min_element(points.begin(), points.end(),
-        [] (const auto& lhs, const auto& rhs) { return lhs.first < rhs.first; })->second;
-    return result;
+    return minimize(get_position_penalty, get_position(context.self()), max_function_calls).second;
 }
 
 template <>
 inline Point get_optimal_position(const Context& /*context*/, const model::Bonus* target, double /*max_distance*/,
-                                  std::size_t /*initial_points_count*/, int /*max_function_calls*/) {
+                                  long /*max_function_calls*/) {
     return get_position(*target);
 }
 
