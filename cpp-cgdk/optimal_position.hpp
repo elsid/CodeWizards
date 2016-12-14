@@ -295,8 +295,7 @@ public:
     }
 
     double get_distance_penalty(const Point& position) const {
-        const auto sign = context.self().getLife() > context.self().getMaxLife() / 2 ? 1 : -1;
-        return 0.1 * sign * line_factor(get_position(context.self()).distance(position), 0, max_distance);
+        return 0.1 * line_factor(get_position(context.self()).distance(position), 0, max_distance);
     }
 
 private:
