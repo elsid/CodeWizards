@@ -25,7 +25,7 @@ void BattleMode::update_target(const Context& context) {
             continue;
         }
         destination_ = {true, get_optimal_position(context, target_, 2 * context.self().getVisionRange(),
-                        OPTIMAL_POSITION_INITIAL_POINTS_COUNT, OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)};
+                        OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)};
         break;
     }
 }

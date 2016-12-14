@@ -315,8 +315,8 @@ TEST(MyStrategy, with_near_moving_enemy) {
     MyStrategy().move(self, world, GAME, move);
     EXPECT_DOUBLE_EQ(move.getCastAngle(), 0);
     EXPECT_DOUBLE_EQ(move.getMinCastDistance(), 355);
-    EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9999366724172019);
-    EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.016881109760649167);
+    EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9801750227893153);
+    EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.2983141267687307);
     EXPECT_DOUBLE_EQ(move.getTurn(), 0.0099996666866652376);
     EXPECT_EQ(move.getAction(), model::ACTION_MAGIC_MISSILE);
     EXPECT_EQ(move.getSkillToLearn(), model::_SKILL_UNKNOWN_);
