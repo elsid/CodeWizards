@@ -138,4 +138,13 @@ double get_projectile_speed(model::ProjectileType type, const model::Game& game)
     }
 }
 
+double get_projectile_explosion_radius(model::ProjectileType type, const model::Game& game) {
+    switch (type) {
+        case model::PROJECTILE_FIREBALL:
+            return game.getFireballExplosionMinDamageRange();
+        default:
+            return 0;
+    }
+}
+
 }
