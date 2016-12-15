@@ -15,6 +15,11 @@ public:
     virtual void apply(Context& context) = 0;
 };
 
+struct Action {
+    double cast_angle;
+    double min_cast_distance;
+};
+
 class BaseStrategy : public Strategy {
 public:
     BaseStrategy(const Context& context);
@@ -83,13 +88,21 @@ private:
 
     std::vector<model::ActionType> get_actions_by_priority_order(Context& context) const;
 
-    bool can_apply_haste(const Context& context) const;
-    bool can_apply_shield(const Context& context) const;
-    static bool can_apply_staff(const Context& context, const model::CircularUnit& target);
-    static bool can_apply_magic_missile(const Context& context, const model::CircularUnit& target);
-    static bool can_apply_fireball(const Context& context, const model::CircularUnit& target);
-    static bool can_apply_frostbolt(const Context& context, const model::CircularUnit& target);
-    static bool can_apply_cast(const Context& context, const model::CircularUnit& target, double radius, double explosion_radius = 0);
+    static bool can_apply_haste(const Context& context);
+    static bool can_apply_shield(const Context& context);
+    static bool can_apply_staff(const Context& context);
+    static bool can_apply_magic_missile(const Context& context);
+    static bool can_apply_fireball(const Context& context);
+    static bool can_apply_frostbolt(const Context& context);
+
+    std::pair<bool, Action> need_apply_action(const Context& context, model::ActionType type) const;
+    std::pair<bool, Action> need_apply_haste(const Context& context) const;
+    std::pair<bool, Action> need_apply_shield(const Context& context) const;
+    std::pair<bool, Action> need_apply_staff(const Context& context) const;
+    std::pair<bool, Action> need_apply_magic_missile(const Context& context) const;
+    std::pair<bool, Action> need_apply_fireball(const Context& context) const;
+    std::pair<bool, Action> need_apply_frostbolt(const Context& context) const;
+    std::pair<bool, Action> need_apply_cast(const Context& context, model::ProjectileType projectile_type) const;
 };
 
 }
