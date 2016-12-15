@@ -188,18 +188,18 @@ void BaseStrategy::update_movements(const Context& context) {
 class GetTimeDelta {
 public:
     template <class Unit>
-    GetTimeDelta(const Context& context, const CachedUnit<Unit>& target, model::ActionType action)
+    GetTimeDelta(const Context& context, const CachedUnit<Unit>& target, model::ProjectileType projectile_type)
         : context_(context),
-          action_(action),
+          projectile_type_(projectile_type),
           unit_position_(get_position(target.value())),
           unit_speed_(target.mean_speed()),
-          unit_speed_norm_(unit_speed_.norm()) {
+          unit_speed_norm_(unit_speed_.norm()),
+          unit_radius_(target.value().getRadius()) {
     }
 
     double operator ()(double cast_angle) const {
         const auto my_position = get_position(context_.self());
-        const auto projectile_type = get_projectile_type_by_action(action_);
-        const auto projectile_speed_norm = get_projectile_speed(projectile_type, context_.game());
+        const auto projectile_speed_norm = get_projectile_speed(projectile_type_, context_.game());
         const auto angle = normalize_angle(context_.self().getAngle() + cast_angle);
         const auto projectile_direction = Point(1, 0).rotated(angle);
         const Line projectile_trajectory(my_position, my_position + projectile_direction);
@@ -220,11 +220,21 @@ public:
         const auto unit_target = unit_position_ + unit_speed_ * unit_time;
         const auto distance = projectile_target.distance(unit_target);
 
-        if (distance > 1) {
+        if (distance > unit_radius_ + get_projectile_radius(projectile_type_, context_.game()) - 1) {
             return std::numeric_limits<double>::max();
         }
 
         return std::abs(projectile_time - unit_time);
+    }
+
+    std::pair<bool, Point> get_intersection(double cast_angle) const {
+        const auto my_position = get_position(context_.self());
+        const auto angle = normalize_angle(context_.self().getAngle() + cast_angle);
+        const auto projectile_direction = Point(1, 0).rotated(angle);
+        const Line projectile_trajectory(my_position, my_position + projectile_direction);
+        const Line unit_trajectory(unit_position_, unit_position_ + unit_speed_);
+
+        return projectile_trajectory.intersection(unit_trajectory);
     }
 
     double unit_speed_norm() const {
@@ -233,100 +243,124 @@ public:
 
 private:
     const Context& context_;
-    model::ActionType action_;
+    model::ProjectileType projectile_type_;
     Point unit_position_;
     Point unit_speed_;
     double unit_speed_norm_;
+    double unit_radius_;
 };
 
-struct ApplyCast {
-    Context& context;
+struct GetCastAction {
+    const Context& context;
 
     template <class Unit>
-    bool operator ()(const CachedUnit<Unit>& target, model::ActionType action) {
-        const GetTimeDelta get_time_delta(context, target, action);
-        return (*this)(target.value(), action, get_time_delta);
+    std::pair<bool, Action> operator ()(const CachedUnit<Unit>& target, model::ProjectileType projectile_type) const {
+        const GetTimeDelta get_time_delta(context, target, projectile_type);
+        return (*this)(target.value(), projectile_type, get_time_delta);
     }
 
     template <class Unit>
-    bool operator ()(const Unit& target, model::ActionType action, const GetTimeDelta& get_time_delta) {
+    std::pair<bool, Action> operator ()(const Unit& target, model::ProjectileType projectile_type, const GetTimeDelta& get_time_delta) const {
         const auto unit_speed_norm = get_time_delta.unit_speed_norm();
-        const auto projectile_type = get_projectile_type_by_action(action);
-        const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
-        double cast_angle;
-        bool apply = false;
 
         if (unit_speed_norm == 0) {
-            cast_angle = get_cast_angle_for_static(target);
-            const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
-            const auto my_position = get_position(context.self());
-            const Line trajectory(my_position, my_position + direction * context.self().getCastRange());
-            const auto unit_position = get_position(target);
-            const auto projectile_target = trajectory.nearest(unit_position);
-            const auto distance_to_target = projectile_target.distance(unit_position);
-
-            if (distance_to_target < 1 && trajectory.has_point(projectile_target)) {
-                apply = true;
-            }
-        } else {
-            const auto distance = get_position(context.self()).distance(get_position(target));
-            const auto precision = std::min(projectile_radius / distance * M_1_PI, INVERTED_PHI);
-            const std::size_t iterations = std::ceil(std::log(precision) / std::log(INVERTED_PHI));
-            cast_angle = golden_section(get_time_delta, - M_PI / 12, M_PI / 12, iterations);
-            const auto time_delta = get_time_delta(cast_angle);
-
-            if (time_delta < 1) {
-                apply = true;
-            }
+            return (*this)(target, projectile_type);
         }
 
-        if (apply) {
-            const auto distance = get_position(context.self()).distance(get_position(target));
-            const auto type = get_projectile_type_by_action(action);
-            const auto radius = get_projectile_radius(type, context.game());
-            context.move().setCastAngle(cast_angle);
-            context.move().setMinCastDistance(distance - target.getRadius() - radius);
-            context.move().setAction(action);
-            return true;
-        }
-
-        return false;
-    }
-
-    bool operator ()(const CachedUnit<model::Wizard>& target, model::ActionType action) {
-        return (*this)(target.value(), action);
-    }
-
-    bool operator ()(const model::Wizard& target, model::ActionType action) {
-        const auto cast_angle = get_cast_angle_for_static(target);
-        const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
         const auto my_position = get_position(context.self());
-        const Line trajectory(my_position, my_position + direction * context.self().getCastRange());
-        const auto unit_position = get_position(target);
-        const auto projectile_target = trajectory.nearest(unit_position);
-        const auto projectile_type = get_projectile_type_by_action(action);
-        const auto projectile_speed_norm = get_projectile_speed(projectile_type, context.game());
-        const auto projectile_time = projectile_target.distance(my_position) / projectile_speed_norm;
-        const auto unit_bounds = make_unit_bounds(context, target);
-        const auto future_max_distance =  unit_position.distance(projectile_target) + unit_bounds.max_speed(0) * projectile_time;
+        const auto distance = my_position.distance(get_position(target));
         const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
+        const auto precision = std::min(projectile_radius / distance * M_1_PI, INVERTED_PHI);
+        const std::size_t iterations = std::ceil(std::log(precision) / std::log(INVERTED_PHI));
+        const auto cast_angle = golden_section(get_time_delta, - M_PI / 12, M_PI / 12, iterations);
 
-        if (future_max_distance < target.getRadius() + projectile_radius) {
-            const auto distance = get_position(context.self()).distance(get_position(target));
-            const auto type = get_projectile_type_by_action(action);
-            const auto radius = get_projectile_radius(type, context.game());
-            context.move().setCastAngle(cast_angle);
-            context.move().setMinCastDistance(distance - target.getRadius() - radius);
-            context.move().setAction(action);
-            return true;
+        bool has_intersection;
+        Point intersection;
+        std::tie(has_intersection, intersection) = get_time_delta.get_intersection(cast_angle);
+
+        if (!has_intersection) {
+            return {false, Action {0, 0}};
         }
 
-        return false;
+        const auto min_cast_distance = my_position.distance(intersection) - get_min_cast_distance_reduce(target);
+
+        if (min_cast_distance > context.self().getCastRange() - 1) {
+            return {false, Action {0, 0}};
+        }
+
+        const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
+        const auto initial_position = my_position + direction * min_cast_distance;
+        const auto projectile_explosion_radius = get_projectile_explosion_radius(projectile_type, context.game());
+
+        for (const auto& unit : get_units<model::Wizard>(context.world())) {
+            if (unit.getFaction() != context.self().getFaction()) {
+                continue;
+            }
+
+            const Circle projectile(initial_position, projectile_radius);
+            const Circle explosion(initial_position, projectile_explosion_radius);
+            const Circle unit_circle(get_position(unit), unit.getRadius());
+
+            if (unit_circle.has_intersection(projectile, intersection)
+                    || (projectile_explosion_radius > projectile_radius && unit_circle.has_intersection(explosion))) {
+                return {false, Action {0, 0}};
+            }
+        }
+
+        return {true, Action {cast_angle, min_cast_distance}};
+    }
+
+    std::pair<bool, Action> operator ()(const CachedUnit<model::Wizard>& target, model::ProjectileType projectile_type) const {
+        return (*this)(target.value(), projectile_type);
+    }
+
+    std::pair<bool, Action> operator ()(const model::CircularUnit& target, model::ProjectileType projectile_type) const {
+        const auto cast_angle = get_cast_angle_for_static(target);
+        const auto my_position = get_position(context.self());
+        const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
+        const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
+        const auto limit = my_position + direction * context.self().getCastRange();
+        const Line trajectory(my_position, limit);
+        const auto unit_position = get_position(target);
+        const auto nearest = trajectory.nearest(unit_position);
+        const auto projectile_final_position = nearest.distance(my_position) <= context.self().getCastRange() ? nearest : limit;
+        const Circle projectile(my_position, projectile_radius);
+        const Circle unit(unit_position, target.getRadius());
+
+        bool has_intersection;
+        Point intersection;
+        std::tie(has_intersection, intersection) = unit.intersection(projectile, projectile_final_position);
+
+        if (!has_intersection) {
+            return {false, Action {0, 0}};
+        }
+
+        const auto distance_to_intersection = my_position.distance(intersection);
+        const auto distance_to_final = my_position.distance(projectile_final_position);
+
+        if (distance_to_final - distance_to_intersection < 1) {
+            return {false, Action {0, 0}};
+        }
+
+        return {true, Action {cast_angle, distance_to_intersection}};
     }
 
     double get_cast_angle_for_static(const model::Unit& target) const {
         const auto angle = context.self().getAngleTo(target);
         return std::min(M_PI / 12, std::max(- M_PI / 12, angle));
+    }
+
+    double get_min_cast_distance_for_static(const model::Unit& target) const {
+        const auto angle = context.self().getAngleTo(target);
+        return std::min(M_PI / 12, std::max(- M_PI / 12, angle));
+    }
+
+    double get_min_cast_distance_reduce(const model::CircularUnit& target) const {
+        return target.getRadius();
+    }
+
+    double get_min_cast_distance_reduce(const model::Wizard& target) const {
+        return make_unit_bounds(context, target).max_speed(0);
     }
 };
 
@@ -339,38 +373,15 @@ void BaseStrategy::apply_move_and_action(Context& context) {
 
     const auto actions = get_actions_by_priority_order(context);
 
-    if (!actions.empty()) {
-        context.move().setAction(actions.front());
-    }
+    for (const auto action_type : actions) {
+        bool need_apply;
+        Action action;
+        std::tie(need_apply, action) = need_apply_action(context, action_type);
 
-    if (!target_.is_some()) {
-        return;
-    }
-
-    const auto target = target_.circular_unit(context.cache());
-
-    if (!target) {
-        return;
-    }
-
-    if (this->target_.is<model::Bonus>()) {
-        return;
-    }
-
-    context.move().setAction(model::ACTION_NONE);
-
-    for (const auto action : actions) {
-        if (action != model::ACTION_MAGIC_MISSILE && action != model::ACTION_FIREBALL && action != model::ACTION_FROST_BOLT) {
-            context.move().setAction(action);
-            break;
-        }
-
-        ApplyCast apply_cast {context};
-
-        const auto applied = target_.apply_cached(context.cache(),
-            [&] (const auto target) { return apply_cast(*target, action); });
-
-        if (applied) {
+        if (need_apply) {
+            context.move().setAction(action_type);
+            context.move().setCastAngle(action.cast_angle);
+            context.move().setMinCastDistance(action.min_cast_distance);
             break;
         }
     }
@@ -407,16 +418,24 @@ std::vector<model::ActionType> BaseStrategy::get_actions_by_priority_order(Conte
         return result;
     }
 
-    if (const auto target = target_.circular_unit(context.cache())) {
-        if (can_apply_staff(context, *target)) {
-            result.push_back(model::ACTION_STAFF);
-        } else if (can_apply_fireball(context, *target)) {
-            result.push_back(model::ACTION_FIREBALL);
-        } else if (can_apply_frostbolt(context, *target)) {
-            result.push_back(model::ACTION_FROST_BOLT);
-        } else if (can_apply_magic_missile(context, *target)) {
-            result.push_back(model::ACTION_MAGIC_MISSILE);
-        }
+    if (!target_.circular_unit(context.cache())) {
+        return result;
+    }
+
+    if (can_apply_staff(context)) {
+        result.push_back(model::ACTION_STAFF);
+    }
+
+    if (can_apply_fireball(context)) {
+        result.push_back(model::ACTION_FIREBALL);
+    }
+
+    if (can_apply_frostbolt(context)) {
+        result.push_back(model::ACTION_FROST_BOLT);
+    }
+
+    if (can_apply_magic_missile(context)) {
+        result.push_back(model::ACTION_MAGIC_MISSILE);
     }
 
     return result;
@@ -441,30 +460,69 @@ void BaseStrategy::use_battle_mode() {
     mode_ = battle_mode_;
 }
 
-bool BaseStrategy::can_apply_haste(const Context& context) const {
+bool BaseStrategy::can_apply_haste(const Context& context) {
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_HASTE] == 0
             && context.self().getMana() >= context.game().getHasteManacost()
             && !is_with_status(context.self(), model::STATUS_HASTENED)
-            && has_skill(context.self(), model::SKILL_HASTE)
-            && ((!target_.is<model::Bonus>()
-                && target_.is_some())
-                || get_position(context.self()).distance(destination_) > 0.5 * context.self().getVisionRange());
+            && has_skill(context.self(), model::SKILL_HASTE);
 }
 
-bool BaseStrategy::can_apply_shield(const Context& context) const {
+bool BaseStrategy::can_apply_shield(const Context& context) {
     return context.self().getRemainingCooldownTicksByAction()[model::ACTION_SHIELD] == 0
             && context.self().getMana() >= context.game().getShieldManacost()
             && !is_with_status(context.self(), model::STATUS_SHIELDED)
-            && !target_.is<model::Bonus>()
-            && target_.is_some()
             && has_skill(context.self(), model::SKILL_SHIELD);
 }
 
-bool BaseStrategy::can_apply_staff(const Context& context, const model::CircularUnit& target) {
-    if (context.self().getRemainingCooldownTicksByAction()[model::ACTION_STAFF] != 0) {
-        return false;
-    }
+bool BaseStrategy::can_apply_staff(const Context& context) {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_STAFF] == 0;
+}
 
+bool BaseStrategy::can_apply_fireball(const Context& context) {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FIREBALL] == 0
+            && context.self().getMana() >= context.game().getFireballManacost()
+            && has_skill(context.self(), model::SKILL_FIREBALL);
+}
+
+bool BaseStrategy::can_apply_frostbolt(const Context& context) {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FROST_BOLT] == 0
+            && context.self().getMana() >= context.game().getFrostBoltManacost()
+            && has_skill(context.self(), model::SKILL_FROST_BOLT);
+}
+
+bool BaseStrategy::can_apply_magic_missile(const Context& context) {
+    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_MAGIC_MISSILE] == 0
+            && context.self().getMana() >= context.game().getMagicMissileManacost();
+}
+
+std::pair<bool, Action> BaseStrategy::need_apply_action(const Context& context, model::ActionType type) const {
+    switch (type) {
+        case model::ACTION_STAFF:
+            return need_apply_staff(context);
+        case model::ACTION_MAGIC_MISSILE:
+            return need_apply_magic_missile(context);
+        case model::ACTION_FROST_BOLT:
+            return need_apply_frostbolt(context);
+        case model::ACTION_FIREBALL:
+            return need_apply_fireball(context);
+        case model::ACTION_HASTE:
+            return need_apply_haste(context);
+        case model::ACTION_SHIELD:
+            return need_apply_shield(context);
+        default:
+            return {false, Action {0, 0}};
+    }
+}
+
+std::pair<bool, Action> BaseStrategy::need_apply_haste(const Context&) const {
+    return {true, Action {0, 0}};
+}
+
+std::pair<bool, Action> BaseStrategy::need_apply_shield(const Context&) const {
+    return {true, Action {0, 0}};
+}
+
+std::pair<bool, Action> BaseStrategy::need_apply_staff(const Context& context) const {
     const auto is_in_attack_range = [&] (const auto& unit) {
         const auto direction = get_position(unit) - get_position(context.self());
         const auto angle = normalize_angle(direction.absolute_rotation() - context.self().getAngle());
@@ -475,11 +533,22 @@ bool BaseStrategy::can_apply_staff(const Context& context, const model::Circular
 
         const auto distance = direction.norm();
         const auto lethal_area = unit.getRadius() + context.game().getStaffRange();
+
         return distance <= lethal_area;
     };
 
-    if (!is_in_attack_range(target)) {
-        return false;
+    if (this->target_.is<model::Bonus>()) {
+        return {false, Action {0, 0}};
+    }
+
+    const auto target = target_.circular_unit(context.cache());
+
+    if (!target) {
+        return {false, Action {0, 0}};
+    }
+
+    if (!is_in_attack_range(*target)) {
+        return {false, Action {0, 0}};
     }
 
     const auto wizards = get_units<model::Wizard>(context.world());
@@ -488,52 +557,30 @@ bool BaseStrategy::can_apply_staff(const Context& context, const model::Circular
             return is_friend(unit, context.self().getFaction(), context.self().getId()) && is_in_attack_range(unit);
         });
 
-    return !is_any_friend_in_attack_range;
+    return {!is_any_friend_in_attack_range, Action {0, 0}};
 }
 
-bool BaseStrategy::can_apply_fireball(const Context& context, const model::CircularUnit& target) {
-    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FIREBALL] == 0
-            && context.self().getMana() >= context.game().getFireballManacost()
-            && has_skill(context.self(), model::SKILL_FIREBALL)
-            && can_apply_cast(context, target, context.game().getFireballRadius(),
-                               context.game().getFireballExplosionMinDamageRange());
+std::pair<bool, Action> BaseStrategy::need_apply_magic_missile(const Context& context) const {
+    return need_apply_cast(context, model::PROJECTILE_MAGIC_MISSILE);
 }
 
-bool BaseStrategy::can_apply_frostbolt(const Context& context, const model::CircularUnit& target) {
-    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_FROST_BOLT] == 0
-            && context.self().getMana() >= context.game().getFrostBoltManacost()
-            && has_skill(context.self(), model::SKILL_FROST_BOLT)
-            && can_apply_cast(context, target, context.game().getFrostBoltRadius());
+std::pair<bool, Action> BaseStrategy::need_apply_fireball(const Context& context) const {
+    return need_apply_cast(context, model::PROJECTILE_FIREBALL);
 }
 
-bool BaseStrategy::can_apply_magic_missile(const Context& context, const model::CircularUnit& target) {
-    return context.self().getRemainingCooldownTicksByAction()[model::ACTION_MAGIC_MISSILE] == 0
-            && context.self().getMana() >= context.game().getMagicMissileManacost()
-            && can_apply_cast(context, target, context.game().getMagicMissileRadius());
+std::pair<bool, Action> BaseStrategy::need_apply_frostbolt(const Context& context) const {
+    return need_apply_cast(context, model::PROJECTILE_FROST_BOLT);
 }
 
-bool BaseStrategy::can_apply_cast(const Context& context, const model::CircularUnit& target, double radius, double explosion_radius) {
-    const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + context.move().getCastAngle()));
-    const auto distance = get_position(target).distance(get_position(context.self())) - target.getRadius() - radius + 1;
-    const auto cast_target = get_position(context.self()) + direction * std::min(distance, context.self().getCastRange());
-
-    const Circle cast(get_position(context.self()), radius);
-    const auto friend_wizards = filter_friends(get_units<model::Wizard>(context.world()), context.self().getFaction(),
-                                               context.self().getId());
-    std::vector<Circle> barriers;
-    barriers.reserve(friend_wizards.size());
-    std::transform(friend_wizards.begin(), friend_wizards.end(), std::back_inserter(barriers), make_circle);
-
-    if (has_intersection_with_barriers(cast, cast_target, barriers)) {
-        return false;
-    } else if (explosion_radius <= radius) {
-        return true;
+std::pair<bool, Action> BaseStrategy::need_apply_cast(const Context& context, model::ProjectileType projectile_type) const {
+    if (this->target_.is<model::Bonus>() || !target_.circular_unit(context.cache())) {
+        return {false, Action {0, 0}};
     }
 
-    const Circle explosion(cast_target, explosion_radius);
+    const GetCastAction get_cast_action {context};
 
-    return !has_intersection_with_barriers(explosion, barriers)
-            && !explosion.has_intersection(Circle(get_position(context.self()), context.self().getRadius()));
+    return  target_.apply_cached(context.cache(),
+        [&] (const auto& v) { return get_cast_action(*v, projectile_type); });
 }
 
 }
