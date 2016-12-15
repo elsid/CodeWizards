@@ -62,16 +62,16 @@ void BaseStrategy::handle_messages(const Context& context) {
 void BaseStrategy::learn_skills(Context& context) {
     for (; prev_level_ < context.self().getLevel(); ++prev_level_) {
         std::array<int, model::_SKILL_COUNT_> skills_priorities = {{
-            3, // SKILL_RANGE_BONUS_PASSIVE_1
-            3, // SKILL_RANGE_BONUS_AURA_1
-            3, // SKILL_RANGE_BONUS_PASSIVE_2
-            3, // SKILL_RANGE_BONUS_AURA_2
-            3, // SKILL_ADVANCED_MAGIC_MISSILE
-            4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
-            4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
-            4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
-            4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
-            4, // SKILL_FROST_BOLT
+            4, // SKILL_RANGE_BONUS_PASSIVE_1
+            4, // SKILL_RANGE_BONUS_AURA_1
+            4, // SKILL_RANGE_BONUS_PASSIVE_2
+            4, // SKILL_RANGE_BONUS_AURA_2
+            4, // SKILL_ADVANCED_MAGIC_MISSILE
+            3, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
+            3, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
+            3, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
+            3, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
+            3, // SKILL_FROST_BOLT
             5, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
             5, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
             5, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
