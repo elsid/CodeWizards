@@ -305,5 +305,6 @@ constexpr model::ProjectileType get_projectile_type_by_action(model::ActionType 
 
 double get_projectile_radius(model::ProjectileType type, const model::Game& game);
 double get_projectile_speed(model::ProjectileType type, const model::Game& game);
+double get_projectile_explosion_radius(model::ProjectileType type, const model::Game& game);
 
 }
