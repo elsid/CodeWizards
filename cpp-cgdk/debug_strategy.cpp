@@ -249,7 +249,7 @@ void DebugStrategy::visualize(const Context& context) {
 }
 
 void DebugStrategy::visualize_graph(const Context& context) {
-    const GetNodeScore get_node_score(context, base_->graph(), base_->move_mode().target_lane());
+    const GetNodeScore get_node_score(context, base_->graph(), base_->move_mode().target_lane(), context.self());
     const auto& nodes = base_->graph().nodes();
     const auto& arcs = base_->graph().arcs();
     Matrix visualized_arcs(nodes.size(), 0);

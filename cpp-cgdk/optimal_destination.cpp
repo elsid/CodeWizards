@@ -13,8 +13,8 @@
 
 namespace strategy {
 
-TowersOrder::TowersOrder(const Context& context)
-    : context_(context),
+TowersOrder::TowersOrder(const model::World& world, model::Faction faction)
+    : faction_(faction),
       friend_towers_({{
         {{Point(1370.66, 3650),
           Point(2312.13, 3950)}}, // TOP
@@ -24,17 +24,17 @@ TowersOrder::TowersOrder(const Context& context)
           Point(350, 1656.75)}}, // BOTTOM
       }}),
       enemy_towers_({{
-        {{Point(context.world().getWidth() - 1370.66, context.world().getHeight() - 3650),
-          Point(context.world().getWidth() - 2312.13, context.world().getHeight() - 3950)}}, // TOP
-        {{Point(context.world().getWidth() - 902.613, context.world().getHeight() - 2768.1),
-          Point(context.world().getWidth() - 1929.29, context.world().getHeight() - 2400)}}, // MIDDLE
-        {{Point(context.world().getWidth() - 50, context.world().getHeight() - 2693.26),
-          Point(context.world().getWidth() - 350, context.world().getHeight() - 1656.75)}}, // BOTTOM
+        {{Point(world.getWidth() - 1370.66, world.getHeight() - 3650),
+          Point(world.getWidth() - 2312.13, world.getHeight() - 3950)}}, // TOP
+        {{Point(world.getWidth() - 902.613, world.getHeight() - 2768.1),
+          Point(world.getWidth() - 1929.29, world.getHeight() - 2400)}}, // MIDDLE
+        {{Point(world.getWidth() - 50, world.getHeight() - 2693.26),
+          Point(world.getWidth() - 350, world.getHeight() - 1656.75)}}, // BOTTOM
       }}) {
 }
 
 model::LaneType TowersOrder::get_lane(const model::Building& unit) const {
-    if (unit.getFaction() == context_.self().getFaction()) {
+    if (unit.getFaction() == faction_) {
         return get_lane(unit, friend_towers_);
     } else {
         return get_lane(unit, enemy_towers_);
@@ -43,7 +43,7 @@ model::LaneType TowersOrder::get_lane(const model::Building& unit) const {
 
 TowerNumber TowersOrder::get_number(const model::Building& unit) const {
     const auto lane = get_lane(unit);
-    if (unit.getFaction() == context_.self().getFaction()) {
+    if (unit.getFaction() == faction_) {
         return get_number(unit, friend_towers_[lane]);
     } else {
         return get_number(unit, enemy_towers_[lane]);
@@ -97,12 +97,13 @@ WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& p
         [&] (const auto& lhs, const auto& rhs) { return position.distance(lhs.second) < position.distance(rhs.second); });
 }
 
-GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, model::LaneType target_lane)
+GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, model::LaneType target_lane, const model::Wizard& wizard)
         : context_(context),
           graph_(graph),
           target_lane_(target_lane),
+          wizard_(wizard),
           nodes_info_(graph.nodes().size()),
-          self_nearest_node_(get_nearest_node(graph.nodes(), get_position(context.self())).first) {
+          wizard_nearest_node_(get_nearest_node(graph.nodes(), get_position(wizard)).first) {
     fill_nodes_info<model::Bonus>(get_units<model::Bonus>(context_.cache()));
     fill_nodes_info<model::Building>(get_units<model::Building>(context_.cache()));
     fill_nodes_info<model::Minion>(get_units<model::Minion>(context_.cache()));
@@ -110,7 +111,7 @@ GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, mode
 
     for (const auto& node : graph.nodes()) {
         auto& node_info = nodes_info_[node.first];
-        node_info.path = graph.get_shortest_path(self_nearest_node_, node.first);
+        node_info.path = graph.get_shortest_path(wizard_nearest_node_, node.first);
     }
 }
 
@@ -131,7 +132,7 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
             * context_.game().getBonusScoreAmount();
 
     if ((target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node))
-            || self_nearest_node_ == node) {
+            || wizard_nearest_node_ == node) {
         return bonus_score * reduce_factor;
     }
 
@@ -155,7 +156,7 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto enemy_base_score = node_info.enemy_base_weight
             * context_.game().getVictoryScore();
 
-    if (context_.self().getLife() > 2 * context_.self().getMaxLife() / 3) {
+    if (wizard_.getLife() > 2 * wizard_.getMaxLife() / 3) {
         return (1 + enemy_minions_score + enemy_wizards_score + enemy_towers_score + enemy_base_score + bonus_score)
                 * reduce_factor * mult_factor;
     } else {
@@ -218,8 +219,8 @@ double GetLaneScore::get_lane_length(model::LaneType lane) const {
     }
 }
 
-std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context, const WorldGraph& graph) {
-    const GetNodeScore get_node_score(context, graph, model::_LANE_UNKNOWN_);
+std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context, const WorldGraph& graph, const model::Wizard& wizard) {
+    const GetNodeScore get_node_score(context, graph, model::_LANE_UNKNOWN_, wizard);
     const GetLaneScore get_lane_score {context, graph, get_node_score};
     const auto lanes = {model::LANE_TOP, model::LANE_MIDDLE, model::LANE_BOTTOM};
     std::array<double, model::_LANE_COUNT_> lanes_score = {{0, 0, 0}};
@@ -227,12 +228,12 @@ std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context,
     return lanes_score;
 }
 
-WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane) {
+WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane, const model::Wizard& wizard) {
     if (target_lane == model::_LANE_UNKNOWN_) {
-        const auto lanes_score = get_lanes_scores(context, graph);
+        const auto lanes_score = get_lanes_scores(context, graph, wizard);
         target_lane = model::LaneType(std::max_element(lanes_score.begin(), lanes_score.end()) - lanes_score.begin());
     }
-    const GetNodeScore get_node_score(context, graph, target_lane);
+    const GetNodeScore get_node_score(context, graph, target_lane, wizard);
     std::vector<double> scores;
     scores.reserve(graph.nodes().size());
     std::transform(graph.nodes().begin(), graph.nodes().end(), std::back_inserter(scores),

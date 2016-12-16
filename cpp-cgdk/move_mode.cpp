@@ -40,7 +40,7 @@ void MoveMode::update_path(const Context& context) {
     if (destination_.first && path_node_ != path_.end() && last_message_ != context.world().getTickIndex()) {
         return;
     }
-    const auto destination = get_optimal_destination(context, graph_, target_lane_);
+    const auto destination = get_optimal_destination(context, graph_, target_lane_, context.self());
     if (destination_.first && destination_.second == destination && path_node_ != path_.end()) {
         return;
     }
