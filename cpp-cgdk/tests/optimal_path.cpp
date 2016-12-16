@@ -473,5 +473,70 @@ TEST(get_optimal_path, with_static_occupier) {
     EXPECT_EQ(result.back(), target - Point(20, 35));
 }
 
+TEST(get_optimal_path, with_static_occupier_and_limited_iterations) {
+    const model::Wizard self(
+        1, // Id
+        1000, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Tree tree(
+        2, // Id
+        1200, // X
+        1200, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_OTHER, // Faction
+        5, // Radius
+        17, // Life
+        17, // MaxLife
+        {} // Statuses
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {tree} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    const FullCache cache;
+    const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
+    const Point target(1200, 1200);
+    const auto step_size = 3;
+    const auto result = get_optimal_path(context, target, step_size, std::numeric_limits<Tick>::max(), 50);
+    ASSERT_EQ(result.size(), 50u);
+    EXPECT_EQ(result.front(), get_position(self));
+    EXPECT_EQ(result.back(), target - Point(53, 53));
+}
+
 }
 }
