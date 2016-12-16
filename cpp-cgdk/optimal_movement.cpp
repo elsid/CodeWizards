@@ -14,20 +14,28 @@
 namespace strategy {
 
 Movement get_next_movement(const Point& target, const MovementState& state, const OptPoint& look_target, const Bounds& bounds) {
+    double speed = 0;
+    double strafe_speed = 0;
+    double angle_to = 0;
+
     const auto direction = target - state.position();
     const auto norm = direction.norm();
-    if (norm == 0) {
-        return Movement(0, 0, 0);
+
+    if (norm != 0) {
+        angle_to = normalize_angle(direction.absolute_rotation() - state.angle());
+        speed = math::cos(angle_to) * (std::abs(angle_to) <= M_PI_2 ? bounds.max_speed(state.tick()) : -bounds.min_speed(state.tick()));
+        strafe_speed = bounds.max_strafe_speed(state.tick()) * math::sin(angle_to);
+        const auto speed_factor = std::min(1.0, norm / std::hypot(speed, strafe_speed));
+        speed *= speed_factor;
+        strafe_speed *= speed_factor;
     }
-    const auto angle_to = normalize_angle(direction.absolute_rotation() - state.angle());
-    const auto speed = math::cos(angle_to)
-            * (std::abs(angle_to) <= M_PI_2 ? bounds.max_speed(state.tick()) : -bounds.min_speed(state.tick()));
-    const auto strafe_speed = bounds.max_strafe_speed(state.tick()) * math::sin(angle_to);
-    const auto speed_factor = std::min(1.0, norm / std::hypot(speed, strafe_speed));
-    const auto turn = look_target.first
-            ? normalize_angle((look_target.second - state.position()).absolute_rotation() - state.angle())
-            : angle_to;
-    return Movement(speed * speed_factor, strafe_speed * speed_factor, bounds.limit_turn(turn, state.tick()));
+
+    const auto turn = bounds.limit_turn(
+                (look_target.first
+                 ? normalize_angle((look_target.second - state.position()).absolute_rotation() - state.angle())
+                 : angle_to), state.tick());
+
+    return Movement(speed, strafe_speed, turn);
 }
 
 Point get_shift(const MovementState& state, const Movement& movement) {
@@ -57,20 +65,35 @@ std::pair<MovementsStates, Movements> get_optimal_movement(const Context& contex
 
     const Bounds bounds {context};
 
+    const auto perform_iteration = [&] (const auto next_path_position) {
+        const auto next = get_next_state(next_path_position, states.back(), look_target, bounds);
+        states.push_back(next.first);
+        movements.push_back(next.second);
+    };
+
     Point prev_path_position = path.front();
     for (const auto& path_position : path) {
         prev_path_position = path_position;
         while (path_position.distance(states.back().position()) > bounds.max_speed(std::floor(states.back().tick()))) {
-            const auto next = get_next_state(path_position, states.back(), look_target, bounds);
-            states.push_back(next.first);
-            movements.push_back(next.second);
+            perform_iteration(path_position);
+        }
+    }
+
+    if (look_target.first) {
+        while (true) {
+            const auto angle_diff = normalize_angle((look_target.second - states.back().position()).absolute_rotation() - states.back().angle());
+            const auto required_diff = bounds.max_turn(std::floor(states.back().tick())) * 0.1;
+
+            if (std::abs(angle_diff) < required_diff) {
+                break;
+            }
+
+            perform_iteration(path.back());
         }
     }
 
     if (path.back() != states.back().position()) {
-        const auto next = get_next_state(path.back(), states.back(), look_target, bounds);
-        states.push_back(next.first);
-        movements.push_back(next.second);
+        perform_iteration(path.back());
     }
 
     return {states, movements};
