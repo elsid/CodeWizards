@@ -88,6 +88,12 @@ void DebugStrategy::apply(Context& context) {
     base_->apply(context);
     visualize(context);
     count_stats(context);
+
+    if (context.move().getSkillToLearn() != model::_SKILL_UNKNOWN_) {
+        std::cout << "[" << context.world().getTickIndex() << "] learn_skill "
+                  << SKILLS_NAMES.at(context.move().getSkillToLearn())
+                  << " at level " << context.self().getLevel() << '\n';
+    }
 }
 
 void DebugStrategy::count_stats(const Context& context) {
