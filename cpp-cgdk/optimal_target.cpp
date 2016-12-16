@@ -244,7 +244,7 @@ double GetTargetScore::base(const model::Tree&) const {
 }
 
 double GetTargetScore::base(const model::Building& unit) const {
-    const TowersOrder tower_order(context);
+    const TowersOrder tower_order(context.world(), context.self().getFaction());
     bool immortal = true;
     double add = 0;
 
