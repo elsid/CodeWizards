@@ -15,14 +15,14 @@ enum class TowerNumber {
 
 class TowersOrder {
 public:
-    TowersOrder(const Context& context);
+    TowersOrder(const model::World& world, model::Faction faction);
 
     model::LaneType get_lane(const model::Building& unit) const;
     TowerNumber get_number(const model::Building& unit) const;
     const Point& get_enemy_tower(model::LaneType lane, TowerNumber number) const;
 
 private:
-    const Context& context_;
+    model::Faction faction_;
     std::array<std::array<Point, 2>, 3> friend_towers_;
     std::array<std::array<Point, 2>, 3> enemy_towers_;
 
@@ -99,7 +99,7 @@ public:
         }
     };
 
-    GetNodeScore(const Context& context, const WorldGraph& graph, model::LaneType target_lane);
+    GetNodeScore(const Context& context, const WorldGraph& graph, model::LaneType target_lane, const model::Wizard& wizard);
 
     double operator ()(WorldGraph::Node node) const;
 
@@ -113,8 +113,9 @@ private:
     const Context& context_;
     const WorldGraph& graph_;
     model::LaneType target_lane_;
+    const model::Wizard& wizard_;
     std::vector<NodeInfo> nodes_info_;
-    WorldGraph::Node self_nearest_node_;
+    WorldGraph::Node wizard_nearest_node_;
 
     template <class Unit>
     void fill_nodes_info(const typename std::unordered_map<UnitId, CachedUnit<Unit>>& units) {
@@ -124,11 +125,11 @@ private:
             const auto distance_to_nearest = get_position(unit).distance(nearest_node.second);
             for (const auto& node : graph_.nodes()) {
                 const auto distance = get_position(unit).distance(node.second);
-                if (distance < context_.self().getVisionRange()) {
+                if (distance < wizard_.getVisionRange()) {
                     const auto distance_weight = distance_to_nearest / (distance ? distance : 1.0);
                     auto& node_info = nodes_info_[node.first];
                     if (unit.getFaction() == model::FACTION_ACADEMY || unit.getFaction() == model::FACTION_RENEGADES) {
-                        if (unit.getFaction() == context_.self().getFaction()) {
+                        if (unit.getFaction() == wizard_.getFaction()) {
                             node_info.add_friend(unit, distance_weight);
                         } else {
                             node_info.add_enemy(unit, distance_weight);
@@ -152,8 +153,8 @@ struct GetLaneScore {
 };
 
 WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position);
-std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context, const WorldGraph& graph);
-WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane);
+std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context, const WorldGraph& graph, const model::Wizard& wizard);
+WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane, const model::Wizard& wizard);
 
 }
 
