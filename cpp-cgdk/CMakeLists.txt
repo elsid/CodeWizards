@@ -60,6 +60,7 @@ set(SOURCES
     battle_mode.cpp
     circle.cpp
     helpers.cpp
+    retreat_mode.cpp
 )
 
 add_executable(cpp-cgdk
