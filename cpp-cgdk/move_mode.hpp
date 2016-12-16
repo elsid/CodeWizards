@@ -27,7 +27,7 @@ public:
     }
 
     Result apply(const Context& context) override final;
-    void reset();
+    void reset() override final;
 
 private:
     const WorldGraph& graph_;

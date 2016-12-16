@@ -1,8 +1,7 @@
 #ifndef STRATEGY_BASE_STRATEGY_HPP
 #define STRATEGY_BASE_STRATEGY_HPP
 
-#include "battle_mode.hpp"
-#include "move_mode.hpp"
+#include "retreat_mode.hpp"
 #include "world_graph.hpp"
 #include "optimal_movement.hpp"
 
@@ -54,6 +53,7 @@ private:
     const WorldGraph graph_;
     const std::shared_ptr<BattleMode> battle_mode_;
     const std::shared_ptr<MoveMode> move_mode_;
+    const std::shared_ptr<RetreatMode> retreat_mode_;
     std::shared_ptr<Mode> mode_;
     Target target_;
     Point destination_;
@@ -76,6 +76,9 @@ private:
 
     void use_move_mode();
     void use_battle_mode();
+    void use_retreat_mode();
+    void use_mode(const std::shared_ptr<Mode>& mode);
+
     void calculate_movements(const Context& context);
     std::pair<model::SkillType, int> get_opposite_skill(const Context& Context) const;
 

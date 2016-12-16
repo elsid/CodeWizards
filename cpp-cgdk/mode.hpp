@@ -34,6 +34,7 @@ public:
 
     virtual ~Mode() = default;
     virtual Result apply(const Context& context) = 0;
+    virtual void reset() = 0;
 };
 
 }

@@ -10,6 +10,9 @@ BattleMode::Result BattleMode::apply(const Context& context) {
     return target_.is_some() && destination_.first ? Result(target_, destination_.second) : Result();
 }
 
+void BattleMode::reset() {
+}
+
 void BattleMode::update_target(const Context& context) {
     const auto max_distances = {
         get_max_distance_for_tree_candidate(context),

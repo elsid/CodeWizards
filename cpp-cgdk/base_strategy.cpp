@@ -25,6 +25,7 @@ BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
           battle_mode_(std::make_shared<BattleMode>()),
           move_mode_(std::make_shared<MoveMode>(graph_)),
+          retreat_mode_(std::make_shared<RetreatMode>(battle_mode_, move_mode_)),
           mode_(move_mode_),
           destination_(get_position(context.self())),
           state_(states_.end()),
@@ -147,6 +148,10 @@ std::pair<model::SkillType, int> BaseStrategy::get_opposite_skill(const Context&
 }
 
 void BaseStrategy::select_mode(const Context& context) {
+    if (context.self().getLife() < context.self().getMaxLife() / 2 && mode_ == battle_mode_) {
+        return use_retreat_mode();
+    }
+
     double max_distance = get_max_distance_for_unit_candidate(context);
 
     if (mode_ == battle_mode_) {
@@ -423,22 +428,25 @@ std::vector<model::ActionType> BaseStrategy::get_actions_by_priority_order(Conte
 }
 
 void BaseStrategy::use_move_mode() {
-    if (mode_ != move_mode_) {
-        mode_ticks_ = 0;
-        mode_ = move_mode_;
-        move_mode_->reset();
-    } else {
-        ++mode_ticks_;
-    }
+    use_mode(move_mode_);
 }
 
 void BaseStrategy::use_battle_mode() {
-    if (mode_ != battle_mode_) {
+    use_mode(battle_mode_);
+}
+
+void BaseStrategy::use_retreat_mode() {
+    use_mode(retreat_mode_);
+}
+
+void BaseStrategy::use_mode(const std::shared_ptr<Mode>& mode) {
+    if (mode_ != mode) {
         mode_ticks_ = 0;
+        mode_ = mode;
+        mode_->reset();
     } else {
         ++mode_ticks_;
     }
-    mode_ = battle_mode_;
 }
 
 bool BaseStrategy::can_apply_haste(const Context& context) const {
