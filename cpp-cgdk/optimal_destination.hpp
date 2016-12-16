@@ -141,6 +141,10 @@ private:
             }
         }
     }
+
+    double high_life_score(WorldGraph::Node node, const NodeInfo& node_info) const;
+    double low_life_score(const NodeInfo& node_info) const;
+    double low_life_score_single(const NodeInfo& node_info) const;
 };
 
 struct GetLaneScore {
