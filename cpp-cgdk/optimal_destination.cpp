@@ -118,6 +118,14 @@ GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, mode
 double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto& node_info = nodes_info_.at(node);
 
+    if (wizard_.getLife() > 2 * wizard_.getMaxLife() / 3) {
+        return high_life_score(node, node_info);
+    } else {
+        return low_life_score(node_info);
+    }
+}
+
+double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node_info) const {
     const auto reduce_factor = 1.0 / (
                 node_info.enemy_minions_weight * ENEMY_MINION_REDUCE_FACTOR
                 + node_info.enemy_wizards_weight * ENEMY_WIZARD_REDUCE_FACTOR
@@ -156,31 +164,24 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto enemy_base_score = node_info.enemy_base_weight
             * context_.game().getVictoryScore();
 
-    if (wizard_.getLife() > 2 * wizard_.getMaxLife() / 3) {
-        return (1 + enemy_minions_score + enemy_wizards_score + enemy_towers_score + enemy_base_score + bonus_score)
-                * reduce_factor * mult_factor;
-    } else {
-        const auto min = std::min_element(node_info.path.nodes.begin(), node_info.path.nodes.end(),
-            [&] (auto lhs, auto rhs) {
-                if (lhs == node) {
-                    return true;
-                } else if (rhs == node) {
-                    return false;
-                } else {
-                    return (*this)(lhs) < (*this)(rhs);
-                }
-            });
-        return (node_info.friend_towers_weight
-                + node_info.friend_base_weight
-                + node_info.friend_minions_weight
-                + node_info.friend_wizards_weight
-                - node_info.enemy_minions_weight
-                - node_info.enemy_wizards_weight
-                - node_info.enemy_towers_weight
-                - node_info.enemy_base_weight
-                - node_info.path.length / 400
-                + (*min != node ? (*this)(*min) : 0));
-    }
+    return (1 + enemy_minions_score + enemy_wizards_score + enemy_towers_score + enemy_base_score + bonus_score)
+            * reduce_factor * mult_factor;
+}
+
+double GetNodeScore::low_life_score(const NodeInfo& node_info) const {
+    const auto sum = std::accumulate(node_info.path.nodes.begin(), node_info.path.nodes.end(), 0.0,
+        [&] (auto sum, auto v) { return sum + this->low_life_score_single(nodes_info_.at(v)); });
+
+    return sum + low_life_score_single(node_info) - node_info.path.length / 500;
+}
+
+double GetNodeScore::low_life_score_single(const NodeInfo& node_info) const {
+    return node_info.friend_towers_weight
+            + node_info.friend_base_weight
+            - node_info.enemy_minions_weight
+            - node_info.enemy_wizards_weight
+            - node_info.enemy_towers_weight
+            - node_info.enemy_base_weight;
 }
 
 double GetLaneScore::operator ()(model::LaneType lane) const {
