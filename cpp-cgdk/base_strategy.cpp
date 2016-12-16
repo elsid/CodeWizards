@@ -61,7 +61,7 @@ void BaseStrategy::handle_messages(const Context& context) {
 }
 
 void BaseStrategy::learn_skills(Context& context) {
-    for (; prev_level_ < context.self().getLevel(); ++prev_level_) {
+    if (context.self().getSkills().size() < std::size_t(context.self().getLevel())) {
         std::array<int, model::_SKILL_COUNT_> skills_priorities = {{
             4, // SKILL_RANGE_BONUS_PASSIVE_1
             4, // SKILL_RANGE_BONUS_AURA_1
@@ -106,7 +106,6 @@ void BaseStrategy::learn_skills(Context& context) {
         const auto skill = next_to_learn(context.self(), model::SkillType(max - skills_priorities.begin()));
         if (skill != model::_SKILL_UNKNOWN_) {
             context.move().setSkillToLearn(skill);
-            return;
         }
     }
 }
