@@ -8,6 +8,7 @@ namespace strategy {
 class BattleMode : public Mode {
 public:
     Result apply(const Context& context) override final;
+    void reset() override final;
 
 private:
     Target target_;
