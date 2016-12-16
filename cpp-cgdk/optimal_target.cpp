@@ -236,7 +236,7 @@ double GetTargetScore::hit_probability(const model::Wizard&) const {
 }
 
 double GetTargetScore::base(const model::Bonus&) const {
-    return context.game().getBonusScoreAmount();
+    return 0.3;
 }
 
 double GetTargetScore::base(const model::Tree&) const {
