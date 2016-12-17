@@ -302,6 +302,8 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
         opened.erase(step_state.position());
         closed.insert(step_state.position());
 
+        const auto position_state = positions.at(step_state.position());
+
         for (std::size_t i = 0; i < shifts.size() + 1; ++i) {
             context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 
@@ -322,12 +324,11 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
             const auto distance_to_units_penalty = get_distance_to_units_penalty(Line(shifted(step_state.position()),
                                                                                       shifted(position)));
             const auto distance = target.distance(shifted(position));
-            const auto sum_length = positions[position].path_length + path_length;
+            const auto sum_length = position_state.path_length + path_length;
             const auto priority = distance_to_units_penalty - sum_length - 1.01 * distance;
-            if (!opened.count(position)) {
+            if (opened.insert(position).second) {
                 queue.push(StepState(priority, tick, position));
-                opened.insert(step_state.position());
-            } else if (positions[position].priority > priority) {
+            } else if (positions.at(position).priority > priority) {
                 continue;
             }
             came_from[position] = step_state.position();
