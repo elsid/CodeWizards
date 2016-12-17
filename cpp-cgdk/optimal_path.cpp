@@ -75,6 +75,7 @@ private:
 struct PositionState {
     double path_length;
     double priority;
+    double sum_turn;
 };
 
 bool operator <(const StepState& lhs, const StepState& rhs) {
@@ -257,7 +258,7 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
     const auto distance_to_units_penalty = get_distance_to_units_penalty(Line(initial_position, initial_position));
     double max_priority = distance_to_units_penalty - 1.01 * distance;
 
-    positions[initial_position_int] = {0, max_priority};
+    positions[initial_position_int] = {0, max_priority, 0};
 
     queue.push(StepState(max_priority, 0, initial_position_int));
 
@@ -304,13 +305,10 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
 
         const auto position_state = positions.at(step_state.position());
         const auto prev_position = came_from.find(step_state.position());
+        double rotation = 0;
 
         if (prev_position != came_from.end()) {
-            const auto rotation = (step_state.position() - prev_position->second).absolute_rotation();
-            std::stable_sort(shifts.begin(), shifts.end(),
-                [&] (const auto& lhs, const auto& rhs) {
-                    return std::abs(rotation - lhs.absolute_rotation()) < std::abs(rotation - rhs.absolute_rotation());
-                });
+            rotation = (step_state.position() - prev_position->second).absolute_rotation();
         }
 
         for (std::size_t i = 0; i < shifts.size() + 1; ++i) {
@@ -334,14 +332,17 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
                                                                                       shifted(position)));
             const auto distance = target.distance(shifted(position));
             const auto sum_length = position_state.path_length + path_length;
-            const auto priority = distance_to_units_penalty - sum_length - 1.01 * distance;
+            const auto turn = prev_position == came_from.end()
+                    ? 0 : std::abs(rotation - (position - shift).absolute_rotation());
+            const auto sum_turn = position_state.sum_turn + turn;
+            const auto priority = distance_to_units_penalty - sum_length - 1.01 * distance - sum_turn;
             if (opened.insert(position).second) {
                 queue.push(StepState(priority, tick, position));
             } else if (positions.at(position).priority > priority) {
                 continue;
             }
             came_from[position] = step_state.position();
-            positions[position] = {path_length, priority};
+            positions[position] = {path_length, priority, sum_turn};
         }
 
         if (max_iterations != std::numeric_limits<std::size_t>::max() && time_limit != Duration::max()) {
