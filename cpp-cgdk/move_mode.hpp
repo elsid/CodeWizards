@@ -39,7 +39,8 @@ private:
 
     void handle_messages(const Context& context);
     void update_path(const Context& context);
-    void next_path_node(const Context& context);
+    bool calculate_path(const Context& context);
+    bool next_path_node(const Context& context);
 };
 
 }

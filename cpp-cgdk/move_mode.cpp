@@ -14,7 +14,6 @@ MoveMode::MoveMode(const WorldGraph& graph)
 MoveMode::Result MoveMode::apply(const Context& context) {
     handle_messages(context);
     update_path(context);
-    next_path_node(context);
 
     return path_node_ == path_.end() ? Result() : Result(Target(), graph_.nodes().at(*path_node_));
 }
@@ -37,12 +36,17 @@ void MoveMode::handle_messages(const Context& context) {
 }
 
 void MoveMode::update_path(const Context& context) {
-    if (destination_.first && path_node_ != path_.end() && last_message_ != context.world().getTickIndex()) {
-        return;
+    if (!destination_.first || path_node_ == path_.end() || next_path_node(context)) {
+        if (calculate_path(context)) {
+            next_path_node(context);
+        }
     }
+}
+
+bool MoveMode::calculate_path(const Context& context) {
     const auto destination = get_optimal_destination(context, graph_, target_lane_, context.self());
-    if (destination_.first && destination_.second == destination && path_node_ != path_.end()) {
-        return;
+    if (destination_.first && destination == destination_.second) {
+        return false;
     }
     destination_ = {true, destination};
     const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(context.self())).first;
@@ -51,17 +55,18 @@ void MoveMode::update_path(const Context& context) {
         path_.push_back(nearest_node);
     }
     path_node_ = path_.begin();
+    return true;
 }
 
-void MoveMode::next_path_node(const Context& context) {
+bool MoveMode::next_path_node(const Context& context) {
     if (path_node_ == path_.end()) {
-        return;
+        return false;
     }
 
     const auto to_next = graph_.nodes().at(*path_node_).distance(get_position(context.self()));
 
     if (to_next > 0.5 * context.self().getVisionRange()) {
-        return;
+        return false;
     }
 
     if (path_node_ - path_.begin() > 0) {
@@ -69,10 +74,14 @@ void MoveMode::next_path_node(const Context& context) {
         const auto to_prev = graph_.nodes().at(*prev).distance(get_position(context.self()));
         if (to_prev > to_next) {
             ++path_node_;
+            return true;
         }
     } else {
         ++path_node_;
+        return true;
     }
+
+    return false;
 }
 
 }
