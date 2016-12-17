@@ -204,7 +204,6 @@ public:
             get_friendly_fire_penalty(position),
             get_target_penalty(position),
             get_borders_penalty(position),
-            get_distance_penalty(position),
         }};
 
         std::for_each(penalties.begin(), penalties.end(), [&] (auto& v) { v += base_shift; });
@@ -292,10 +291,6 @@ public:
 
     double get_target_penalty(const Point& position) const {
         return target ? get_target_penalty(*target, position) : 0;
-    }
-
-    double get_distance_penalty(const Point& position) const {
-        return 0.1 * line_factor(get_position(context.self()).distance(position), 0, max_distance);
     }
 
 private:
