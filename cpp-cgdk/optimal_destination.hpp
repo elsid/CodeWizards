@@ -54,7 +54,8 @@ public:
         double bonus_weight = 0;
         double enemy_base_weight = 0;
         double friend_base_weight = 0;
-        WorldGraph::Path path;
+        WorldGraph::Path path_from_me;
+        WorldGraph::Path path_from_friend_base;
 
         void add_other(const model::Unit&, double) {}
 

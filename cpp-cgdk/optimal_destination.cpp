@@ -111,7 +111,8 @@ GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, mode
 
     for (const auto& node : graph.nodes()) {
         auto& node_info = nodes_info_[node.first];
-        node_info.path = graph.get_shortest_path(wizard_nearest_node_, node.first);
+        node_info.path_from_me = graph.get_shortest_path(wizard_nearest_node_, node.first);
+        node_info.path_from_friend_base = graph.get_shortest_path(graph.friend_base(), node.first);
     }
 }
 
@@ -133,7 +134,7 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
                 + node_info.enemy_base_weight * ENEMY_BASE_REDUCE_FACTOR
                 + node_info.friend_minions_weight * FRIEND_MINION_REDUCE_FACTOR
                 + node_info.friend_wizards_weight * FRIEND_WIZARD_REDUCE_FACTOR
-                + (1 + node_info.path.length) * PATH_LENGTH_REDUCE_FACTOR
+                + (1 + node_info.path_from_me.length) * PATH_LENGTH_REDUCE_FACTOR
             );
 
     const auto bonus_score = node_info.bonus_weight
@@ -169,16 +170,15 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
 }
 
 double GetNodeScore::low_life_score(const NodeInfo& node_info) const {
-    const auto sum = std::accumulate(node_info.path.nodes.begin(), node_info.path.nodes.end(), 0.0,
+    const auto sum = std::accumulate(node_info.path_from_me.nodes.begin(), node_info.path_from_me.nodes.end(), 0.0,
         [&] (auto sum, auto v) { return sum + this->low_life_score_single(nodes_info_.at(v)); });
 
-    return sum + low_life_score_single(node_info) - node_info.path.length / 500;
+    return sum + low_life_score_single(node_info) - node_info.path_from_me.nodes.size() / 2
+            - node_info.path_from_friend_base.nodes.size() / 3;
 }
 
 double GetNodeScore::low_life_score_single(const NodeInfo& node_info) const {
-    return node_info.friend_towers_weight
-            + node_info.friend_base_weight
-            - node_info.enemy_minions_weight
+    return - node_info.enemy_minions_weight
             - node_info.enemy_wizards_weight
             - node_info.enemy_towers_weight
             - node_info.enemy_base_weight;
