@@ -118,8 +118,10 @@ GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, mode
 
 double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto& node_info = nodes_info_.at(node);
+    const auto mean_life_change = get_units<model::Wizard>(context_.cache()).at(context_.self().getId()).mean_life_change_speed();
 
-    if (wizard_.getLife() > 2 * wizard_.getMaxLife() / 3) {
+    if ((mean_life_change >= 0 || (mean_life_change < 0 && - context_.self().getLife() / mean_life_change >= 100))
+            && context_.self().getLife() > context_.self().getMaxLife() / 2) {
         return high_life_score(node, node_info);
     } else {
         return low_life_score(node_info);
