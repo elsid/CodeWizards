@@ -766,8 +766,8 @@ TEST(get_optimal_position, for_me_with_full_life_and_enemy_building_with_active_
     const auto& target = world.getBuildings()[0];
     const auto max_distance = 1000;
     const auto result = get_optimal_position(context, &target, max_distance);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 104.32730853917285);
-    EXPECT_EQ(result, Point(1407.5895843021426, 1048.420061726282));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 114.39412709859182);
+    EXPECT_EQ(result, Point(1396.9868998344334, 1049.7425120890343));
 }
 
 TEST(get_optimal_position, for_me_with_full_life_and_max_cooldown_and_enemy_building_with_active_cooldown) {

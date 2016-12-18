@@ -63,8 +63,7 @@ double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, co
 }
 
 double GetUnitIntersectionPenalty::base(const model::CircularUnit& unit, const Point& position) const {
-    return get_distance_penalty(position.distance(get_position(unit)),
-                                1.1 * context.self().getRadius() + unit.getRadius());
+    return get_distance_penalty(position.distance(get_position(unit)), context.game().getStaffRange() + unit.getRadius());
 }
 
 double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double sum_enemy_damage) const {
