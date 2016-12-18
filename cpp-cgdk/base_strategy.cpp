@@ -332,23 +332,8 @@ struct GetCastAction {
             return {false, Action {0, 0}};
         }
 
-        const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
-        const auto initial_position = my_position + direction * min_cast_distance;
-        const auto projectile_explosion_radius = get_projectile_explosion_radius(projectile_type, context.game());
-
-        for (const auto& unit : get_units<model::Wizard>(context.world())) {
-            if (unit.getFaction() != context.self().getFaction()) {
-                continue;
-            }
-
-            const Circle projectile(initial_position, projectile_radius);
-            const Circle explosion(initial_position, projectile_explosion_radius);
-            const Circle unit_circle(get_position(unit), unit.getRadius());
-
-            if (unit_circle.has_intersection(projectile, intersection)
-                    || (projectile_explosion_radius > projectile_radius && unit_circle.has_intersection(explosion))) {
-                return {false, Action {0, 0}};
-            }
+        if (is_friendly_fire(projectile_type, cast_angle, min_cast_distance, intersection)) {
+            return {false, Action {0, 0}};
         }
 
         return {true, Action {cast_angle, min_cast_distance}};
@@ -386,7 +371,14 @@ struct GetCastAction {
             return {false, Action {0, 0}};
         }
 
-        return {true, Action {cast_angle, distance_to_intersection}};
+        const auto min_cast_distance = distance_to_intersection - projectile_radius;
+        const auto projectile_on_intersection = my_position + direction * min_cast_distance;
+
+        if (is_friendly_fire(projectile_type, cast_angle, distance_to_intersection, projectile_on_intersection)) {
+            return {false, Action {0, 0}};
+        }
+
+        return {true, Action {cast_angle, min_cast_distance}};
     }
 
     double get_cast_angle_for_static(const model::Unit& target) const {
@@ -405,6 +397,30 @@ struct GetCastAction {
 
     double get_min_cast_distance_reduce(const model::Wizard& target) const {
         return make_unit_bounds(context, target).max_speed(0);
+    }
+
+    bool is_friendly_fire(model::ProjectileType projectile_type, double cast_angle, double min_cast_distance, const Point& final_position) const {
+        const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
+        const auto initial_position = get_position(context.self()) + direction * min_cast_distance;
+        const auto projectile_explosion_radius = get_projectile_explosion_radius(projectile_type, context.game());
+        const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
+
+        for (const auto& unit : get_units<model::Wizard>(context.world())) {
+            if (unit.getFaction() != context.self().getFaction()) {
+                continue;
+            }
+
+            const Circle projectile(initial_position, projectile_radius);
+            const Circle explosion(initial_position, projectile_explosion_radius);
+            const Circle unit_circle(get_position(unit), unit.getRadius());
+
+            if (unit_circle.has_intersection(projectile, final_position)
+                    || (projectile_explosion_radius > projectile_radius && unit_circle.has_intersection(explosion))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 };
 
