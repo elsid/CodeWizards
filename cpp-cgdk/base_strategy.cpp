@@ -323,20 +323,24 @@ struct GetCastAction {
         std::tie(has_intersection, intersection) = get_time_delta.get_intersection(cast_angle);
 
         if (!has_intersection) {
-            return {false, Action {0, 0}};
+            return {false, Action {}};
         }
 
-        const auto min_cast_distance = my_position.distance(intersection) - get_min_cast_distance_reduce(target);
+        const auto distance_to_intersection = my_position.distance(intersection);
+        const auto min_cast_distance = distance_to_intersection - get_min_cast_distance_reduce(target);
 
         if (min_cast_distance > context.self().getCastRange() - 1) {
-            return {false, Action {0, 0}};
+            return {false, Action {}};
         }
 
         if (is_friendly_fire(projectile_type, cast_angle, min_cast_distance, intersection)) {
-            return {false, Action {0, 0}};
+            return {false, Action {}};
         }
 
-        return {true, Action {cast_angle, min_cast_distance}};
+        const auto max_cast_distance = projectile_type == model::PROJECTILE_FIREBALL
+                ? distance_to_intersection : std::numeric_limits<double>::max();
+
+        return {true, Action {cast_angle, min_cast_distance, max_cast_distance}};
     }
 
     std::pair<bool, Action> operator ()(const CachedUnit<model::Wizard>& target, model::ProjectileType projectile_type) const {
@@ -361,24 +365,27 @@ struct GetCastAction {
         std::tie(has_intersection, intersection) = unit.intersection(projectile, projectile_final_position);
 
         if (!has_intersection) {
-            return {false, Action {0, 0}};
+            return {false, Action {}};
         }
 
         const auto distance_to_intersection = my_position.distance(intersection);
         const auto distance_to_final = my_position.distance(projectile_final_position);
 
         if (distance_to_final - distance_to_intersection < 1) {
-            return {false, Action {0, 0}};
+            return {false, Action {}};
         }
 
         const auto min_cast_distance = distance_to_intersection - projectile_radius;
         const auto projectile_on_intersection = my_position + direction * min_cast_distance;
 
         if (is_friendly_fire(projectile_type, cast_angle, distance_to_intersection, projectile_on_intersection)) {
-            return {false, Action {0, 0}};
+            return {false, Action {}};
         }
 
-        return {true, Action {cast_angle, min_cast_distance}};
+        const auto max_cast_distance = projectile_type == model::PROJECTILE_FIREBALL
+                ? distance_to_intersection : std::numeric_limits<double>::max();
+
+        return {true, Action {cast_angle, min_cast_distance, max_cast_distance}};
     }
 
     double get_cast_angle_for_static(const model::Unit& target) const {
@@ -442,6 +449,7 @@ void BaseStrategy::apply_move_and_action(Context& context) {
             context.move().setAction(action_type);
             context.move().setCastAngle(action.cast_angle);
             context.move().setMinCastDistance(action.min_cast_distance);
+            context.move().setMaxCastDistance(action.max_cast_distance);
             break;
         }
     }
@@ -573,16 +581,16 @@ std::pair<bool, Action> BaseStrategy::need_apply_action(const Context& context, 
         case model::ACTION_SHIELD:
             return need_apply_shield(context);
         default:
-            return {false, Action {0, 0}};
+            return {false, Action {}};
     }
 }
 
 std::pair<bool, Action> BaseStrategy::need_apply_haste(const Context&) const {
-    return {true, Action {0, 0}};
+    return {true, Action {}};
 }
 
 std::pair<bool, Action> BaseStrategy::need_apply_shield(const Context&) const {
-    return {true, Action {0, 0}};
+    return {true, Action {}};
 }
 
 std::pair<bool, Action> BaseStrategy::need_apply_staff(const Context& context) const {
@@ -601,17 +609,17 @@ std::pair<bool, Action> BaseStrategy::need_apply_staff(const Context& context) c
     };
 
     if (this->target_.is<model::Bonus>()) {
-        return {false, Action {0, 0}};
+        return {false, Action {}};
     }
 
     const auto target = target_.circular_unit(context.cache());
 
     if (!target) {
-        return {false, Action {0, 0}};
+        return {false, Action {}};
     }
 
     if (!is_in_attack_range(*target)) {
-        return {false, Action {0, 0}};
+        return {false, Action {}};
     }
 
     const auto wizards = get_units<model::Wizard>(context.world());
@@ -620,7 +628,7 @@ std::pair<bool, Action> BaseStrategy::need_apply_staff(const Context& context) c
             return is_friend(unit, context.self().getFaction(), context.self().getId()) && is_in_attack_range(unit);
         });
 
-    return {!is_any_friend_in_attack_range, Action {0, 0}};
+    return {!is_any_friend_in_attack_range, Action {}};
 }
 
 std::pair<bool, Action> BaseStrategy::need_apply_magic_missile(const Context& context) const {
@@ -637,7 +645,7 @@ std::pair<bool, Action> BaseStrategy::need_apply_frostbolt(const Context& contex
 
 std::pair<bool, Action> BaseStrategy::need_apply_cast(const Context& context, model::ProjectileType projectile_type) const {
     if (this->target_.is<model::Bonus>() || !target_.circular_unit(context.cache())) {
-        return {false, Action {0, 0}};
+        return {false, Action {}};
     }
 
     const GetCastAction get_cast_action {context};

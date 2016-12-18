@@ -16,8 +16,9 @@ public:
 };
 
 struct Action {
-    double cast_angle;
-    double min_cast_distance;
+    double cast_angle = 0;
+    double min_cast_distance = 0;
+    double max_cast_distance = std::numeric_limits<double>::max();
 };
 
 class BaseStrategy : public Strategy {
