@@ -97,11 +97,17 @@ double GetUnitAttackAbility::operator ()(const model::Building& unit) const {
 }
 
 double GetUnitAttackAbility::operator ()(const model::Minion& unit) const {
-    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(unit.getCooldownTicks());
+    const auto frozen = find_status(unit.getStatuses(), model::STATUS_FROZEN);
+    const auto remaining = std::max(unit.getRemainingActionCooldownTicks(),
+                                    frozen == unit.getStatuses().end() ? 0 : frozen->getRemainingDurationTicks());
+    return 1.0 - double(remaining) / double(std::max(unit.getCooldownTicks(), remaining));
 }
 
 double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
-    return 1.0 - double(unit.getRemainingActionCooldownTicks()) / double(context.game().getWizardActionCooldownTicks());
+    const auto frozen = find_status(unit.getStatuses(), model::STATUS_FROZEN);
+    const auto remaining = std::max(unit.getRemainingActionCooldownTicks(),
+                                    frozen == unit.getStatuses().end() ? 0 : frozen->getRemainingDurationTicks());
+    return 1.0 - double(remaining) / double(std::max(context.game().getWizardActionCooldownTicks(), remaining));
 }
 
 }
