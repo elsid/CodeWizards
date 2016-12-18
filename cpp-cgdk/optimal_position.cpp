@@ -73,7 +73,7 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     const auto unit_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;
     const auto distance_to_me = unit_position.distance(position) - context.self().getRadius();
     if (!is_enemy(unit, context.self().getFaction())) {
-        return - 0.01 * line_factor(distance_to_me, 0, 2 * context.self().getVisionRange());
+        return 1 / (2 * context.self().getVisionRange()) * line_factor(distance_to_me, 2 * context.self().getVisionRange(), 0);
     }
     if (friend_units.empty()) {
         return get_common(unit, position, sum_enemy_damage);
@@ -85,7 +85,7 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
         });
     const auto distance_to_nearest = unit_position.distance(get_position(**nearest_friend)) - (**nearest_friend).getRadius();
     if (distance_to_me - distance_to_nearest > context.self().getRadius()) {
-        return - 0.01 * line_factor(distance_to_me - distance_to_nearest, 0, 2 * context.self().getVisionRange());
+        return 1 / distance_to_nearest * line_factor(distance_to_me - distance_to_nearest, 2 * context.self().getVisionRange(), 0);
     }
     return get_common(unit, position, sum_enemy_damage);
 }
