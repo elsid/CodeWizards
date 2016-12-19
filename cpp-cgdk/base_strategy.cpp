@@ -640,6 +640,9 @@ std::pair<bool, Action> BaseStrategy::need_apply_fireball(const Context& context
 }
 
 std::pair<bool, Action> BaseStrategy::need_apply_frostbolt(const Context& context) const {
+    if (target_.is<model::Building>() || target_.is<model::Tree>()) {
+        return {false, Action {}};
+    }
     return need_apply_cast(context, model::PROJECTILE_FROST_BOLT);
 }
 
