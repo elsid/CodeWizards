@@ -60,16 +60,16 @@ double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Po
 
 double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, const Point& position) const {
     const auto distance = position.distance(get_position(unit));
-    const auto safe_distance = 1.1 * context.self().getRadius() + 2 * unit.getRadius();
+    const auto safe_distance = context.game().getStaffRange() + unit.getRadius();
     if (distance < safe_distance * 0.5) {
         return get_distance_penalty(distance, safe_distance);
     } else {
-        return 0.5 * get_distance_penalty(distance, 2.0 * safe_distance);
+        return 0.5 * line_factor(distance, 2.0 * safe_distance, 0);
     }
 }
 
 double GetUnitIntersectionPenalty::base(const model::CircularUnit& unit, const Point& position) const {
-    return get_distance_penalty(position.distance(get_position(unit)), context.game().getStaffRange() + unit.getRadius());
+    return line_factor(position.distance(get_position(unit)), context.game().getStaffRange() + unit.getRadius(), 0);
 }
 
 double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double sum_enemy_damage) const {
