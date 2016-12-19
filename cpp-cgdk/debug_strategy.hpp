@@ -64,6 +64,7 @@ private:
     void visualize_unit(const Context& context, const model::Wizard& unit);
     void visualize_unit(const Context& context, const model::Building& unit);
     void visualize_unit(const Context& context, const model::Minion& unit);
+    void visualize_unit(const Context& context, const model::Tree& unit);
 
     template <class T>
     void visualize_positions_penalties(const Context& context, const T* target) {

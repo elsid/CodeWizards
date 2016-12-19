@@ -370,6 +370,9 @@ void DebugStrategy::visualize_units(const Context& context) {
     for (const auto& unit : get_units<model::Minion>(context.cache())) {
         visualize_unit(context, unit.second.value());
     }
+    for (const auto& unit : get_units<model::Tree>(context.cache())) {
+        visualize_unit(context, unit.second.value());
+    }
 }
 
 void DebugStrategy::visualize_unit(const Context& context, const model::Wizard& unit) {
@@ -450,6 +453,17 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Minion& 
         return;
     }
 
+    const GetTargetScore get_target_score {context};
+    const auto score = get_target_score(unit);
+    const auto interval = max_target_score - min_target_score;
+    debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius(),
+                std::to_string(score).c_str(), get_color((score - min_target_score) / (interval ? interval : 1.0)));
+}
+
+void DebugStrategy::visualize_unit(const Context& context, const model::Tree& unit) {
+    if (get_position(context.self()).distance(get_position(unit)) > 200) {
+        return;
+    }
     const GetTargetScore get_target_score {context};
     const auto score = get_target_score(unit);
     const auto interval = max_target_score - min_target_score;
