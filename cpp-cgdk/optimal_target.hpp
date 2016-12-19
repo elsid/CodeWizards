@@ -102,7 +102,6 @@ struct GetTargetScore {
         const auto distance = get_position(context.self()).distance(get_position(unit));
         const auto max_damage = my_max_damage(distance) * defence_factor
                 - get_life_regeneration(unit) * context.game().getWizardActionCooldownTicks();
-        damage_score *= defence_factor;
         if (unit.getLife() <= max_damage) {
             return max_damage * (damage_score + elimination_score);
         } else {
