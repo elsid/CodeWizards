@@ -199,12 +199,12 @@ double GetLifeRegeneration::operator ()(const model::Wizard& unit) const {
             + unit.getLevel() * context.game().getWizardLifeRegenerationGrowthPerLevel();
 }
 
-double GetTargetScore::distance_probability(const model::Unit& unit) const {
+double GetTargetScore::get_distance_probability(const model::Unit& unit) const {
     const auto distance = get_position(context.self()).distance(get_position(unit));
     return line_factor(distance, 2 * get_max_distance_for_unit_candidate(context), 0);
 }
 
-double GetTargetScore::angle_probability(const model::Unit& unit) const {
+double GetTargetScore::get_angle_probability(const model::Unit& unit) const {
     const auto direction = get_position(unit) - get_position(context.self());
     const auto angle = normalize_angle(direction.absolute_rotation() - context.self().getAngle());
     if (angle >= 0) {
@@ -214,28 +214,28 @@ double GetTargetScore::angle_probability(const model::Unit& unit) const {
     }
 }
 
-double GetTargetScore::hit_probability(const model::Bonus&) const {
+double GetTargetScore::get_hit_probability(const model::Bonus&) const {
     return 1.0;
 }
 
-double GetTargetScore::hit_probability(const model::Tree&) const {
+double GetTargetScore::get_hit_probability(const model::Tree&) const {
     return TREE_HIT_PROBABILITY;
 }
 
-double GetTargetScore::hit_probability(const model::Building&) const {
+double GetTargetScore::get_hit_probability(const model::Building&) const {
     return BUILDING_HIT_PROBABILITY;
 }
 
-double GetTargetScore::hit_probability(const model::Minion& unit) const {
-    return hit_probability_by_status(unit, MINION_HIT_PROBABILITY);
+double GetTargetScore::get_hit_probability(const model::Minion& unit) const {
+    return get_hit_probability_by_status(unit, MINION_HIT_PROBABILITY);
 }
 
-double GetTargetScore::hit_probability(const model::Wizard& unit) const {
+double GetTargetScore::get_hit_probability(const model::Wizard& unit) const {
     // TODO: use hastened status and movement bonus skills
-    return hit_probability_by_status(unit, WIZARD_HIT_PROBABILITY);
+    return get_hit_probability_by_status(unit, WIZARD_HIT_PROBABILITY);
 }
 
-double GetTargetScore::hit_probability_by_status(const model::LivingUnit& unit, double base) const {
+double GetTargetScore::get_hit_probability_by_status(const model::LivingUnit& unit, double base) const {
     if (is_frozen(unit)) {
         return 1.0;
     } else {
@@ -243,15 +243,15 @@ double GetTargetScore::hit_probability_by_status(const model::LivingUnit& unit, 
     }
 }
 
-double GetTargetScore::base(const model::Bonus&) const {
+double GetTargetScore::get_base(const model::Bonus&) const {
     return 1;
 }
 
-double GetTargetScore::base(const model::Tree&) const {
+double GetTargetScore::get_base(const model::Tree&) const {
     return 0.2;
 }
 
-double GetTargetScore::base(const model::Building& unit) const {
+double GetTargetScore::get_base(const model::Building& unit) const {
     const TowersOrder tower_order(context.world(), context.self().getFaction());
     bool immortal = true;
     double add = 0;
@@ -279,25 +279,25 @@ double GetTargetScore::base(const model::Building& unit) const {
         }
     }
 
-    return immortal ? 0 : add + base_by_damage(unit, context.game().getBuildingDamageScoreFactor(),
+    return immortal ? 0 : add + get_base_by_damage(unit, context.game().getBuildingDamageScoreFactor(),
                                                context.game().getBuildingEliminationScoreFactor());
 }
 
-double GetTargetScore::base(const model::Minion& unit) const {
+double GetTargetScore::get_base(const model::Minion& unit) const {
     if (unit.getFaction() == model::FACTION_NEUTRAL) {
         return 0.1;
     } else {
-        return base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
+        return get_base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
                               context.game().getMinionEliminationScoreFactor()) + 1;
     }
 }
 
-double GetTargetScore::base(const model::Wizard& unit) const {
-    return base_by_damage(unit, context.game().getWizardDamageScoreFactor(),
+double GetTargetScore::get_base(const model::Wizard& unit) const {
+    return get_base_by_damage(unit, context.game().getWizardDamageScoreFactor(),
                           context.game().getWizardEliminationScoreFactor());
 }
 
-double GetTargetScore::my_max_damage(double distance) const {
+double GetTargetScore::get_my_max_damage(double distance) const {
     const GetMaxDamage get_max_damage {context};
     return get_max_damage(context.self(), distance);
 }

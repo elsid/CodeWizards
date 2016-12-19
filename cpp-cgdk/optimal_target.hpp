@@ -74,34 +74,39 @@ struct GetTargetScore {
 
     template <class Unit>
     double operator ()(const Unit& unit) const {
-        return base(unit) * distance_probability(unit) * angle_probability(unit) * hit_probability(unit);
+        const auto base = get_base(unit);
+        const auto distance_probability = get_distance_probability(unit);
+        const auto angle_probability = get_angle_probability(unit);
+        const auto hit_probability = get_hit_probability(unit);
+        return base * distance_probability * angle_probability * hit_probability;
     }
 
-    double distance_probability(const model::Unit& unit) const;
-    double angle_probability(const model::Unit& unit) const;
+    double get_distance_probability(const model::Unit& unit) const;
+    double get_angle_probability(const model::Unit& unit) const;
 
-    double hit_probability(const model::Bonus&) const;
-    double hit_probability(const model::Tree&) const;
-    double hit_probability(const model::Building& unit) const;
-    double hit_probability(const model::Minion& unit) const;
-    double hit_probability(const model::Wizard& unit) const;
+    double get_hit_probability(const model::Bonus&) const;
+    double get_hit_probability(const model::Tree&) const;
+    double get_hit_probability(const model::Building& unit) const;
+    double get_hit_probability(const model::Minion& unit) const;
+    double get_hit_probability(const model::Wizard& unit) const;
 
-    double hit_probability_by_status(const model::LivingUnit& unit, double base) const;
+    double get_hit_probability_by_status(const model::LivingUnit& unit, double get_base) const;
 
-    double base(const model::Bonus&) const;
-    double base(const model::Tree&) const;
-    double base(const model::Building& unit) const;
-    double base(const model::Minion& unit) const;
-    double base(const model::Wizard& unit) const;
+    double get_base(const model::Bonus&) const;
+    double get_base(const model::Tree&) const;
+    double get_base(const model::Building& unit) const;
+    double get_base(const model::Minion& unit) const;
+    double get_base(const model::Wizard& unit) const;
 
     template <class Unit>
-    double base_by_damage(const Unit& unit, double damage_score, double elimination_score) const {
+    double get_base_by_damage(const Unit& unit, double damage_score, double elimination_score) const {
         const GetDefenceFactor get_defence_factor {context};
         const GetLifeRegeneration get_life_regeneration {context};
         const auto defence_factor = get_defence_factor(unit);
         const auto distance = get_position(context.self()).distance(get_position(unit));
-        const auto max_damage = my_max_damage(distance) * defence_factor
-                - get_life_regeneration(unit) * context.game().getWizardActionCooldownTicks();
+        const auto my_max_damage = get_my_max_damage(distance);
+        const auto life_regeneration = get_life_regeneration(unit);
+        const auto max_damage = my_max_damage * defence_factor - life_regeneration * context.game().getWizardActionCooldownTicks();
         if (unit.getLife() <= max_damage) {
             return max_damage * (damage_score + elimination_score);
         } else {
@@ -109,7 +114,7 @@ struct GetTargetScore {
         }
     }
 
-    double my_max_damage(double distance) const;
+    double get_my_max_damage(double distance) const;
 };
 
 struct MakeTargetCandidates {
