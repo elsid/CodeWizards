@@ -99,7 +99,7 @@ struct GetTargetScore {
     double get_base(const model::Wizard& unit) const;
 
     template <class Unit>
-    double get_base_by_damage(const Unit& unit, double damage_score, double elimination_score) const {
+    double get_base_by_damage(const Unit& unit, double damage_score, double elimination_score_factor) const {
         const GetDefenceFactor get_defence_factor {context};
         const GetLifeRegeneration get_life_regeneration {context};
         const auto defence_factor = get_defence_factor(unit);
@@ -108,9 +108,9 @@ struct GetTargetScore {
         const auto life_regeneration = get_life_regeneration(unit);
         const auto max_damage = my_max_damage * defence_factor - life_regeneration * context.game().getWizardActionCooldownTicks();
         if (unit.getLife() <= max_damage) {
-            return max_damage * (damage_score + elimination_score);
+            return max_damage * damage_score + elimination_score_factor * unit.getMaxLife();
         } else {
-            return max_damage * (damage_score + elimination_score * max_damage / unit.getLife());
+            return max_damage * damage_score + elimination_score_factor * unit.getMaxLife() * max_damage / unit.getLife();
         }
     }
 
