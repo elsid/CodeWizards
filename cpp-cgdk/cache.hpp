@@ -3,7 +3,9 @@
 
 #include "common.hpp"
 
-#include "model/LivingUnit.h"
+#include "model/Building.h"
+#include "model/Minion.h"
+#include "model/Wizard.h"
 
 #include <algorithm>
 #include <unordered_map>
@@ -22,6 +24,22 @@ inline int get_life(const model::LivingUnit& unit) {
     return unit.getLife();
 }
 
+inline int get_remaining_action_cooldown_ticks(const model::Unit&) {
+    return 0;
+}
+
+inline int get_remaining_action_cooldown_ticks(const model::Building& unit) {
+    return unit.getRemainingActionCooldownTicks();
+}
+
+inline int get_remaining_action_cooldown_ticks(const model::Minion& unit) {
+    return unit.getRemainingActionCooldownTicks();
+}
+
+inline int get_remaining_action_cooldown_ticks(const model::Wizard& unit) {
+    return unit.getRemainingActionCooldownTicks();
+}
+
 template <class T>
 class CachedUnit {
 public:
@@ -38,7 +56,8 @@ public:
           last_seen_(tick),
           prev_life_change_(tick),
           prev_life_(get_life(value)),
-          first_position_(value.getX(), value.getY()) {
+          first_position_(value.getX(), value.getY()),
+          last_activity_(get_remaining_action_cooldown_ticks(value) ? tick : -1) {
         speeds_.front() = Point(value.getSpeedX(), value.getSpeedY());
     }
 
@@ -67,6 +86,9 @@ public:
             prev_life_ = get_life(value);
             prev_life_change_ = last_seen;
         }
+        if (get_remaining_action_cooldown_ticks(value) || speeds_.front().norm()) {
+            last_activity_ = last_seen;
+        }
     }
 
     double mean_life_change_speed() const {
@@ -82,6 +104,10 @@ public:
         return sum_speed / speeds_.size();
     }
 
+    Tick last_activity() const {
+        return last_activity_;
+    }
+
 private:
     Value value_;
     Tick first_seen_ = 0;
@@ -91,6 +117,7 @@ private:
     Point first_position_;
     std::array<std::pair<Tick, int>, LIFE_CHANGES_SIZE> life_change_;
     std::array<Point, SPEEDS_SIZE> speeds_;
+    Tick last_activity_ = -1;
 };
 
 template <class T>

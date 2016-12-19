@@ -127,7 +127,7 @@ struct MakeTargetCandidates {
     template <class Unit>
     bool is_candidate(const std::pair<const UnitId, CachedUnit<Unit>>& cached_unit) const {
         const auto& unit = cached_unit.second.value();
-        return unit.getFaction() != context.self().getFaction() && is_in_my_range(unit);
+        return unit.getFaction() != context.self().getFaction() && is_in_my_range(cached_unit.second);
     }
 
     template <class Unit>
@@ -148,9 +148,14 @@ struct MakeTargetCandidates {
         return result;
     }
 
+    template <class Unit>
+    bool is_in_my_range(const CachedUnit<Unit>& unit) const {
+        return is_in_my_range(unit.value());
+    }
+
     bool is_in_my_range(const model::CircularUnit& unit) const;
     bool is_in_my_range(const model::Tree& unit) const;
-    bool is_in_my_range(const model::Minion& unit) const;
+    bool is_in_my_range(const CachedUnit<model::Minion>& unit) const;
 };
 
 double get_max_distance_for_tree_candidate(const Context& context);

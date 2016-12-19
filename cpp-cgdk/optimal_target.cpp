@@ -312,12 +312,18 @@ bool MakeTargetCandidates::is_in_my_range(const model::Tree& unit) const {
     return distance <= std::min(max_distance, get_max_distance_for_tree_candidate(context)) + unit.getRadius();
 }
 
-bool MakeTargetCandidates::is_in_my_range(const model::Minion& unit) const {
-    if (unit.getFaction() == model::FACTION_NEUTRAL) {
-        const auto distance = get_position(unit).distance(get_position(context.self()));
-        return distance <= std::min(max_distance, get_max_distance_for_neutral_minion_candidate(context)) + unit.getRadius();
+bool MakeTargetCandidates::is_in_my_range(const CachedUnit<model::Minion>& unit) const {
+    if (unit.value().getFaction() == model::FACTION_NEUTRAL) {
+        double max_distance;
+        if (context.world().getTickIndex() - unit.last_activity() <= unit.value().getCooldownTicks()) {
+            max_distance = std::max(get_max_distance_for_neutral_minion_candidate(context), 0.5 * this->max_distance);
+        } else {
+            max_distance = get_max_distance_for_neutral_minion_candidate(context);
+        }
+        const auto distance = get_position(unit.value()).distance(get_position(context.self()));
+        return distance <= std::min(this->max_distance, max_distance) + unit.value().getRadius();
     } else {
-        return is_in_my_range(static_cast<const model::CircularUnit&>(unit));
+        return is_in_my_range(unit.value());
     }
 }
 
@@ -433,11 +439,11 @@ struct GetOptimalTarget {
 };
 
 double get_max_distance_for_tree_candidate(const Context& context) {
-    return 0.9 * context.game().getStaffRange();
+    return 0.5 * (context.game().getStaffRange() + context.self().getRadius());
 }
 
 double get_max_distance_for_neutral_minion_candidate(const Context& context) {
-    return 0.8 * context.game().getStaffRange();
+    return 0.25 * context.game().getStaffRange() + 0.75 * context.self().getRadius();
 }
 
 double get_max_distance_for_unit_candidate(const Context& context) {
