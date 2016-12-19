@@ -112,8 +112,12 @@ bool is_enemy(const model::Unit& unit, model::Faction my_faction) {
             && unit.getFaction() != model::FACTION_OTHER;
 }
 
+double bounded_line_factor(double value, double zero_at, double one_at) {
+    return std::min(1.0, std::max(0.0, line_factor(value, zero_at, one_at)));
+}
+
 double line_factor(double value, double zero_at, double one_at) {
-    return std::min(1.0, std::max(0.0, (value - zero_at) / (one_at - zero_at)));
+    return (value - zero_at) / (one_at - zero_at);
 }
 
 double get_projectile_radius(model::ProjectileType type, const model::Game& game) {

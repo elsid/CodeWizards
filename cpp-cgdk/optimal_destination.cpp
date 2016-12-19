@@ -205,8 +205,8 @@ double GetLaneScore::operator ()(model::LaneType lane) const {
     const auto lane_length = get_lane_length(lane);
     const auto to_firend_base = graph.get_shortest_path(max_enemy, graph.friend_base()).length;
     const auto factor = to_firend_base > lane_length / 2
-            ? line_factor(to_firend_base, lane_length / 2, lane_length)
-            : line_factor(to_firend_base, lane_length / 2, 0);
+            ? bounded_line_factor(to_firend_base, lane_length / 2, lane_length)
+            : bounded_line_factor(to_firend_base, lane_length / 2, 0);
     return enemy_weight / friend_weight * (1 + factor);
 }
 

@@ -72,24 +72,19 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     const auto& cached_unit = get_units<model::Minion>(context.cache()).at(unit.getId());
     const auto unit_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;
     const auto distance_to_me = std::max(unit_position.distance(position), unit.getRadius() + context.self().getRadius());
-    if (!is_enemy(unit, context.self().getFaction())) {
-        return 1 / (2 * context.self().getVisionRange()) * line_factor(distance_to_me, 2 * context.self().getVisionRange(), 0);
-    }
     if (friend_units.empty()) {
-        return get_common(unit, position, sum_enemy_damage);
+        return get_base(unit, position, sum_enemy_damage);
     }
     const auto nearest_friend = std::min_element(friend_units.begin(), friend_units.end(),
         [&] (auto lhs, auto rhs) {
-            return std::max(unit_position.distance(get_position(*lhs)), unit.getRadius() + lhs->getRadius())
-                    < std::max(unit_position.distance(get_position(*rhs)), unit.getRadius() + rhs->getRadius());
+            return unit_position.distance(get_position(*lhs)) < unit_position.distance(get_position(*rhs));
         });
     const auto distance_to_nearest = std::max(unit_position.distance(get_position(**nearest_friend)),
                                               unit.getRadius() + (*nearest_friend)->getRadius());
     if (distance_to_me - distance_to_nearest > context.self().getRadius()) {
-        return 1 / distance_to_nearest * line_factor(distance_to_me - distance_to_nearest - context.self().getRadius(),
-                                                     2 * context.self().getVisionRange(), 0);
+        return line_factor(distance_to_me, distance_to_nearest, 0);
     }
-    return get_common(unit, position, sum_enemy_damage);
+    return get_base(unit, position, sum_enemy_damage);
 }
 
 double GetUnitAttackAbility::operator ()(const model::Building& unit) const {

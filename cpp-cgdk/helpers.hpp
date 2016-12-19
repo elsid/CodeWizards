@@ -201,6 +201,7 @@ inline std::vector<const T*> filter_friends(const std::vector<T>& units, model::
     return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
 }
 
+double bounded_line_factor(double value, double zero_at, double one_at);
 double line_factor(double value, double zero_at, double one_at);
 
 template <std::size_t max, std::size_t left, class ... Values>

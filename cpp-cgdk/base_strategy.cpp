@@ -176,7 +176,7 @@ void BaseStrategy::select_mode(const Context& context) {
 
     if (mode_ == battle_mode_) {
         max_distance = context.game().getStaffRange() + (max_distance - context.game().getStaffRange())
-                * line_factor(mode_ticks_, BATTLE_MODE_TICKS, BATTLE_MODE_TICKS - context.game().getWizardActionCooldownTicks());
+                * bounded_line_factor(mode_ticks_, BATTLE_MODE_TICKS, BATTLE_MODE_TICKS - context.game().getWizardActionCooldownTicks());
     }
 
     if (has_candidates(context, max_distance)) {

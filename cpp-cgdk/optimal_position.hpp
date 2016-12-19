@@ -115,13 +115,13 @@ struct GetUnitDangerPenalty {
 
     template <class T>
     double operator ()(const T& unit, const Point& position, double sum_damage_to_me) const {
-        return is_enemy(unit, context.self().getFaction()) ? get_common(unit, position, sum_damage_to_me) : 0;
+        return get_base(unit, position, sum_damage_to_me);
     }
 
     double operator ()(const model::Minion& unit, const Point& position, double sum_damage_to_me) const;
 
     template <class T>
-    double get_common(const T& unit, const Point& position, double sum_damage_to_me) const {
+    double get_base(const T& unit, const Point& position, double sum_damage_to_me) const {
         const Bounds my_bounds(context);
         const auto time_to_position = get_position(context.self()).distance(position) / my_bounds.max_speed(0);
         const auto& cached_unit = get_units<T>(context.cache()).at(unit.getId());
@@ -132,13 +132,9 @@ struct GetUnitDangerPenalty {
         const auto min_distance = std::min(current_distance, future_distance);
         const auto distance_factor = double(context.self().getMaxLife()) / double(context.game().getGuardianTowerDamage())
                 * sum_damage_to_me / context.self().getLife();
-        const auto safe_distance = 1 + context.self().getRadius() + std::max(context.game().getStaffRange(),
-                distance_factor * get_attack_range(unit, min_distance));
-        if (min_distance <= safe_distance - 1) {
-            return get_distance_penalty(min_distance, safe_distance);
-        } else {
-            return 1 / safe_distance * line_factor(min_distance - safe_distance + 1, 2 * context.self().getVisionRange(), 0);
-        }
+        const auto safe_distance = std::max(context.game().getStaffRange() + unit.getRadius() - 1,
+                context.self().getRadius() + distance_factor * get_attack_range(unit, min_distance));
+        return line_factor(min_distance, safe_distance, 0);
     }
 };
 
@@ -183,8 +179,6 @@ public:
         const GetDefenceFactor get_defence_factor {context};
 
         my_defence_factor = get_defence_factor(context.self());
-        max_borders_penalty = double(bonuses.size() + buildings.size() + minions.size() + trees.size() + wizards.size()
-                                     + get_units<model::Projectile>(context.cache()).size() * PROJECTILE_PENALTY_WEIGHT);
     }
 
     double operator ()(const Point& position) const {
@@ -194,25 +188,27 @@ public:
             return get_borders_penalty(position);
         }
 
-        const auto base_shift = 1;
+        const auto units_danger_penalty = get_units_danger_penalty(position) * UNITS_DANGER_PENALTY_WEIGHT;
+        const auto units_collision_penalty = get_units_collision_penalty(position);
+        const auto bonuses_penalty = get_bonuses_penalty(position);
+        const auto projectiles_penalty = get_projectiles_penalty(position) * PROJECTILE_PENALTY_WEIGHT;
+        const auto friendly_fire_penalty = get_friendly_fire_penalty(position);
+        const auto target_penalty = get_target_penalty(position) * TARGET_PENALTY_WEIGHT;
+        const auto borders_penalty = get_borders_penalty(position);
 
-        std::array<double, 8> penalties = {{
-            get_units_danger_penalty(position) * UNITS_DANGER_PENALTY_WEIGHT,
-            get_units_collision_penalty(position),
-            get_bonuses_penalty(position),
-            get_projectiles_penalty(position) * PROJECTILE_PENALTY_WEIGHT,
-            get_friendly_fire_penalty(position),
-            get_target_penalty(position),
-            get_borders_penalty(position),
-            get_distance_penalty(position),
-        }};
+        const auto max_penalty = std::max({
+            units_danger_penalty,
+            units_collision_penalty,
+            bonuses_penalty,
+            projectiles_penalty,
+            friendly_fire_penalty,
+            target_penalty,
+            borders_penalty,
+        });
 
-        std::for_each(penalties.begin(), penalties.end(), [&] (auto& v) { v += base_shift; });
+        const auto elimination_score = get_elimination_score(position) * ELIMINATION_SCORE_WEIGHT;
 
-        const auto max_penalty = *std::max_element(penalties.begin(), penalties.end());
-        const auto score = get_elimination_score(position) * ELIMINATION_SCORE_WEIGHT;
-
-        return max_penalty - score;
+        return max_penalty - elimination_score;
     }
 
     bool is_out_of_borders(const Point& position) const {
@@ -223,20 +219,17 @@ public:
     }
 
     double get_borders_penalty(const Point& position) const {
-        const std::array<double, 4> factors = {{
-            get_borders_factor(position.x()),
-            get_borders_factor(context.game().getMapSize() - position.x()),
-            get_borders_factor(position.y()),
-            get_borders_factor(context.game().getMapSize() - position.y()),
-        }};
-        const auto max_factor = std::max_element(factors.begin(), factors.end());
-        return max_borders_penalty * *max_factor;
+        const auto left = get_borders_factor(position.x());
+        const auto right = get_borders_factor(context.game().getMapSize() - position.x());
+        const auto top = get_borders_factor(position.y());
+        const auto bottom = get_borders_factor(context.game().getMapSize() - position.y());
+        return std::max({left, right, top, bottom});
     }
 
     double get_projectiles_penalty(const Point& position) const {
         const auto& projectiles = get_units<model::Projectile>(context.cache());
-        return std::accumulate(projectiles.begin(), projectiles.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + this->get_projectile_penalty(v.second, position); });
+        return std::accumulate(projectiles.begin(), projectiles.end(), - std::numeric_limits<double>::max(),
+            [&] (auto max, auto v) { return std::max(max, this->get_projectile_penalty(v.second, position)); });
     }
 
     double get_elimination_score(const Point& position) const {
@@ -245,15 +238,15 @@ public:
                 [&] (auto sum, const auto& v) { return sum + this->get_elimination_score(v.second, position); });
         };
 
-        return get_sum_elimination_score(get_units<model::Building>(context.cache()))
-                + get_sum_elimination_score(get_units<model::Minion>(context.cache()))
-                + get_sum_elimination_score(get_units<model::Wizard>(context.cache()));
+        const auto buildings_score = get_sum_elimination_score(get_units<model::Building>(context.cache()));
+        const auto minions_score = get_sum_elimination_score(get_units<model::Minion>(context.cache()));
+        const auto wizards_score = get_sum_elimination_score(get_units<model::Wizard>(context.cache()));
+
+        return buildings_score + minions_score + wizards_score;
     }
 
     double get_sum_damage_to_me(const Point& position) const {
-        const auto add_damage = [&] (auto sum, auto v) {
-            return sum + this->get_unit_current_damage(*v, position);
-        };
+        const auto add_damage = [&] (auto sum, auto v) { return sum + this->get_unit_current_damage(*v, position); };
 
         const double enemy_wizards_damage = std::accumulate(enemy_wizards.begin(), enemy_wizards.end(), 0.0, add_damage);
         const double enemy_minions_damage = std::accumulate(enemy_minions.begin(), enemy_minions.end(), 0.0, add_damage);
@@ -268,34 +261,37 @@ public:
 
     double get_units_danger_penalty(const Point& position) const {
         const auto sum_damage_to_me = get_sum_damage_to_me(position);
-        return get_units_danger_penalty(enemy_buildings, position, sum_damage_to_me)
-                + get_units_danger_penalty(enemy_minions, position, sum_damage_to_me)
-                + get_units_danger_penalty(enemy_wizards, position, sum_damage_to_me);
+        const auto buildings_penalty = get_units_danger_penalty(enemy_buildings, position, sum_damage_to_me);
+        const auto minions_penalty = get_units_danger_penalty(enemy_minions, position, sum_damage_to_me);
+        const auto wizards_penalty = get_units_danger_penalty(enemy_wizards, position, sum_damage_to_me);
+        return std::max({buildings_penalty, minions_penalty, wizards_penalty});
     }
 
     double get_units_collision_penalty(const Point& position) const {
-        return get_units_collision_penalty(buildings, position)
-                + get_units_collision_penalty(minions, position)
-                + get_units_collision_penalty(trees, position)
-                + get_units_collision_penalty(wizards, position);
+        const auto buildings_penalty = get_units_collision_penalty(buildings, position);
+        const auto minions_penalty = get_units_collision_penalty(minions, position);
+        const auto trees_penalty = get_units_collision_penalty(trees, position);
+        const auto wizards_penalty = get_units_collision_penalty(wizards, position);
+        return std::max({buildings_penalty, minions_penalty, trees_penalty, wizards_penalty});
     }
 
     double get_bonuses_penalty(const Point& position) const {
-        return std::accumulate(bonuses.begin(), bonuses.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + this->get_bonus_penalty(*v, position); });
+        return std::accumulate(bonuses.begin(), bonuses.end(), - std::numeric_limits<double>::max(),
+            [&] (auto max, auto v) { return std::max(max, this->get_bonus_penalty(*v, position)); });
     }
 
     double get_friendly_fire_penalty(const Point& position) const {
-        return get_friendly_fire_penalty(friend_buildings, position)
-                + get_friendly_fire_penalty(trees, position);
+        const auto buildings_penalty = get_friendly_fire_penalty(friend_buildings, position);
+        const auto trees_penalty = get_friendly_fire_penalty(trees, position);
+        return std::max(buildings_penalty, trees_penalty);
     }
 
     double get_target_penalty(const Point& position) const {
-        return target ? get_target_penalty(*target, position) : 0;
-    }
-
-    double get_distance_penalty(const Point& position) const {
-        return 0.1 * line_factor(get_position(context.self()).distance(position), 0, max_distance);
+        if (target) {
+            return get_target_penalty(*target, position);
+        } else {
+            return - std::numeric_limits<double>::max();
+        }
     }
 
 private:
@@ -313,7 +309,6 @@ private:
     std::vector<const model::CircularUnit*> friend_units;
     std::vector<const model::Wizard*> friend_wizards;
     std::vector<const model::Building*> friend_buildings;
-    double max_borders_penalty = std::numeric_limits<double>::max();
     double my_defence_factor = 1;
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
@@ -376,7 +371,7 @@ private:
 
     double get_friendly_fire_penalty(const model::CircularUnit& unit, const Point& position) const {
         if (!target) {
-            return 0.0;
+            return - std::numeric_limits<double>::max();
         }
 
         const auto target_position = get_position(*target);
@@ -385,7 +380,7 @@ private:
                 .has_intersection(Circle(position, context.self().getRadius()), target_position);
 
         if (!has_intersection) {
-            return 0.0;
+            return - std::numeric_limits<double>::max();
         }
 
         const auto cast_radius = std::max(context.game().getMagicMissileRadius(),
@@ -422,17 +417,17 @@ private:
         }
 
         const auto distance = get_position(unit.value()).distance(position);
-        const auto factor = line_factor(-mean_life_change_speed * 30, 0, unit.value().getLife());
+        const auto factor = bounded_line_factor(-mean_life_change_speed * 30, 0, unit.value().getLife());
 
         if (distance <= context.game().getScoreGainRange() - context.self().getRadius()) {
-            return factor * (1 + 0.1 * line_factor(distance, context.game().getScoreGainRange()- context.self().getRadius(), 0));
+            return factor * (1 + 0.1 * bounded_line_factor(distance, context.game().getScoreGainRange()- context.self().getRadius(), 0));
         } else {
-            return factor * line_factor(distance, context.game().getScoreGainRange(), context.game().getScoreGainRange() - context.self().getRadius());
+            return factor * bounded_line_factor(distance, context.game().getScoreGainRange(), context.game().getScoreGainRange() - context.self().getRadius());
         }
     }
 
     double get_borders_factor(double distance) const {
-        return std::max(0.0, (2 * context.self().getRadius() - distance) / (2 * context.self().getRadius()));
+        return line_factor(distance, 2 * context.self().getRadius(), 0);
     }
 
     template <class Unit>
@@ -444,21 +439,21 @@ private:
     template <class Unit>
     double get_units_danger_penalty(const std::vector<const Unit*>& units, const Point& position, double sum_damage_to_me) const {
         const GetUnitDangerPenalty get_unit_danger_penalty {context, friend_units};
-        return std::accumulate(units.begin(), units.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + get_unit_danger_penalty(*v, position, sum_damage_to_me); });
+        return std::accumulate(units.begin(), units.end(), - std::numeric_limits<double>::max(),
+            [&] (auto max, auto v) { return std::max(max, get_unit_danger_penalty(*v, position, sum_damage_to_me)); });
     }
 
     template <class Unit>
     double get_units_collision_penalty(const std::vector<const Unit*>& units, const Point& position) const {
         const GetUnitIntersectionPenalty get_unit_collision_penalty {context};
-        return std::accumulate(units.begin(), units.end(), 0.0,
-           [&] (auto sum, auto v) { return sum + get_unit_collision_penalty(*v, position); });
+        return std::accumulate(units.begin(), units.end(), - std::numeric_limits<double>::max(),
+           [&] (auto max, auto v) { return std::max(max, get_unit_collision_penalty(*v, position)); });
     }
 
     template <class Unit>
     double get_friendly_fire_penalty(const std::vector<const Unit*>& units, const Point& position) const {
-        return std::accumulate(units.begin(), units.end(), 0.0,
-            [&] (auto sum, auto v) { return sum + this->get_friendly_fire_penalty(*v, position); });
+        return std::accumulate(units.begin(), units.end(), - std::numeric_limits<double>::max(),
+            [&] (auto max, auto v) { return std::max(max, this->get_friendly_fire_penalty(*v, position)); });
     }
 
     template <class Unit>
@@ -467,15 +462,12 @@ private:
         const auto current_distance = position.distance(get_position(unit));
         const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
         const auto distance = std::max(current_distance, future_distance);
-        const auto range = context.game().getStaffRange();
+        const auto range = context.game().getStaffRange() + unit.getRadius() - 1;
         const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
-        const auto ticks_factor = line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
+        const auto ticks_factor = bounded_line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
         const auto life_factor = double(context.self().getLife()) / double(context.self().getMaxLife());
-        if (distance <= range) {
-            return 0.01 * line_factor(distance, 0, range) * ticks_factor * life_factor;
-        } else {
-            return (0.01 + line_factor(distance - range, 0, 2 * context.self().getVisionRange())) * life_factor * ticks_factor;
-        }
+        const auto distance_factor = line_factor(distance, 0, range);
+        return distance_factor * ticks_factor * life_factor;
     }
 
     double get_target_penalty(const model::Bonus& unit, const Point& position) const {

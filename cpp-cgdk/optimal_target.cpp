@@ -201,16 +201,16 @@ double GetLifeRegeneration::operator ()(const model::Wizard& unit) const {
 
 double GetTargetScore::get_distance_probability(const model::Unit& unit) const {
     const auto distance = get_position(context.self()).distance(get_position(unit));
-    return line_factor(distance, 2 * get_max_distance_for_unit_candidate(context), 0);
+    return bounded_line_factor(distance, 2 * get_max_distance_for_unit_candidate(context), 0);
 }
 
 double GetTargetScore::get_angle_probability(const model::Unit& unit) const {
     const auto direction = get_position(unit) - get_position(context.self());
     const auto angle = normalize_angle(direction.absolute_rotation() - context.self().getAngle());
     if (angle >= 0) {
-        return line_factor(angle, 2.0 * M_PI, 0);
+        return bounded_line_factor(angle, 2.0 * M_PI, 0);
     } else {
-        return line_factor(angle, -2.0 * M_PI, 0);
+        return bounded_line_factor(angle, -2.0 * M_PI, 0);
     }
 }
 
