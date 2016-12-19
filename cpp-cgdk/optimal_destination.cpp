@@ -120,7 +120,7 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto& node_info = nodes_info_.at(node);
     const auto mean_life_change = get_units<model::Wizard>(context_.cache()).at(context_.self().getId()).mean_life_change_speed();
 
-    if ((mean_life_change >= 0 || (mean_life_change < 0 && - context_.self().getLife() / mean_life_change >= 100))
+    if ((mean_life_change >= 0 || (mean_life_change < 0 && - context_.self().getLife() / mean_life_change >= TICKS_TO_DEATH_FOR_RETREAT))
             && context_.self().getLife() > context_.self().getMaxLife() / 2) {
         return high_life_score(node, node_info);
     } else {

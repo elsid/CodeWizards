@@ -168,7 +168,9 @@ std::pair<model::SkillType, int> BaseStrategy::get_opposite_skill(const Context&
 
 void BaseStrategy::select_mode(const Context& context) {
     const auto mean_life_change = get_units<model::Wizard>(context.cache()).at(context.self().getId()).mean_life_change_speed();
-    if (mean_life_change < 0 && - context.self().getLife() / mean_life_change < 100 && mode_ != move_mode_) {
+    if (((mean_life_change < 0 && - context.self().getLife() / mean_life_change < TICKS_TO_DEATH_FOR_RETREAT)
+         || context.self().getLife() < context.self().getMaxLife() / 3)
+            && mode_ != move_mode_) {
         return use_retreat_mode();
     }
 
