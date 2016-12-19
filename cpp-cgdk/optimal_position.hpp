@@ -164,8 +164,14 @@ public:
         };
 
         enemy_wizards = filter_units(wizards, is_enemy);
-        enemy_minions = filter_units(minions, is_enemy);
         enemy_buildings = filter_units(buildings, is_enemy);
+
+        for (const auto& unit : get_units<model::Minion>(context.cache())) {
+            if (is_enemy(unit.second.value()) || (unit.second.value().getFaction() == model::FACTION_NEUTRAL
+                    && context.world().getTickIndex() - unit.second.last_activity() <= unit.second.value().getCooldownTicks())) {
+                enemy_minions.push_back(&unit.second.value());
+            }
+        }
 
         friend_wizards = filter_friends(wizards, context.self().getFaction(), context.self().getId());
         const auto friend_minions = filter_friends(minions, context.self().getFaction(), context.self().getId());
