@@ -192,7 +192,7 @@ public:
         const auto units_collision_penalty = get_units_collision_penalty(position);
         const auto bonuses_penalty = get_bonuses_penalty(position);
         const auto projectiles_penalty = get_projectiles_penalty(position) * PROJECTILE_PENALTY_WEIGHT;
-        const auto friendly_fire_penalty = get_friendly_fire_penalty(position);
+        const auto friendly_fire_penalty = get_friendly_fire_penalty(position) * FRIENDLY_FIRE_PENALTY_WEIGHT;
         const auto target_penalty = get_target_penalty(position) * TARGET_PENALTY_WEIGHT;
         const auto borders_penalty = get_borders_penalty(position);
 
