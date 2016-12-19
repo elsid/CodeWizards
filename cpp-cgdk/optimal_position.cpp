@@ -71,7 +71,7 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     const auto time_to_position = get_position(context.self()).distance(position) / my_bounds.max_speed(0);
     const auto& cached_unit = get_units<model::Minion>(context.cache()).at(unit.getId());
     const auto unit_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;
-    const auto distance_to_me = unit_position.distance(position) - context.self().getRadius();
+    const auto distance_to_me = std::max(unit_position.distance(position), unit.getRadius() + context.self().getRadius());
     if (!is_enemy(unit, context.self().getFaction())) {
         return 1 / (2 * context.self().getVisionRange()) * line_factor(distance_to_me, 2 * context.self().getVisionRange(), 0);
     }
@@ -80,12 +80,14 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     }
     const auto nearest_friend = std::min_element(friend_units.begin(), friend_units.end(),
         [&] (auto lhs, auto rhs) {
-            return unit_position.distance(get_position(*lhs)) - lhs->getRadius()
-                    < unit_position.distance(get_position(*rhs)) - rhs->getRadius();
+            return std::max(unit_position.distance(get_position(*lhs)), unit.getRadius() + lhs->getRadius())
+                    < std::max(unit_position.distance(get_position(*rhs)), unit.getRadius() + rhs->getRadius());
         });
-    const auto distance_to_nearest = unit_position.distance(get_position(**nearest_friend)) - (**nearest_friend).getRadius();
+    const auto distance_to_nearest = std::max(unit_position.distance(get_position(**nearest_friend)),
+                                              unit.getRadius() + (*nearest_friend)->getRadius());
     if (distance_to_me - distance_to_nearest > context.self().getRadius()) {
-        return 1 / distance_to_nearest * line_factor(distance_to_me - distance_to_nearest, 2 * context.self().getVisionRange(), 0);
+        return 1 / distance_to_nearest * line_factor(distance_to_me - distance_to_nearest - context.self().getRadius(),
+                                                     2 * context.self().getVisionRange(), 0);
     }
     return get_common(unit, position, sum_enemy_damage);
 }
