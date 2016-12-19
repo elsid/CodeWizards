@@ -136,6 +136,8 @@ bool is_empowered(const model::LivingUnit& unit);
 
 bool is_shielded(const model::LivingUnit& unit);
 
+bool is_frozen(const model::LivingUnit& unit);
+
 bool is_enemy(const model::Unit& unit, model::Faction my_faction);
 
 template <class T>

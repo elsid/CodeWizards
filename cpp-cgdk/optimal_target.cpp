@@ -226,13 +226,21 @@ double GetTargetScore::hit_probability(const model::Building&) const {
     return BUILDING_HIT_PROBABILITY;
 }
 
-double GetTargetScore::hit_probability(const model::Minion&) const {
-    return MINION_HIT_PROBABILITY;
+double GetTargetScore::hit_probability(const model::Minion& unit) const {
+    return hit_probability_by_status(unit, MINION_HIT_PROBABILITY);
 }
 
-double GetTargetScore::hit_probability(const model::Wizard&) const {
+double GetTargetScore::hit_probability(const model::Wizard& unit) const {
     // TODO: use hastened status and movement bonus skills
-    return WIZARD_HIT_PROBABILITY;
+    return hit_probability_by_status(unit, WIZARD_HIT_PROBABILITY);
+}
+
+double GetTargetScore::hit_probability_by_status(const model::LivingUnit& unit, double base) const {
+    if (is_frozen(unit)) {
+        return 1.0;
+    } else {
+        return base;
+    }
 }
 
 double GetTargetScore::base(const model::Bonus&) const {

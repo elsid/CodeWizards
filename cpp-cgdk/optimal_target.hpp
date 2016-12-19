@@ -86,6 +86,8 @@ struct GetTargetScore {
     double hit_probability(const model::Minion& unit) const;
     double hit_probability(const model::Wizard& unit) const;
 
+    double hit_probability_by_status(const model::LivingUnit& unit, double base) const;
+
     double base(const model::Bonus&) const;
     double base(const model::Tree&) const;
     double base(const model::Building& unit) const;

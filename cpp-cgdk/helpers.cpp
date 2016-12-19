@@ -102,6 +102,10 @@ bool is_shielded(const model::LivingUnit& unit) {
     return is_with_status(unit, model::STATUS_SHIELDED);
 }
 
+bool is_frozen(const model::LivingUnit& unit) {
+    return is_with_status(unit, model::STATUS_FROZEN);
+}
+
 bool is_enemy(const model::Unit& unit, model::Faction my_faction) {
     return unit.getFaction() != my_faction
             && unit.getFaction() != model::FACTION_NEUTRAL
