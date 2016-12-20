@@ -168,7 +168,7 @@ public:
 
         for (const auto& unit : get_units<model::Minion>(context.cache())) {
             if (is_enemy(unit.second.value()) || (unit.second.value().getFaction() == model::FACTION_NEUTRAL
-                    && context.world().getTickIndex() - unit.second.last_activity() <= unit.second.value().getCooldownTicks())) {
+                                                  && unit.second.is_active(context.world().getTickIndex()))) {
                 enemy_minions.push_back(&unit.second.value());
             }
         }

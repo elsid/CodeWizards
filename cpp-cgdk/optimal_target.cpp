@@ -285,10 +285,16 @@ double GetTargetScore::get_base(const model::Building& unit) const {
 
 double GetTargetScore::get_base(const model::Minion& unit) const {
     if (unit.getFaction() == model::FACTION_NEUTRAL) {
-        return 0.1;
+        const auto& cached = get_units<model::Minion>(context.cache()).at(unit.getId());
+        if (cached.is_active(context.world().getTickIndex())) {
+            return get_base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
+                                      context.game().getMinionEliminationScoreFactor()) + 0.5;
+        } else {
+            return 0;
+        }
     } else {
         return get_base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
-                              context.game().getMinionEliminationScoreFactor()) + 1;
+                                  context.game().getMinionEliminationScoreFactor()) + 1;
     }
 }
 
@@ -315,7 +321,7 @@ bool MakeTargetCandidates::is_in_my_range(const model::Tree& unit) const {
 bool MakeTargetCandidates::is_in_my_range(const CachedUnit<model::Minion>& unit) const {
     if (unit.value().getFaction() == model::FACTION_NEUTRAL) {
         double max_distance;
-        if (context.world().getTickIndex() - unit.last_activity() <= unit.value().getCooldownTicks()) {
+        if (unit.is_active(context.world().getTickIndex())) {
             max_distance = std::max(get_max_distance_for_neutral_minion_candidate(context), 0.5 * this->max_distance);
         } else {
             max_distance = get_max_distance_for_neutral_minion_candidate(context);

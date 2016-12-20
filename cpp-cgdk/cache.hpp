@@ -108,6 +108,10 @@ public:
         return last_activity_;
     }
 
+    bool is_active(Tick tick) const {
+        return tick - last_activity() <= value().getCooldownTicks();
+    }
+
 private:
     Value value_;
     Tick first_seen_ = 0;
