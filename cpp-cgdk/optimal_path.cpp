@@ -254,9 +254,7 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
     std::size_t current_max_iterations = max_iterations;
     const auto time_limit = context.time_limit();
     Duration max_duration(0);
-    const auto distance = initial_position.distance(target);
-    const auto distance_to_units_penalty = get_distance_to_units_penalty(Line(initial_position, initial_position));
-    double max_priority = distance_to_units_penalty - 1.01 * distance;
+    double max_priority = - std::numeric_limits<double>::max();
 
     positions[initial_position_int] = {0, max_priority, 0};
 
