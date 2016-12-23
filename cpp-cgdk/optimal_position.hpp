@@ -80,7 +80,10 @@ struct GetCurrentDamage {
     double operator ()(const Unit& unit, const Point& position) const {
         const GetRangedDamage get_ranged_damage {context};
         const GetUnitAttackAbility get_attack_ability {context};
-        return get_ranged_damage(unit, position) * get_attack_ability(unit) * get_turn_factor(unit, position);
+        const auto ranged_damage = get_ranged_damage(unit, position);
+        const auto attack_ability = get_attack_ability(unit);
+        const auto turn_factor = get_turn_factor(unit, position);
+        return ranged_damage * attack_ability * turn_factor;
     }
 
     template <class Unit>
