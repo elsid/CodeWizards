@@ -11,6 +11,8 @@
 #include "model/Wizard.h"
 #include "model/World.h"
 
+#include <sstream>
+
 namespace strategy {
 
 using FullCache = std::tuple<

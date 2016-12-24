@@ -8,9 +8,10 @@
 #include "model/Wizard.h"
 
 #include <algorithm>
+#include <array>
+#include <numeric>
 #include <unordered_map>
 #include <vector>
-#include <numeric>
 
 #include "point.hpp"
 

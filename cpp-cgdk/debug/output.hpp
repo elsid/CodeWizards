@@ -3,9 +3,10 @@
 #include "model/World.h"
 #include "model/Game.h"
 
-#include <ostream>
 #include <iomanip>
 #include <limits>
+#include <ostream>
+#include <sstream>
 
 namespace strategy {
 
