@@ -146,6 +146,15 @@ class GetPositionPenalty {
 public:
     using Target = T;
 
+    static constexpr double UNITS_DANGER_PENALTY_WEIGHT = 1.2;
+    static constexpr double UNITS_COLLISION_PENALTY_WEIGHT = 1.1;
+    static constexpr double BONUSES_PENALTY_WEIGHT = 0.5;
+    static constexpr double PROJECTILE_PENALTY_WEIGHT = 1.3;
+    static constexpr double FRIENDLY_FIRE_PENALTY_WEIGHT = 0.1;
+    static constexpr double TARGET_PENALTY_WEIGHT = 0.05;
+    static constexpr double BORDERS_PENALTY_WEIGHT = 1.4;
+    static constexpr double ELIMINATION_SCORE_WEIGHT = 1;
+
     GetPositionPenalty(const Context& context, const Target* target, double max_distance)
             : context(context),
               target(target),
