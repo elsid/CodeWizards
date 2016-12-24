@@ -39,7 +39,11 @@ Duration TimeLimitedStrategy::get_full_time_limit(int tick, bool is_master) cons
 }
 
 int TimeLimitedStrategy::get_base_time_limit_per_tick(bool is_master) {
+#ifdef ELSID_INCREASED_TIMEOUT
+    return is_master ? 20000 : 10000;
+#else
     return is_master ? 20 : 10;
+#endif
 }
 
 }
