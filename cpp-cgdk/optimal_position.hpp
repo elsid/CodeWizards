@@ -540,7 +540,7 @@ private:
 
     template <class Function>
     Point minimize(const Point& initial_point, const Function& function) const {
-        return strategy::minimize(function, initial_point, max_function_calls_).second;
+        return Minimize().max_function_calls_count(max_function_calls_)(initial_point, function).second;
     }
 };
 
