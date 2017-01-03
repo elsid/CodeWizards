@@ -310,6 +310,12 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
             rotation = (step_state.position() - prev_position->second).absolute_rotation();
         }
 
+        std::sort(shifts.begin(), shifts.end(),
+            [&] (const auto& lhs, const auto& rhs) {
+                return std::abs(normalize_angle(rotation - lhs.absolute_rotation()))
+                        < std::abs(normalize_angle(rotation - rhs.absolute_rotation()));
+            });
+
         for (std::size_t i = 0; i < shifts.size() + 1; ++i) {
             context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 
