@@ -242,6 +242,7 @@ void DebugStrategy::visualize(const Context& context) {
     visualize_graph(context);
     visualize_graph_path(context);
     visualize_positions_penalties(context);
+    visualize_points(context);
     visualize_path(context);
     visualize_destination(context);
     visualize_target(context);
@@ -300,6 +301,26 @@ void DebugStrategy::visualize_graph_path(const Context& context) {
     if (destination.first) {
         const auto& position = nodes.at(destination.second);
         debug_.circle(position.x(), position.y(), 30, 0x222222);
+    }
+}
+
+void DebugStrategy::visualize_points(const Context& context) {
+    const auto& points = base_->battle_mode().points();
+
+    if (points.empty()) {
+        return;
+    }
+
+    const auto minmax = std::minmax_element(points.begin(), points.end(),
+        [&] (const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
+    const auto interval = minmax.second->second - minmax.first->second;
+    auto prev = get_position(context.self());
+    for (const auto& v : base_->battle_mode().points()) {
+        const auto color = get_color((v.second - minmax.first->second) / (interval ? interval : 1));
+        const auto& point = v.first;
+        debug_.line(prev.x(), prev.y(), point.x(), point.y(), color);
+        debug_.fillCircle(point.x(), point.y(), 5, color);
+        prev = point;
     }
 }
 

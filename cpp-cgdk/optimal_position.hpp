@@ -493,18 +493,56 @@ private:
     }
 };
 
-template <class T>
-Point get_optimal_position(const Context& context, const T* target, double max_distance,
-                           long max_function_calls = std::numeric_limits<long>::max()) {
-    const GetPositionPenalty<T> get_position_penalty(context, target, max_distance);
-    return minimize(get_position_penalty, get_position(context.self()), max_function_calls).second;
-}
+template <class TargetUnitT>
+class GetOptimalPosition {
+public:
+    using TargetUnit = TargetUnitT;
 
-template <>
-inline Point get_optimal_position(const Context& /*context*/, const model::Bonus* target, double /*max_distance*/,
-                                  long /*max_function_calls*/) {
-    return get_position(*target);
-}
+    Point operator ()(const Context& context) const {
+        const GetPositionPenalty<TargetUnit> get_position_penalty(context, target_, max_distance_);
+        if (points_) {
+            return minimize(get_position(context.self()),
+                [&] (const Point& point) {
+                    const auto result = get_position_penalty(point);
+                    points_->emplace_back(point, result);
+                    return result;
+                });
+        } else {
+            return minimize(get_position(context.self()), get_position_penalty);
+        }
+    }
+
+    GetOptimalPosition& target(const TargetUnit* value) {
+        target_ = value;
+        return *this;
+    }
+
+    GetOptimalPosition& max_distance(double value) {
+        max_distance_ = value;
+        return *this;
+    }
+
+    GetOptimalPosition& max_function_calls(long value) {
+        max_function_calls_ = value;
+        return *this;
+    }
+
+    GetOptimalPosition& points(std::vector<std::pair<Point, double>>* value) {
+        points_ = value;
+        return *this;
+    }
+
+private:
+    const TargetUnit* target_ = nullptr;
+    double max_distance_ = std::numeric_limits<double>::max();
+    long max_function_calls_ = std::numeric_limits<long>::max();
+    std::vector<std::pair<Point, double>>* points_ = nullptr;
+
+    template <class Function>
+    Point minimize(const Point& initial_point, const Function& function) const {
+        return strategy::minimize(function, initial_point, max_function_calls_).second;
+    }
+};
 
 }
 

@@ -345,8 +345,11 @@ struct SetResult {
     template <class Unit>
     void impl(const Unit& candidate) {
         const GetAttackRange get_attack_range {context};
-        const auto optimal_position = get_optimal_position(context, &candidate, 2 * context.self().getVisionRange(),
-                                                           OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS);
+        const auto optimal_position = GetOptimalPosition<Unit>()
+                .target(&candidate)
+                .max_distance(2 * context.self().getVisionRange())
+                .max_function_calls(OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)
+                (context);
         auto min_distance = std::min(get_position(context.self()).distance(get_position(candidate)),
                                      optimal_position.distance(get_position(candidate)));
         if (min_distance <= get_attack_range(context.self(), min_distance) + candidate.getRadius()) {

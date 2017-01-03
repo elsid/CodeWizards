@@ -59,6 +59,7 @@ private:
     void visualize_positions_penalties(const Context& context);
     void visualize_path(const Context& context);
     void visualize_destination(const Context& context);
+    void visualize_points(const Context& context);
     void visualize_target(const Context& context);
     void visualize_units(const Context& context);
     void visualize_unit(const Context& context, const model::Wizard& unit);
