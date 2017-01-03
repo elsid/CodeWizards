@@ -67,7 +67,6 @@ public:
 
 private:
     double priority_;
-    double distance_;
     double tick_;
     PointInt position_;
 };
