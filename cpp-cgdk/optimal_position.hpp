@@ -38,6 +38,7 @@ struct GetUnitIntersectionPenalty {
 
     double base(const model::CircularUnit& unit, const Point& position) const;
     double increased(const model::CircularUnit& unit, const Point& position) const;
+    double safe_distance(const model::CircularUnit& unit) const;
 };
 
 struct GetRangedDamage {

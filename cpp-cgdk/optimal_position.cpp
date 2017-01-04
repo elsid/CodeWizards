@@ -43,6 +43,9 @@ double GetUnitIntersectionPenalty::operator ()(const model::Minion& unit, const 
 }
 
 double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Point& position) const {
+    if (position.distance(get_position(unit)) >= 2.0 * safe_distance(unit)) {
+        return increased(unit, position);
+    }
     const auto to_position = position - get_position(context.self());
     const auto angle = std::abs(normalize_angle(to_position.absolute_rotation() - context.self().getAngle()));
     if (angle < M_PI_4) {
@@ -54,7 +57,7 @@ double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Po
 
 double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, const Point& position) const {
     const auto distance = position.distance(get_position(unit));
-    const auto safe_distance = context.game().getStaffRange() + unit.getRadius();
+    const auto safe_distance = this->safe_distance(unit);
     if (distance < safe_distance * 0.5) {
         return get_distance_penalty(distance, safe_distance);
     } else {
@@ -63,7 +66,11 @@ double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, co
 }
 
 double GetUnitIntersectionPenalty::base(const model::CircularUnit& unit, const Point& position) const {
-    return line_factor(position.distance(get_position(unit)), context.game().getStaffRange() + unit.getRadius(), 0);
+    return line_factor(position.distance(get_position(unit)), safe_distance(unit), 0);
+}
+
+double GetUnitIntersectionPenalty::safe_distance(const model::CircularUnit& unit) const {
+    return context.game().getStaffRange() + unit.getRadius();
 }
 
 double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double sum_enemy_damage) const {
