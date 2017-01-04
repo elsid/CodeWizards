@@ -512,6 +512,11 @@ public:
         return *this;
     }
 
+    GetOptimalPosition& precision(double value) {
+        precision_ = value;
+        return *this;
+    }
+
     GetOptimalPosition& max_function_calls(long value) {
         max_function_calls_ = value;
         return *this;
@@ -525,12 +530,14 @@ public:
 private:
     const TargetUnit* target_ = nullptr;
     double max_distance_ = std::numeric_limits<double>::max();
+    double precision_ = 1e-3;
     long max_function_calls_ = std::numeric_limits<long>::max();
     std::vector<std::pair<Point, double>>* points_ = nullptr;
 
     template <class Function>
     Point minimize(const Context& context, const Function& function) const {
         return Minimize()
+                .initial_trust_region_radius(precision_)
                 .max_function_calls_count(max_function_calls_)
                 .lower_bound(Point(0, 0))
                 .upper_bound(Point(context.world().getWidth(), context.world().getHeight()))

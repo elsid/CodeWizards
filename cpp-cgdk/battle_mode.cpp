@@ -46,6 +46,7 @@ Point BattleMode::get_optimal_position(const Context& context, const TargetT* ta
     return GetOptimalPosition<TargetT>()
             .target(target)
             .max_distance(get_max_distance_for_optimal_position(context))
+            .precision(OPTIMAL_POSITION_PRECISION)
             .max_function_calls(OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)
 #ifdef ELSID_STRATEGY_DEBUG
             .points(&points_)
