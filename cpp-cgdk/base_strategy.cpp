@@ -458,7 +458,11 @@ void BaseStrategy::apply_move_and_action(Context& context) {
 }
 
 void BaseStrategy::calculate_movements(const Context& context) {
-    path_ = get_optimal_path(context, destination_, OPTIMAL_PATH_STEP_SIZE, OPTIMAL_PATH_MAX_TICKS, OPTIMAL_PATH_MAX_ITERATIONS);
+    path_ = GetOptimalPath()
+            .step_size(OPTIMAL_PATH_STEP_SIZE)
+            .max_ticks(OPTIMAL_PATH_MAX_TICKS)
+            .max_iterations(OPTIMAL_PATH_MAX_ITERATIONS)
+            (context, destination_);
     if (const auto unit = target_.circular_unit(context.cache())) {
         std::tie(states_, movements_) = get_optimal_movement(context, path_, {true, get_position(*unit) + get_speed(*unit)});
     } else {

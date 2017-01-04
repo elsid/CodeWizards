@@ -11,9 +11,20 @@ namespace strategy {
 
 using Path = std::vector<Point>;
 
-Path get_optimal_path(const Context& context, const Point& target, int step_size,
-                      Tick max_ticks = std::numeric_limits<Tick>::max(),
-                      std::size_t max_iterations = std::numeric_limits<std::size_t>::max());
+class GetOptimalPath {
+public:
+    Path operator ()(const Context& context, const Point& target) const;
+
+    GetOptimalPath& step_size(int value);
+    GetOptimalPath& max_ticks(Tick value);
+    GetOptimalPath& max_iterations(std::size_t value);
+
+private:
+    int step_size_ = 1;
+    Tick max_ticks_ = std::numeric_limits<Tick>::max();
+    std::size_t max_iterations_ = std::numeric_limits<std::size_t>::max();
+};
+
 bool has_intersection_with_barriers(const Circle& barrier, const std::vector<Circle>& barriers);
 bool has_intersection_with_barriers(const Circle& barrier, const Point& final_position,
                                     const std::vector<Circle>& barriers);

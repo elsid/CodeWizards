@@ -12,7 +12,7 @@ namespace tests {
 
 using namespace testing;
 
-TEST(get_optimal_path, with_only_me) {
+TEST(GetOptimalPath, with_only_me) {
     const model::World world(
         0, // TickIndex
         20000, // TickCount
@@ -31,12 +31,11 @@ TEST(get_optimal_path, with_only_me) {
     const FullCache cache;
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, target, step_size);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
     EXPECT_EQ(result, Path({get_position(SELF), target}));
 }
 
-TEST(get_optimal_path, with_only_me_with_shift) {
+TEST(GetOptimalPath, with_only_me_with_shift) {
     const model::Wizard self(
         1, // Id
         1000.5, // X
@@ -81,12 +80,11 @@ TEST(get_optimal_path, with_only_me_with_shift) {
     const FullCache cache;
     const Context context(self, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200.3, 1200.3);
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, target, step_size);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
     EXPECT_EQ(result, Path({get_position(self), target}));
 }
 
-TEST(get_optimal_path, with_only_me_to_my_position) {
+TEST(GetOptimalPath, with_only_me_to_my_position) {
     const model::World world(
         0, // TickIndex
         20000, // TickCount
@@ -104,12 +102,11 @@ TEST(get_optimal_path, with_only_me_to_my_position) {
     const Profiler profiler;
     const FullCache cache;
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, get_position(SELF), step_size);
+    const auto result = GetOptimalPath().step_size(3)(context, get_position(SELF));
     EXPECT_EQ(result, Path({get_position(SELF)}));
 }
 
-TEST(get_optimal_path, with_static_barrier) {
+TEST(GetOptimalPath, with_static_barrier) {
     const model::Wizard self(
         1, // Id
         1000, // X
@@ -167,14 +164,13 @@ TEST(get_optimal_path, with_static_barrier) {
     const FullCache cache;
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, target, step_size);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
     ASSERT_EQ(result.size(), 29u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
 
-TEST(get_optimal_path, with_dynamic_barrier_moving_in_same_direction) {
+TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
     const model::Wizard self(
         1, // Id
         1000, // X
@@ -245,14 +241,13 @@ TEST(get_optimal_path, with_dynamic_barrier_moving_in_same_direction) {
     const FullCache cache;
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, target, step_size);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
     ASSERT_EQ(result.size(), 47u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
 
-TEST(get_optimal_path, with_dynamic_barrier_moving_in_opposite_direction) {
+TEST(GetOptimalPath, with_dynamic_barrier_moving_in_opposite_direction) {
     const model::Wizard self(
         1, // Id
         1000, // X
@@ -323,14 +318,13 @@ TEST(get_optimal_path, with_dynamic_barrier_moving_in_opposite_direction) {
     const FullCache cache;
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, target, step_size);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
     ASSERT_EQ(result.size(), 7u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
 
-TEST(get_optimal_path, with_dynamic_barrier_moving_in_crossing_direction) {
+TEST(GetOptimalPath, with_dynamic_barrier_moving_in_crossing_direction) {
     const model::Wizard self(
         1, // Id
         1000, // X
@@ -401,14 +395,13 @@ TEST(get_optimal_path, with_dynamic_barrier_moving_in_crossing_direction) {
     const FullCache cache;
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, target, step_size);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
     ASSERT_EQ(result.size(), 13u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
 
-TEST(get_optimal_path, with_static_occupier) {
+TEST(GetOptimalPath, with_static_occupier) {
     const model::Wizard self(
         1, // Id
         1000, // X
@@ -466,14 +459,13 @@ TEST(get_optimal_path, with_static_occupier) {
     const FullCache cache;
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, target, step_size);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
     ASSERT_EQ(result.size(), 61u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target - Point(20, 35));
 }
 
-TEST(get_optimal_path, with_static_occupier_and_limited_iterations) {
+TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
     const model::Wizard self(
         1, // Id
         1000, // X
@@ -531,8 +523,7 @@ TEST(get_optimal_path, with_static_occupier_and_limited_iterations) {
     const FullCache cache;
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto step_size = 3;
-    const auto result = get_optimal_path(context, target, step_size, std::numeric_limits<Tick>::max(), 50);
+    const auto result = GetOptimalPath().step_size(3).max_iterations(50)(context, target);
     ASSERT_EQ(result.size(), 50u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target - Point(53, 53));

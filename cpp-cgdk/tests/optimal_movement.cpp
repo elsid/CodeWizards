@@ -290,8 +290,7 @@ TEST(get_optimal_movement, with_static_barriers) {
     update_cache(cache, world);
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto step_size = 3;
-    const auto path = get_optimal_path(context, target, step_size);
+    const auto path = GetOptimalPath().step_size(3)(context, target);
     const OptPoint look_target;
     MovementsStates states;
     Movements movements;

@@ -138,61 +138,33 @@ double get_distance_to_closest_unit(const std::vector<const T*>& units, const Li
     return path.distance(get_position(**get_closest_unit(units, path)));
 }
 
-Path get_optimal_path(const Context& context, const Point& target, int step_size, Tick max_ticks, std::size_t max_iterations) {
-    const auto initial_position = get_position(context.self());
-    const auto global_shift = initial_position.to_int().to_double() - initial_position;
-    const auto initial_position_int = (initial_position - global_shift).to_int();
+auto get_closest_circle(const std::vector<Circle>& barriers, const Line& path) {
+    return std::min_element(barriers.begin(), barriers.end(),
+         [&] (auto lhs, auto rhs) { return path.distance(lhs.position()) < path.distance(rhs.position()); });
+}
 
-    const auto shifted = [&] (const PointInt& point) {
-        return point.to_double() + global_shift;
-    };
+double get_distance_to_closest_circle(const std::vector<Circle>& barriers, const Line& path) {
+    return path.distance(get_closest_circle(barriers, path)->position());
+}
 
-    const IsInMyRange is_in_my_range {context, 2 * target.distance(initial_position)};
+class GetOptimalPathImpl {
+public:
+    GetOptimalPathImpl(const Context& context, const Point& target, int step_size, Tick max_ticks, std::size_t max_iterations);
 
-    const auto initial_filter = [&] (const auto& units) {
-        return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && is_in_my_range(unit); });
-    };
+    Path operator ()();
 
-    const auto buildings = initial_filter(context.world().getBuildings());
-    const auto minions = initial_filter(context.world().getMinions());
-    const auto wizards = initial_filter(context.world().getWizards());
-    const auto trees = initial_filter(context.world().getTrees());
-
-    std::vector<Circle> static_barriers;
-    static_barriers.reserve(buildings.size() + trees.size());
-    std::transform(buildings.begin(), buildings.end(), std::back_inserter(static_barriers), make_circle);
-    std::transform(trees.begin(), trees.end(), std::back_inserter(static_barriers), make_circle);
-
-    const auto make_tick_state = [&] (double prev_tick, double tick) {
-        const auto make_circle = [&] (auto unit) {
-            return std::make_pair(Circle(get_position(*unit) + get_speed(*unit) * prev_tick, unit->getRadius()),
-                                  get_position(*unit) + get_speed(*unit) * tick);
-        };
-
-        std::vector<std::pair<Circle, Point>> dynamic_barriers;
-        dynamic_barriers.reserve(minions.size() + wizards.size());
-        std::transform(minions.begin(), minions.end(), std::back_inserter(dynamic_barriers), make_circle);
-        std::transform(wizards.begin(), wizards.end(), std::back_inserter(dynamic_barriers), make_circle);
-
-        const Circle barrier(get_position(context.self()), context.self().getRadius());
-
-        TickState::Occupier occupier;
-        const auto static_occupier = std::find_if(static_barriers.begin(), static_barriers.end(),
-            [&] (const auto& v) { return v.position().distance(target) <= v.radius() + barrier.radius(); });
-        if (static_occupier != static_barriers.end()) {
-            occupier = {true, *static_occupier};
-        } else {
-            const auto dynamic_occupier = std::find_if(dynamic_barriers.begin(), dynamic_barriers.end(),
-                [&] (const auto& v) { return v.second.distance(target) <= v.first.radius() + barrier.radius(); });
-            if (dynamic_occupier != dynamic_barriers.end()) {
-                occupier = {true, dynamic_occupier->first};
-            }
-        }
-
-        const auto max_distance_error = occupier.first ? occupier.second.radius() + barrier.radius() + 1 : 1;
-
-        return TickState(std::move(dynamic_barriers), occupier, max_distance_error);
-    };
+private:
+    const Context& context;
+    const Point target;
+    const int step_size;
+    const Tick max_ticks;
+    const std::size_t max_iterations;
+    const Point initial_position = get_position(context.self());
+    const Point global_shift = initial_position.to_int().to_double() - initial_position;
+    const PointInt initial_position_int = (initial_position - global_shift).to_int();
+    const double max_range = target.distance(initial_position) + step_size;
+    const double speed = (context.game().getWizardForwardSpeed() + context.game().getWizardBackwardSpeed()
+                          + 2 * context.game().getWizardStrafeSpeed()) / 4;
 
     std::array<PointInt, 8> shifts = {{
         PointInt(step_size, 0),
@@ -205,41 +177,108 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
         PointInt(-step_size, step_size),
     }};
 
-    const auto max_range = target.distance(initial_position) + step_size;
+    std::vector<const model::Minion*> minions;
+    std::vector<const model::Wizard*> wizards;
 
-    std::unordered_map<double, TickState> ticks_states({
+    std::vector<Circle> static_barriers;
+
+    std::unordered_map<double, TickState> ticks_states {{
         {0, make_tick_state(0, 0)},
-    });
+    }};
 
-    const auto speed = (context.game().getWizardForwardSpeed() + context.game().getWizardBackwardSpeed()
-                        + 2 * context.game().getWizardStrafeSpeed()) / 4;
+    Point shifted(const PointInt& position) const;
+    TickState make_tick_state(double prev_tick, double tick) const;
+    bool has_intersection(const PointInt& position, const TickState& tick_state, const PointInt& next_position) const;
+    double get_distance_to_units_penalty(const Line& path) const;
+    const TickState& get_tick_state(double prev_tick, double tick);
+};
 
-    const auto has_intersection = [&] (const StepState& step_state, const TickState& tick_state, const PointInt& position) {
-        const Circle barrier(shifted(step_state.position()), context.self().getRadius());
-        return (shifted(step_state.position()).distance(initial_position) > max_range
-                && shifted(step_state.position()).distance(target) > max_range)
-                || has_intersection_with_borders(barrier, context.game().getMapSize())
-                || has_intersection_with_barriers(barrier, shifted(position), static_barriers)
-                || has_intersection_with_barriers(barrier, shifted(position), tick_state.dynamic_barriers());
+GetOptimalPathImpl::GetOptimalPathImpl(const Context& context, const Point& target, int step_size, Tick max_ticks, std::size_t max_iterations)
+        : context(context), target(target), step_size(step_size), max_ticks(max_ticks), max_iterations(max_iterations) {
+    const IsInMyRange is_in_my_range {context, max_range};
+
+    const auto initial_filter = [&] (const auto& units) {
+        return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && is_in_my_range(unit); });
     };
 
-    const auto get_distance_to_units_penalty = [&] (const Line& path) {
-        double result = 0;
-        if (!buildings.empty()) {
-            result = std::min(result, get_distance_to_closest_unit(buildings, path));
-        }
-        if (!minions.empty()) {
-            result = std::min(result, get_distance_to_closest_unit(minions, path));
-        }
-        if (!wizards.empty()) {
-            result = std::min(result, get_distance_to_closest_unit(wizards, path));
-        }
-        if (!trees.empty()) {
-            result = std::min(result, get_distance_to_closest_unit(trees, path));
-        }
-        return -result;
+    minions = initial_filter(context.world().getMinions());
+    wizards = initial_filter(context.world().getWizards());
+
+    const auto buildings = initial_filter(context.world().getBuildings());
+    const auto trees = initial_filter(context.world().getTrees());
+
+    static_barriers.reserve(buildings.size() + trees.size());
+    std::transform(buildings.begin(), buildings.end(), std::back_inserter(static_barriers), make_circle);
+    std::transform(trees.begin(), trees.end(), std::back_inserter(static_barriers), make_circle);
+}
+
+Point GetOptimalPathImpl::shifted(const PointInt& position) const {
+    return position.to_double() + global_shift;
+}
+
+TickState GetOptimalPathImpl::make_tick_state(double prev_tick, double tick) const {
+    const auto make_circle = [&] (auto unit) {
+        return std::make_pair(Circle(get_position(*unit) + get_speed(*unit) * prev_tick, unit->getRadius()),
+                              get_position(*unit) + get_speed(*unit) * tick);
     };
 
+    std::vector<std::pair<Circle, Point>> dynamic_barriers;
+    dynamic_barriers.reserve(minions.size() + wizards.size());
+    std::transform(minions.begin(), minions.end(), std::back_inserter(dynamic_barriers), make_circle);
+    std::transform(wizards.begin(), wizards.end(), std::back_inserter(dynamic_barriers), make_circle);
+
+    const Circle barrier(get_position(context.self()), context.self().getRadius());
+
+    TickState::Occupier occupier;
+    const auto static_occupier = std::find_if(static_barriers.begin(), static_barriers.end(),
+        [&] (const auto& v) { return v.position().distance(target) <= v.radius() + barrier.radius(); });
+    if (static_occupier != static_barriers.end()) {
+        occupier = {true, *static_occupier};
+    } else {
+        const auto dynamic_occupier = std::find_if(dynamic_barriers.begin(), dynamic_barriers.end(),
+            [&] (const auto& v) { return v.second.distance(target) <= v.first.radius() + barrier.radius(); });
+        if (dynamic_occupier != dynamic_barriers.end()) {
+            occupier = {true, dynamic_occupier->first};
+        }
+    }
+
+    const auto max_distance_error = occupier.first ? occupier.second.radius() + barrier.radius() + 1 : 1;
+
+    return TickState(std::move(dynamic_barriers), occupier, max_distance_error);
+}
+
+bool GetOptimalPathImpl::has_intersection(const PointInt& position, const TickState& tick_state, const PointInt& next_position) const {
+    const Circle barrier(shifted(position), context.self().getRadius());
+    return (shifted(position).distance(initial_position) > max_range
+            && shifted(position).distance(target) > max_range)
+            || has_intersection_with_borders(barrier, context.game().getMapSize())
+            || has_intersection_with_barriers(barrier, shifted(next_position), static_barriers)
+            || has_intersection_with_barriers(barrier, shifted(next_position), tick_state.dynamic_barriers());
+}
+
+double GetOptimalPathImpl::get_distance_to_units_penalty(const Line& path) const {
+    double result = 0;
+    if (!static_barriers.empty()) {
+        result = std::min(result, get_distance_to_closest_circle(static_barriers, path));
+    }
+    if (!minions.empty()) {
+        result = std::min(result, get_distance_to_closest_unit(minions, path));
+    }
+    if (!wizards.empty()) {
+        result = std::min(result, get_distance_to_closest_unit(wizards, path));
+    }
+    return -result;
+}
+
+const TickState& GetOptimalPathImpl::get_tick_state(double prev_tick, double tick) {
+    auto tick_state = ticks_states.find(tick);
+    if (tick_state == ticks_states.end()) {
+        tick_state = ticks_states.insert({tick, make_tick_state(prev_tick, tick)}).first;
+    }
+    return tick_state->second;
+}
+
+Path GetOptimalPathImpl::operator ()() {
     const auto target_int = target.to_int();
     std::set<PointInt> closed;
     std::set<PointInt> opened({initial_position_int});
@@ -324,11 +363,8 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
             }
             const auto path_length = shift.norm();
             const auto tick = step_state.tick() + path_length / speed;
-            auto tick_state = ticks_states.find(tick);
-            if (tick_state == ticks_states.end()) {
-                tick_state = ticks_states.insert({tick, make_tick_state(step_state.tick(), tick)}).first;
-            }
-            if (has_intersection(step_state, tick_state->second, position)) {
+            const auto tick_state = get_tick_state(step_state.tick(), tick);
+            if (has_intersection(step_state.position(), tick_state, position)) {
                 continue;
             }
             const auto distance_to_units_penalty = get_distance_to_units_penalty(Line(shifted(step_state.position()),
@@ -362,6 +398,25 @@ Path get_optimal_path(const Context& context, const Point& target, int step_size
     }
 
     return reconstruct_path(final_position, came_from, global_shift, target_int, target - target.to_int().to_double());
+}
+
+Path GetOptimalPath::operator ()(const Context& context, const Point& target) const {
+    return GetOptimalPathImpl(context, target, step_size_, max_ticks_, max_iterations_)();
+}
+
+GetOptimalPath& GetOptimalPath::step_size(int value) {
+    step_size_ = value;
+    return *this;
+}
+
+GetOptimalPath& GetOptimalPath::max_ticks(Tick value) {
+    max_ticks_ = value;
+    return *this;
+}
+
+GetOptimalPath& GetOptimalPath::max_iterations(std::size_t value) {
+    max_iterations_ = value;
+    return *this;
 }
 
 }
