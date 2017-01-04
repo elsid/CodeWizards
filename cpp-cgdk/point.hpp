@@ -20,7 +20,7 @@ public:
     Value y() const { return y_; }
 
     double distance(const BasicPoint& other) const {
-        return std::hypot(other.x() - x(), other.y() - y());
+        return math::hypot(other.x() - x(), other.y() - y());
     }
 
     double square() const {
@@ -38,7 +38,7 @@ public:
     }
 
     double norm() const {
-        return hypot(x(), y());
+        return math::hypot(x(), y());
     }
 
     double cos(const BasicPoint& other) const {

@@ -162,8 +162,8 @@ TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_active_cooldown) {
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getWizards()[0];
     const auto result = GetOptimalPosition<model::Wizard>().target(&target)(context);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 100.48200294038051);
-    EXPECT_EQ(result, Point(1036.8165226952783, 1021.8688211365376));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 100.47489017570499);
+    EXPECT_EQ(result, Point(1039.5618660258058, 1019.7352162057523));
 }
 
 TEST(GetOptimalPosition, for_me_with_low_life_and_enemy_wizard_with_max_cooldown) {
@@ -239,8 +239,8 @@ TEST(GetOptimalPosition, for_me_with_low_life_and_enemy_wizard_with_max_cooldown
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getWizards()[0];
     const auto result = GetOptimalPosition<model::Wizard>().target(&target)(context);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 107.31267162411977);
-    EXPECT_EQ(result, Point(1032.210761482509, 1016.8096842635822));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 107.31267162412011);
+    EXPECT_EQ(result, Point(1032.210761482507, 1016.8096842635834));
 }
 
 TEST(GetOptimalPosition, for_me_with_low_life_and_enemy_wizard_with_half_cooldown) {
@@ -686,8 +686,8 @@ TEST(GetOptimalPosition, for_me_with_full_life_and_enemy_building_with_inactive_
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getBuildings()[0];
     const auto result = GetOptimalPosition<model::Building>().target(&target)(context);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 519.83279816390836);
-    EXPECT_EQ(result, Point(980.19892582545833, 1005.7429377422449));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 519.8327981644004);
+    EXPECT_EQ(result, Point(980.19892582495754, 1005.7429377414564));
 }
 
 TEST(GetOptimalPosition, for_me_with_full_life_and_enemy_building_with_active_cooldown) {
@@ -896,8 +896,8 @@ TEST(GetOptimalPosition, for_me_with_low_life_and_enemy_building_with_inactive_c
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getBuildings()[0];
     const auto result = GetOptimalPosition<model::Building>().target(&target)(context);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 675.99348713574307);
-    EXPECT_EQ(result, Point(828.64741388306948, 1079.0752790956278));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 675.9934871357251);
+    EXPECT_EQ(result, Point(828.64741388308994, 1079.0752790956476));
 }
 
 TEST(GetOptimalPosition, for_me_low_life_and_enemy_building_with_half_cooldown) {
@@ -1036,8 +1036,8 @@ TEST(GetOptimalPosition, for_me_low_life_and_enemy_building_with_active_cooldown
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getBuildings()[0];
     const auto result = GetOptimalPosition<model::Building>().target(&target)(context);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)),  118.24891859227043);
-    EXPECT_EQ(result, Point(1419.2787884065899, 913.58881584462972));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 118.24891859227824);
+    EXPECT_EQ(result, Point(1419.2787884065833, 913.58881584462517));
 }
 
 }

@@ -40,6 +40,10 @@ inline double sin(double angle) {
     }
 }
 
+inline double hypot(double x, double y) {
+    return std::sqrt(square(x) + square(y));
+}
+
 }
 }
 

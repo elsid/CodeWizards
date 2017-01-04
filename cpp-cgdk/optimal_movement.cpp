@@ -25,7 +25,7 @@ Movement get_next_movement(const Point& target, const MovementState& state, cons
         angle_to = normalize_angle(direction.absolute_rotation() - state.angle());
         speed = math::cos(angle_to) * (std::abs(angle_to) <= M_PI_2 ? bounds.max_speed(state.tick()) : -bounds.min_speed(state.tick()));
         strafe_speed = bounds.max_strafe_speed(state.tick()) * math::sin(angle_to);
-        const auto speed_factor = std::min(1.0, norm / std::hypot(speed, strafe_speed));
+        const auto speed_factor = std::min(1.0, norm / math::hypot(speed, strafe_speed));
         speed *= speed_factor;
         strafe_speed *= speed_factor;
     }
