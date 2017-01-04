@@ -32,17 +32,17 @@ private:
 
 class GetNodeScore {
 public:
-    static constexpr const double ENEMY_WIZARD_REDUCE_FACTOR = 16.0;
-    static constexpr const double ENEMY_MINION_REDUCE_FACTOR = 2.0;
-    static constexpr const double ENEMY_TOWER_REDUCE_FACTOR = 400.0;
-    static constexpr const double ENEMY_BASE_REDUCE_FACTOR = 800.0;
-    static constexpr const double FRIEND_WIZARD_REDUCE_FACTOR = 8.0;
-    static constexpr const double FRIEND_MINION_REDUCE_FACTOR = 1.0;
-    static constexpr const double PATH_LENGTH_REDUCE_FACTOR = 0.25;
-    static constexpr const double FRIEND_TOWER_MULT_FACTOR = 1.0;
-    static constexpr const double FRIEND_BASE_MULT_FACTOR = 2.0;
-    static constexpr const double WIZARD_DAMAGE_PROBABILITY = 0.25;
-    static constexpr const double WIZARD_ELIMINATION_PROBABILITY = 0.05;
+    static constexpr double ENEMY_WIZARD_REDUCE_FACTOR = 16.0;
+    static constexpr double ENEMY_MINION_REDUCE_FACTOR = 2.0;
+    static constexpr double ENEMY_TOWER_REDUCE_FACTOR = 400.0;
+    static constexpr double ENEMY_BASE_REDUCE_FACTOR = 800.0;
+    static constexpr double FRIEND_WIZARD_REDUCE_FACTOR = 8.0;
+    static constexpr double FRIEND_MINION_REDUCE_FACTOR = 1.0;
+    static constexpr double PATH_LENGTH_REDUCE_FACTOR = 0.25;
+    static constexpr double FRIEND_TOWER_MULT_FACTOR = 1.0;
+    static constexpr double FRIEND_BASE_MULT_FACTOR = 2.0;
+    static constexpr double WIZARD_DAMAGE_PROBABILITY = 0.25;
+    static constexpr double WIZARD_ELIMINATION_PROBABILITY = 0.05;
 
     struct NodeInfo {
         double enemy_wizards_weight = 0;

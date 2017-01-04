@@ -57,32 +57,32 @@ struct CacheTtl {};
 
 template <>
 struct CacheTtl<model::Bonus> {
-    static constexpr const Tick value = 2500;
+    static constexpr Tick value = 2500;
 };
 
 template <>
 struct CacheTtl<model::Building> {
-    static constexpr const Tick value = std::numeric_limits<int>::max();
+    static constexpr Tick value = std::numeric_limits<int>::max();
 };
 
 template <>
 struct CacheTtl<model::Minion> {
-    static constexpr const Tick value = 60;
+    static constexpr Tick value = 60;
 };
 
 template <>
 struct CacheTtl<model::Projectile> {
-    static constexpr const Tick value = 1;
+    static constexpr Tick value = 1;
 };
 
 template <>
 struct CacheTtl<model::Tree> {
-    static constexpr const Tick value = std::numeric_limits<int>::max();
+    static constexpr Tick value = std::numeric_limits<int>::max();
 };
 
 template <>
 struct CacheTtl<model::Wizard> {
-    static constexpr const Tick value = 60;
+    static constexpr Tick value = 60;
 };
 
 static const model::Bonus FAKE_TOP_BONUS(
