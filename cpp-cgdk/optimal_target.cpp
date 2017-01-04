@@ -347,7 +347,7 @@ struct SetResult {
         const GetAttackRange get_attack_range {context};
         const auto optimal_position = GetOptimalPosition<Unit>()
                 .target(&candidate)
-                .max_distance(2 * context.self().getVisionRange())
+                .max_distance(get_max_distance_for_optimal_position(context))
                 .max_function_calls(OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)
                 (context);
         auto min_distance = std::min(get_position(context.self()).distance(get_position(candidate)),
@@ -456,7 +456,11 @@ double get_max_distance_for_neutral_minion_candidate(const Context& context) {
 }
 
 double get_max_distance_for_unit_candidate(const Context& context) {
-    return 1.3 * context.self().getVisionRange();
+    return context.game().getFactionBaseVisionRange() + 2 * context.game().getWizardRadius();
+}
+
+double get_max_distance_for_optimal_position(const Context& context) {
+    return context.game().getFactionBaseVisionRange() + context.game().getFactionBaseRadius();
 }
 
 bool has_candidates(const Context& context, double max_distance) {

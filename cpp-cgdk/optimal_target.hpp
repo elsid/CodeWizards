@@ -161,6 +161,7 @@ struct MakeTargetCandidates {
 double get_max_distance_for_tree_candidate(const Context& context);
 double get_max_distance_for_neutral_minion_candidate(const Context& context);
 double get_max_distance_for_unit_candidate(const Context& context);
+double get_max_distance_for_optimal_position(const Context& context);
 
 bool has_candidates(const Context& context, double max_distance);
 Target get_optimal_target(const Context& context, double max_distance);

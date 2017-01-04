@@ -45,7 +45,7 @@ template <class TargetT>
 Point BattleMode::get_optimal_position(const Context& context, const TargetT* target) {
     return GetOptimalPosition<TargetT>()
             .target(target)
-            .max_distance(2 * context.self().getVisionRange())
+            .max_distance(get_max_distance_for_optimal_position(context))
             .max_function_calls(OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)
 #ifdef ELSID_STRATEGY_DEBUG
             .points(&points_)
