@@ -256,14 +256,14 @@ bool GetOptimalPathImpl::has_intersection(const PointInt& position, const TickSt
 }
 
 double GetOptimalPathImpl::get_distance_to_units_penalty(const Line& path, const TickState& tick_state) const {
-    double result = 0;
+    double result = std::numeric_limits<double>::max();
     if (!static_barriers.empty()) {
         result = std::min(result, get_distance_to_closest_circle(static_barriers, path));
     }
     if (!tick_state.dynamic_barriers().empty()) {
         result = std::min(result, get_distance_to_closest_dynamic_barrier(tick_state.dynamic_barriers(), path));
     }
-    return -result;
+    return result < step_size ? context.game().getMapSize() : 0;
 }
 
 const TickState& GetOptimalPathImpl::get_tick_state(double prev_tick, double tick) {
