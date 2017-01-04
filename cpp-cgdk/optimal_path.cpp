@@ -125,19 +125,6 @@ Path reconstruct_path(PointInt position, const std::map<PointInt, PointInt>& cam
     return result;
 }
 
-template <class T>
-auto get_closest_unit(const std::vector<const T*>& units, const Line& path) {
-    return std::min_element(units.begin(), units.end(),
-         [&] (auto lhs, auto rhs) {
-             return path.distance(get_position(*lhs)) < path.distance(get_position(*rhs));
-         });
-}
-
-template <class T>
-double get_distance_to_closest_unit(const std::vector<const T*>& units, const Line& path) {
-    return path.distance(get_position(**get_closest_unit(units, path)));
-}
-
 auto get_closest_circle(const std::vector<Circle>& barriers, const Line& path) {
     return std::min_element(barriers.begin(), barriers.end(),
          [&] (auto lhs, auto rhs) { return path.distance(lhs.position()) < path.distance(rhs.position()); });
@@ -145,6 +132,15 @@ auto get_closest_circle(const std::vector<Circle>& barriers, const Line& path) {
 
 double get_distance_to_closest_circle(const std::vector<Circle>& barriers, const Line& path) {
     return path.distance(get_closest_circle(barriers, path)->position());
+}
+
+auto get_closest_dynamic_barrier(const std::vector<std::pair<Circle, Point>>& barriers, const Line& path) {
+    return std::min_element(barriers.begin(), barriers.end(),
+         [&] (auto lhs, auto rhs) { return path.distance(lhs.second) < path.distance(rhs.second); });
+}
+
+double get_distance_to_closest_dynamic_barrier(const std::vector<std::pair<Circle, Point>>& barriers, const Line& path) {
+    return path.distance(get_closest_dynamic_barrier(barriers, path)->second);
 }
 
 class GetOptimalPathImpl {
@@ -189,7 +185,7 @@ private:
     Point shifted(const PointInt& position) const;
     TickState make_tick_state(double prev_tick, double tick) const;
     bool has_intersection(const PointInt& position, const TickState& tick_state, const PointInt& next_position) const;
-    double get_distance_to_units_penalty(const Line& path) const;
+    double get_distance_to_units_penalty(const Line& path, const TickState& tick_state) const;
     const TickState& get_tick_state(double prev_tick, double tick);
 };
 
@@ -256,16 +252,13 @@ bool GetOptimalPathImpl::has_intersection(const PointInt& position, const TickSt
             || has_intersection_with_barriers(barrier, shifted(next_position), tick_state.dynamic_barriers());
 }
 
-double GetOptimalPathImpl::get_distance_to_units_penalty(const Line& path) const {
+double GetOptimalPathImpl::get_distance_to_units_penalty(const Line& path, const TickState& tick_state) const {
     double result = 0;
     if (!static_barriers.empty()) {
         result = std::min(result, get_distance_to_closest_circle(static_barriers, path));
     }
-    if (!minions.empty()) {
-        result = std::min(result, get_distance_to_closest_unit(minions, path));
-    }
-    if (!wizards.empty()) {
-        result = std::min(result, get_distance_to_closest_unit(wizards, path));
+    if (!tick_state.dynamic_barriers().empty()) {
+        result = std::min(result, get_distance_to_closest_dynamic_barrier(tick_state.dynamic_barriers(), path));
     }
     return -result;
 }
@@ -368,7 +361,7 @@ Path GetOptimalPathImpl::operator ()() {
                 continue;
             }
             const auto distance_to_units_penalty = get_distance_to_units_penalty(Line(shifted(step_state.position()),
-                                                                                      shifted(position)));
+                                                                                      shifted(position)), tick_state);
             const auto distance = target.distance(shifted(position));
             const auto sum_length = position_state.path_length + path_length;
             const auto turn = prev_position == came_from.end()
