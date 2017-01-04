@@ -161,6 +161,7 @@ public:
     static constexpr double TARGET_PENALTY_WEIGHT = 0.05;
     static constexpr double BORDERS_PENALTY_WEIGHT = 1.4;
     static constexpr double ELIMINATION_SCORE_WEIGHT = 1;
+    static constexpr double FRIEND_WIZARDS_DISTANCE_PENALTY_WEIGHT = 0.01;
 
     GetPositionPenalty(const Context& context, const Target* target, double max_distance)
             : context(context),
@@ -216,6 +217,7 @@ public:
         const auto friendly_fire_penalty = get_friendly_fire_penalty(position) * FRIENDLY_FIRE_PENALTY_WEIGHT;
         const auto target_penalty = get_target_penalty(position) * TARGET_PENALTY_WEIGHT;
         const auto borders_penalty = get_borders_penalty(position) * BORDERS_PENALTY_WEIGHT;
+        const auto friend_wizards_distance_penalty = get_friend_wizards_distance_penalty(position) * FRIEND_WIZARDS_DISTANCE_PENALTY_WEIGHT;
 
         const auto max_penalty = std::max({
             units_danger_penalty,
@@ -225,6 +227,7 @@ public:
             friendly_fire_penalty,
             target_penalty,
             borders_penalty,
+            friend_wizards_distance_penalty,
         });
 
         const auto elimination_score = get_elimination_score(position) * ELIMINATION_SCORE_WEIGHT;
@@ -306,6 +309,20 @@ public:
         } else {
             return - std::numeric_limits<double>::max();
         }
+    }
+
+    double get_friend_wizards_distance_penalty(const Point& position) const {
+        if (friend_wizards.empty()) {
+            return - std::numeric_limits<double>::max();
+        }
+
+        const auto closest = std::min_element(friend_wizards.begin(), friend_wizards.end(),
+            [&] (auto lhs, auto rhs) {
+                return get_position(*lhs).distance(position) < get_position(*rhs).distance(position);
+            });
+        const auto min_distance = get_position(**closest).distance(position);
+
+        return line_factor(min_distance, 2 * context.game().getWizardRadius(), max_distance);
     }
 
 private:
