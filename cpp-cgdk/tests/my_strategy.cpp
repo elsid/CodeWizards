@@ -237,8 +237,8 @@ TEST(MyStrategy, with_near_enemy) {
     MyStrategy().move(self, world, GAME, move);
     EXPECT_DOUBLE_EQ(move.getCastAngle(), 0.024994793618920159);
     EXPECT_DOUBLE_EQ(move.getMinCastDistance(), 345.08855872456473);
-    EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9987226385704466);
-    EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.075810346448325017);
+    EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9987506646613578);
+    EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.074974202577099219);
     EXPECT_DOUBLE_EQ(move.getTurn(), 0.024994793618920159);
     EXPECT_EQ(move.getAction(), model::ACTION_MAGIC_MISSILE);
     EXPECT_EQ(move.getSkillToLearn(), model::_SKILL_UNKNOWN_);
@@ -315,8 +315,8 @@ TEST(MyStrategy, with_near_moving_enemy) {
     MyStrategy().move(self, world, GAME, move);
     EXPECT_DOUBLE_EQ(move.getCastAngle(), 0);
     EXPECT_DOUBLE_EQ(move.getMinCastDistance(), 344.97764553781258);
-    EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9999545271279451);
-    EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.014304781058092696);
+    EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9999499150494251);
+    EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.015012690183797462);
     EXPECT_DOUBLE_EQ(move.getTurn(), 0.0099996666866652376);
     EXPECT_EQ(move.getAction(), model::ACTION_MAGIC_MISSILE);
     EXPECT_EQ(move.getSkillToLearn(), model::_SKILL_UNKNOWN_);
