@@ -20,11 +20,13 @@ private:
     std::vector<std::pair<Point, double>> points_;
 
     void update_target(const Context& context);
+    bool is_under_fire(const Context& context) const;
 
     template <class TargetT>
     Point get_optimal_position(const Context& context, const TargetT* target);
 
     Point get_optimal_position(const Context& context, const model::Bonus* target);
+    Point get_optimal_position(const Context& context);
 };
 
 }

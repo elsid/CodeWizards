@@ -114,4 +114,29 @@ double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
     return 1.0 - double(remaining) / double(std::max(context.game().getWizardActionCooldownTicks(), remaining));
 }
 
+Line GetProjectileTrajectory::operator ()(const CachedUnit<model::Projectile>& cached_unit) const {
+    const auto& unit = cached_unit.value();
+    switch (unit.getType()) {
+        case model::PROJECTILE_MAGIC_MISSILE:
+        case model::PROJECTILE_FROST_BOLT:
+        case model::PROJECTILE_FIREBALL: {
+            const auto& wizards = get_units<model::Wizard>(context.history_cache());
+            const auto owner = wizards.find(cached_unit.value().getOwnerUnitId());
+            const auto range = owner == wizards.end() ? context.game().getWizardVisionRange()
+                                                      : owner->second.value().getCastRange();
+            return Line(cached_unit.first_position(), cached_unit.first_position()
+                        + get_speed(cached_unit.value()).normalized() * range);
+        }
+        case model::PROJECTILE_DART:
+            return Line(cached_unit.first_position(), cached_unit.first_position()
+                        + get_speed(cached_unit.value()).normalized() * context.game().getFetishBlowdartAttackRange());
+        default:
+            break;
+    }
+    std::ostringstream error;
+    error << "Invalid model::ProjectileType value: " << int(unit.getType())
+          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+    throw std::logic_error(error.str());
+}
+
 }
