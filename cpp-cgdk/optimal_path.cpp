@@ -173,6 +173,7 @@ private:
         PointInt(-step_size, step_size),
     }};
 
+    std::vector<const model::Projectile*> projectiles;
     std::vector<const model::Minion*> minions;
     std::vector<const model::Wizard*> wizards;
 
@@ -197,6 +198,7 @@ GetOptimalPathImpl::GetOptimalPathImpl(const Context& context, const Point& targ
         return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && is_in_my_range(unit); });
     };
 
+    projectiles = initial_filter(context.world().getProjectiles());
     minions = initial_filter(context.world().getMinions());
     wizards = initial_filter(context.world().getWizards());
 
@@ -219,7 +221,8 @@ TickState GetOptimalPathImpl::make_tick_state(double prev_tick, double tick) con
     };
 
     std::vector<std::pair<Circle, Point>> dynamic_barriers;
-    dynamic_barriers.reserve(minions.size() + wizards.size());
+    dynamic_barriers.reserve(projectiles.size() + minions.size() + wizards.size());
+    std::transform(projectiles.begin(), projectiles.end(), std::back_inserter(dynamic_barriers), make_circle);
     std::transform(minions.begin(), minions.end(), std::back_inserter(dynamic_barriers), make_circle);
     std::transform(wizards.begin(), wizards.end(), std::back_inserter(dynamic_barriers), make_circle);
 
