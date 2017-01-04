@@ -22,10 +22,20 @@ void TimeLimitedStrategy::apply(Context& context) {
 
 Duration TimeLimitedStrategy::get_iteration_time_limit(const Context& context) const {
     using Ms = std::chrono::duration<double, std::milli>;
+
+    static constexpr double max_time_for_iteration =
+#ifdef ELSID_INCREASED_TIMEOUT
+        100000
+#else
+        100
+#endif
+    ;
+
     const auto tick = context.world().getTickIndex();
     const auto ticks_count = context.world().getTickCount();
     const auto is_master = context.self().isMaster();
-    const auto max_time_for_current_iteration = std::min(Ms(get_full_time_limit(tick, is_master) - sum_time_), Ms(100));
+    const auto max_time_for_current_iteration = std::min(Ms(get_full_time_limit(tick, is_master) - sum_time_),
+                                                         Ms(max_time_for_iteration));
     const auto max_mean_time_for_future_iterations = (get_full_time_limit(ticks_count, is_master) - sum_time_)
             / double(ticks_count - tick);
     const auto recommended = Ms((Ms(max_time_for_current_iteration).count() * tick
