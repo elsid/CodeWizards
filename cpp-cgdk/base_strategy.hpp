@@ -80,7 +80,6 @@ private:
     void use_mode(const std::shared_ptr<Mode>& mode);
 
     void calculate_movements(const Context& context);
-    std::pair<model::SkillType, int> get_opposite_skill(const Context& Context) const;
 };
 
 }

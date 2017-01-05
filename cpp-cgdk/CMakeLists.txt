@@ -66,6 +66,7 @@ set(SOURCES
     circle.cpp
     helpers.cpp
     retreat_mode.cpp
+    skills.cpp
 )
 
 add_executable(cpp-cgdk

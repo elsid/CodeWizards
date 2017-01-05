@@ -24,6 +24,7 @@ cp optimal_path.cpp ${DIR}
 cp optimal_position.cpp ${DIR}
 cp optimal_target.cpp ${DIR}
 cp retreat_mode.cpp ${DIR}
+cp skills.cpp ${DIR}
 cp time_limited_strategy.cpp ${DIR}
 cp world_graph.cpp ${DIR}
 
@@ -51,6 +52,7 @@ cp optimal_target.hpp ${DIR}
 cp point.hpp ${DIR}
 cp profiler.hpp ${DIR}
 cp retreat_mode.hpp ${DIR}
+cp skills.hpp ${DIR}
 cp time_limited_strategy.hpp ${DIR}
 cp world_graph.hpp ${DIR}
 

@@ -2,6 +2,7 @@
 #include "optimal_destination.hpp"
 #include "optimal_position.hpp"
 #include "action.hpp"
+#include "skills.hpp"
 
 #ifdef ELSID_STRATEGY_DEBUG
 
@@ -12,34 +13,6 @@
 #endif
 
 namespace strategy {
-
-const std::unordered_map<model::SkillType, std::vector<model::SkillType>> SKILLS_OPPOSITE({
-    {model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1, {model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1}},
-    {model::SKILL_STAFF_DAMAGE_BONUS_AURA_1, {model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_1}},
-    {model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2, {model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2}},
-    {model::SKILL_STAFF_DAMAGE_BONUS_AURA_2, {model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_2}},
-    {model::SKILL_FIREBALL, {model::SKILL_FROST_BOLT}},
-    {model::SKILL_RANGE_BONUS_PASSIVE_1, {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1}},
-    {model::SKILL_RANGE_BONUS_AURA_1, {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1}},
-    {model::SKILL_RANGE_BONUS_PASSIVE_2, {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2}},
-    {model::SKILL_RANGE_BONUS_AURA_2, {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2}},
-    {model::SKILL_ADVANCED_MAGIC_MISSILE, {model::SKILL_SHIELD}},
-    {model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1, {model::SKILL_RANGE_BONUS_PASSIVE_1}},
-    {model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_1, {model::SKILL_RANGE_BONUS_AURA_1}},
-    {model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2, {model::SKILL_RANGE_BONUS_PASSIVE_2}},
-    {model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_2, {model::SKILL_RANGE_BONUS_AURA_2}},
-    {model::SKILL_FROST_BOLT, {model::SKILL_ADVANCED_MAGIC_MISSILE}},
-    {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1, {model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1}},
-    {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1, {model::SKILL_STAFF_DAMAGE_BONUS_AURA_1}},
-    {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2, {model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2}},
-    {model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2, {model::SKILL_STAFF_DAMAGE_BONUS_AURA_2}},
-    {model::SKILL_SHIELD, {model::SKILL_FIREBALL}},
-    {model::SKILL_HASTE, {model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1}},
-    {model::SKILL_HASTE, {model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_1}},
-    {model::SKILL_HASTE, {model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2}},
-    {model::SKILL_HASTE, {model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_2}},
-    {model::SKILL_HASTE, {model::SKILL_HASTE}},
-});
 
 BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
@@ -84,48 +57,7 @@ void BaseStrategy::handle_messages(const Context& context) {
 
 void BaseStrategy::learn_skills(Context& context) {
     if (context.self().getSkills().size() < std::size_t(context.self().getLevel())) {
-        std::array<int, model::_SKILL_COUNT_> skills_priorities = {{
-            4, // SKILL_RANGE_BONUS_PASSIVE_1
-            4, // SKILL_RANGE_BONUS_AURA_1
-            4, // SKILL_RANGE_BONUS_PASSIVE_2
-            4, // SKILL_RANGE_BONUS_AURA_2
-            4, // SKILL_ADVANCED_MAGIC_MISSILE
-            5, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
-            5, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
-            5, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
-            5, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
-            5, // SKILL_FROST_BOLT
-            3, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
-            3, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
-            3, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
-            3, // SKILL_STAFF_DAMAGE_BONUS_AURA_2
-            3, // SKILL_FIREBALL
-            1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1
-            1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_1
-            1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2
-            1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_2
-            1, // SKILL_HASTE
-            2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1
-            2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1
-            2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2
-            2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2
-            2, // SKILL_SHIELD
-        }};
-        for (const auto skill : context.self().getSkills()) {
-            skills_priorities[skill] = 0;
-        }
-        if (skill_from_message_ != model::_SKILL_UNKNOWN_ && skill_from_message_ != model::_SKILL_COUNT_
-                && !has_skill(context.self(), skill_from_message_)) {
-            skills_priorities[skill_from_message_] += 5;
-        }
-        model::SkillType opposite;
-        int opposite_priority;
-        std::tie(opposite, opposite_priority) = get_opposite_skill(context);
-        if (opposite != model::_SKILL_UNKNOWN_) {
-            skills_priorities[opposite] += opposite_priority;
-        }
-        const auto max = std::max_element(skills_priorities.begin(), skills_priorities.end());
-        const auto skill = next_to_learn(context.self(), model::SkillType(max - skills_priorities.begin()));
+        const auto skill = get_skill_to_learn(context, skill_from_message_);
         if (skill != model::_SKILL_UNKNOWN_) {
             context.move().setSkillToLearn(skill);
         }
@@ -141,31 +73,6 @@ void BaseStrategy::command(Context& context) {
             model::Message(model::LANE_BOTTOM, model::_SKILL_UNKNOWN_, {}),
         });
     }
-}
-
-std::pair<model::SkillType, int> BaseStrategy::get_opposite_skill(const Context& context) const {
-    const auto& wizards = get_units<model::Wizard>(context.history_cache());
-    auto enemy_wizards = filter_units<model::Wizard>(wizards,
-        [&] (const auto& unit) { return unit.getFaction() != context.self().getFaction(); });
-    std::sort(enemy_wizards.begin(), enemy_wizards.end(),
-        [] (auto lhs, auto rhs) { return lhs->getXp() > rhs->getXp(); });
-    for (const auto& unit : enemy_wizards) {
-        const auto skills_diff = unit->getSkills().size() - context.self().getSkills().size();
-        const auto distance = get_position(context.self()).distance(get_position(*unit));
-        if (skills_diff > 0 && distance < 1.5 * context.self().getVisionRange()) {
-            for (const auto skill : unit->getSkills()) {
-                const auto opposite = SKILLS_OPPOSITE.find(skill);
-                if (opposite != SKILLS_OPPOSITE.end()) {
-                    for (const auto top : opposite->second) {
-                        if (!has_skill(context.self(), top)) {
-                            return {top, 5 * skills_diff};
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return {model::_SKILL_UNKNOWN_, 0};
 }
 
 void BaseStrategy::select_mode(const Context& context) {

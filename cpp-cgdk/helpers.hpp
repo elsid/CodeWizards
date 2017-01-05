@@ -91,8 +91,6 @@ static const std::unordered_map<model::ActionType, model::SkillType> ACTIONS_SKI
 };
 
 bool has_skill(const model::Wizard& unit, model::SkillType skill);
-bool can_learn_skill(const model::Wizard& unit, model::SkillType skill);
-model::SkillType next_to_learn(const model::Wizard& unit, model::SkillType skill);
 
 Point get_position(const model::Unit& unit);
 
