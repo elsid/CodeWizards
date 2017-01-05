@@ -15,12 +15,6 @@ public:
     virtual void apply(Context& context) = 0;
 };
 
-struct Action {
-    double cast_angle = 0;
-    double min_cast_distance = 0;
-    double max_cast_distance = std::numeric_limits<double>::max();
-};
-
 class BaseStrategy : public Strategy {
 public:
     BaseStrategy(const Context& context);
@@ -87,24 +81,6 @@ private:
 
     void calculate_movements(const Context& context);
     std::pair<model::SkillType, int> get_opposite_skill(const Context& Context) const;
-
-    std::vector<model::ActionType> get_actions_by_priority_order(Context& context) const;
-
-    static bool can_apply_haste(const Context& context);
-    static bool can_apply_shield(const Context& context);
-    static bool can_apply_staff(const Context& context);
-    static bool can_apply_magic_missile(const Context& context);
-    static bool can_apply_fireball(const Context& context);
-    static bool can_apply_frostbolt(const Context& context);
-
-    std::pair<bool, Action> need_apply_action(const Context& context, model::ActionType type) const;
-    std::pair<bool, Action> need_apply_haste(const Context& context) const;
-    std::pair<bool, Action> need_apply_shield(const Context& context) const;
-    std::pair<bool, Action> need_apply_staff(const Context& context) const;
-    std::pair<bool, Action> need_apply_magic_missile(const Context& context) const;
-    std::pair<bool, Action> need_apply_fireball(const Context& context) const;
-    std::pair<bool, Action> need_apply_frostbolt(const Context& context) const;
-    std::pair<bool, Action> need_apply_cast(const Context& context, model::ProjectileType projectile_type) const;
 };
 
 }

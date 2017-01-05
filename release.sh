@@ -10,6 +10,7 @@ mkdir ${DIR}
 
 cd cpp-cgdk
 
+cp action.cpp ${DIR}
 cp base_strategy.cpp ${DIR}
 cp battle_mode.cpp ${DIR}
 cp circle.cpp ${DIR}
@@ -26,6 +27,7 @@ cp retreat_mode.cpp ${DIR}
 cp time_limited_strategy.cpp ${DIR}
 cp world_graph.cpp ${DIR}
 
+cp action.hpp ${DIR}
 cp base_strategy.hpp ${DIR}
 cp battle_mode.hpp ${DIR}
 cp cache.hpp ${DIR}

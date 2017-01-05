@@ -50,6 +50,7 @@ set(SOURCES
     trsbox.cpp
     update.cpp
 
+    action.cpp
     base_strategy.cpp
     debug_strategy.cpp
     time_limited_strategy.cpp
