@@ -62,7 +62,9 @@ void BaseStrategy::apply(Context &context) {
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     apply_mode(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
-    apply_move_and_action(context);
+    apply_move(context);
+    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
+    apply_action(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     learn_skills(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
@@ -433,13 +435,15 @@ struct GetCastAction {
     }
 };
 
-void BaseStrategy::apply_move_and_action(Context& context) {
+void BaseStrategy::apply_move(Context& context) {
     if (movement_ != movements_.end()) {
         context.move().setSpeed(movement_->speed());
         context.move().setStrafeSpeed(movement_->strafe_speed());
         context.move().setTurn(movement_->turn());
     }
+}
 
+void BaseStrategy::apply_action(Context& context) {
     const auto actions = get_actions_by_priority_order(context);
 
     for (const auto action_type : actions) {

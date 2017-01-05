@@ -75,7 +75,8 @@ private:
     void select_mode(const Context& context);
     void apply_mode(const Context& context);
     void update_movements(const Context& context);
-    void apply_move_and_action(Context& context);
+    void apply_move(Context& context);
+    void apply_action(Context& context);
     void learn_skills(Context& Context);
     void command(Context& context);
 
