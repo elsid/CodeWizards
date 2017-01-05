@@ -86,6 +86,7 @@ add_subdirectory(googletest)
 add_executable(cpp-cgdk-tests
     ${SOURCES}
 
+    tests/action.cpp
     tests/optimal_position.cpp
     tests/optimal_target.cpp
     tests/optimal_destination.cpp

@@ -236,7 +236,7 @@ TEST(MyStrategy, with_near_enemy) {
     model::Move move;
     MyStrategy().move(self, world, GAME, move);
     EXPECT_DOUBLE_EQ(move.getCastAngle(), 0.024994793618920159);
-    EXPECT_DOUBLE_EQ(move.getMinCastDistance(), 345.08855872456473);
+    EXPECT_DOUBLE_EQ(move.getMinCastDistance(), 400.12498047485116);
     EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9987506646613578);
     EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.074974202577099219);
     EXPECT_DOUBLE_EQ(move.getTurn(), 0.024994793618920159);
@@ -314,7 +314,7 @@ TEST(MyStrategy, with_near_moving_enemy) {
     model::Move move;
     MyStrategy().move(self, world, GAME, move);
     EXPECT_DOUBLE_EQ(move.getCastAngle(), 0);
-    EXPECT_DOUBLE_EQ(move.getMinCastDistance(), 344.97764553781258);
+    EXPECT_DOUBLE_EQ(move.getMinCastDistance(), 400);
     EXPECT_DOUBLE_EQ(move.getSpeed(), 3.9999499150494251);
     EXPECT_DOUBLE_EQ(move.getStrafeSpeed(), 0.015012690183797462);
     EXPECT_DOUBLE_EQ(move.getTurn(), 0.0099996666866652376);

@@ -274,36 +274,24 @@ struct GetCastAction {
         const Line trajectory(my_position, limit);
         const auto unit_position = get_position(target);
         const auto nearest = trajectory.nearest(unit_position);
-        const auto projectile_final_position = nearest.distance(my_position) <= context.self().getCastRange() ? nearest : limit;
-        const Circle projectile(my_position, projectile_radius);
-        const Circle unit(unit_position, target.getRadius());
+        const auto projectile_on_collision = nearest.distance(my_position) <= context.self().getCastRange() ? nearest : limit;
+        const auto distance = projectile_on_collision.distance(unit_position);
+        const auto radius_sum = projectile_radius + target.getRadius();
 
-        bool has_intersection;
-        Point intersection;
-        std::tie(has_intersection, intersection) = unit.intersection(projectile, projectile_final_position);
-
-        if (!has_intersection) {
+        if (distance > radius_sum) {
             return {false, Action {}};
         }
 
-        const auto distance_to_intersection = my_position.distance(intersection);
-        const auto distance_to_final = my_position.distance(projectile_final_position);
+        const auto distance_to_collision = my_position.distance(projectile_on_collision);
 
-        if (distance_to_final - distance_to_intersection < 1) {
-            return {false, Action {}};
-        }
-
-        const auto min_cast_distance = distance_to_intersection - projectile_radius;
-        const auto projectile_on_intersection = my_position + direction * min_cast_distance;
-
-        if (is_friendly_fire(projectile_type, cast_angle, distance_to_intersection, projectile_on_intersection)) {
+        if (is_friendly_fire(projectile_type, cast_angle, distance_to_collision, projectile_on_collision)) {
             return {false, Action {}};
         }
 
         const auto max_cast_distance = projectile_type == model::PROJECTILE_FIREBALL
-                ? distance_to_intersection : std::numeric_limits<double>::max();
+                ? distance_to_collision : std::numeric_limits<double>::max();
 
-        return {true, Action {cast_angle, min_cast_distance, max_cast_distance}};
+        return {true, Action {cast_angle, distance_to_collision, max_cast_distance}};
     }
 
     double get_cast_angle_for_static(const model::Unit& target) const {
