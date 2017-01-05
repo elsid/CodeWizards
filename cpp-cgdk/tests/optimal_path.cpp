@@ -242,7 +242,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 47u);
+    ASSERT_EQ(result.size(), 33u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -319,7 +319,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_opposite_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 7u);
+    ASSERT_EQ(result.size(), 4u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -526,7 +526,7 @@ TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
     const auto result = GetOptimalPath().step_size(3).max_iterations(50)(context, target);
     ASSERT_EQ(result.size(), 50u);
     EXPECT_EQ(result.front(), get_position(self));
-    EXPECT_EQ(result.back(), target - Point(53, 53));
+    EXPECT_EQ(result.back(), target - Point(53, 56));
 }
 
 }
