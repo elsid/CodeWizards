@@ -403,7 +403,8 @@ Path GetOptimalPathImpl::operator ()() {
             const auto iteration_finish = Clock::now();
             max_duration = std::max(max_duration, Duration(iteration_finish - iteration_start));
             if (iterations > 3) {
-                current_max_iterations = std::min(current_max_iterations, std::size_t(std::floor(time_limit.count() / Duration(max_duration).count() * 0.5)));
+                const std::size_t available_iterations = std::floor(std::max(time_limit.count() - 1, 0.0) / Duration(max_duration).count());
+                current_max_iterations = std::min(current_max_iterations, available_iterations);
             }
         }
     }
