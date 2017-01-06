@@ -1,6 +1,7 @@
 #include "action.hpp"
 #include "golden_section.hpp"
 #include "optimal_movement.hpp"
+#include "optimal_target.hpp"
 
 namespace strategy {
 
@@ -262,6 +263,24 @@ struct GetCastAction {
     }
 
     std::pair<bool, Action> operator ()(const CachedUnit<model::Wizard>& target, model::ProjectileType projectile_type) const {
+        const GetMaxDamage get_max_damage {context};
+        const auto my_position = get_position(context.self());
+        const auto unit_position = get_position(target.value());
+        const auto distance = my_position.distance(unit_position);
+        const auto unit_action_tick = get_max_damage.next_attack_action(target.value(), distance + 2 * context.self().getRadius()).second;
+        const auto ticks = std::ceil(distance / get_projectile_speed(projectile_type, context.game()));
+
+        if (ticks > unit_action_tick) {
+            const auto unit_bounds = make_unit_bounds(context, target.value());
+            const auto unit_speed = (unit_bounds.max_speed(0) - unit_bounds.min_speed(0) + 2 * unit_bounds.max_strafe_speed(0)) / 4;
+            const auto unit_path_length = ticks * unit_speed;
+            const auto radius_sum = target.value().getRadius() + get_projectile_radius(projectile_type, context.game());
+
+            if (unit_path_length > radius_sum || context.self().getCastRange() < distance + unit_path_length) {
+                return {false, Action {}};
+            }
+        }
+
         return (*this)(target.value(), projectile_type);
     }
 
