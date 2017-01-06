@@ -147,7 +147,7 @@ public:
     static constexpr double TARGET_PENALTY_WEIGHT = 0.05;
     static constexpr double BORDERS_PENALTY_WEIGHT = 1.4;
     static constexpr double ELIMINATION_SCORE_WEIGHT = 1;
-    static constexpr double FRIEND_WIZARDS_DISTANCE_PENALTY_WEIGHT = 0.01;
+    static constexpr double FRIEND_WIZARDS_DISTANCE_PENALTY_WEIGHT = 0.1;
 
     GetPositionPenalty(const Context& context, const Target* target, double max_distance)
             : context(context),
