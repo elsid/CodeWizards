@@ -53,6 +53,7 @@ cp point.hpp ${DIR}
 cp profiler.hpp ${DIR}
 cp retreat_mode.hpp ${DIR}
 cp skills.hpp ${DIR}
+cp target.hpp ${DIR}
 cp time_limited_strategy.hpp ${DIR}
 cp world_graph.hpp ${DIR}
 

@@ -2,8 +2,11 @@
 
 #include "common.hpp"
 
+#include "model/Bonus.h"
 #include "model/Building.h"
 #include "model/Minion.h"
+#include "model/Projectile.h"
+#include "model/Tree.h"
 #include "model/Wizard.h"
 
 #include <algorithm>
@@ -176,5 +179,29 @@ public:
 private:
     Units units_;
 };
+
+using FullCache = std::tuple<
+    Cache<model::Bonus>,
+    Cache<model::Building>,
+    Cache<model::Minion>,
+    Cache<model::Projectile>,
+    Cache<model::Tree>,
+    Cache<model::Wizard>
+>;
+
+template <class T>
+Cache<T>& get_cache(FullCache& cache) {
+    return std::get<Cache<T>>(cache);
+}
+
+template <class T>
+const Cache<T>& get_cache(const FullCache& cache) {
+    return std::get<Cache<T>>(cache);
+}
+
+template <class T>
+const typename Cache<T>::Units& get_units(const FullCache& cache) {
+    return get_cache<T>(cache).units();
+}
 
 }
