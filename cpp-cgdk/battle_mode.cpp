@@ -97,7 +97,7 @@ Point BattleMode::get_optimal_position(const Context&, const model::Bonus* targe
 }
 
 Point BattleMode::get_optimal_position(const Context& context) {
-    return GetOptimalPosition<model::CircularUnit>()
+    return GetOptimalPosition<model::LivingUnit>()
             .max_distance(get_max_distance_for_optimal_position(context))
             .precision(OPTIMAL_POSITION_PRECISION)
             .max_function_calls(OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)

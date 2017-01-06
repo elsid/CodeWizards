@@ -462,9 +462,10 @@ private:
         const auto range = context.game().getStaffRange() + unit.getRadius() - 1;
         const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
         const auto ticks_factor = bounded_line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
-        const auto life_factor = double(context.self().getLife()) / double(context.self().getMaxLife());
+        const auto my_life_factor = double(context.self().getLife()) / double(context.self().getMaxLife());
         const auto distance_factor = line_factor(distance, 0, range);
-        return distance_factor * ticks_factor * life_factor;
+        const auto unit_life_factor = 1 + bounded_line_factor(unit.getLife(), 2 * get_max_damage(context.self(), distance), 0);
+        return distance_factor * ticks_factor * my_life_factor * unit_life_factor;
     }
 
     double get_target_penalty(const model::Bonus& unit, const Point& position) const {
