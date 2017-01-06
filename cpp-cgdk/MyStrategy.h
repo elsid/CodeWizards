@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Strategy.h"
-#include "time_limited_strategy.hpp"
+#include "base_strategy.hpp"
 
 class MyStrategy : public Strategy {
 public:
