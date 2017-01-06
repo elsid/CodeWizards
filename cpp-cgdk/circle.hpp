@@ -1,5 +1,4 @@
-#ifndef STRATEGY_CIRCLE_HPP
-#define STRATEGY_CIRCLE_HPP
+#pragma once
 
 #include "point.hpp"
 #include "line.hpp"
@@ -26,5 +25,3 @@ private:
 };
 
 }
-
-#endif

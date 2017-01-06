@@ -1,5 +1,4 @@
-#ifndef STRATEGY_TIME_LIMITED_STRATEGY_HPP
-#define STRATEGY_TIME_LIMITED_STRATEGY_HPP
+#pragma once
 
 #include "base_strategy.hpp"
 
@@ -23,5 +22,3 @@ private:
 };
 
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef STRATEGY_PROFILER_HPP
-#define STRATEGY_PROFILER_HPP
+#pragma once
 
 #include <chrono>
 
@@ -22,5 +21,3 @@ private:
 };
 
 }
-
-#endif

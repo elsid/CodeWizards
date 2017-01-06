@@ -1,5 +1,4 @@
-#ifndef STRATEGY_COMMON_HPP
-#define STRATEGY_COMMON_HPP
+#pragma once
 
 namespace strategy {
 
@@ -31,5 +30,3 @@ const Tick BATTLE_MODE_TICKS = 2500;
 const Tick TICKS_TO_DEATH_FOR_RETREAT = 150;
 
 }
-
-#endif

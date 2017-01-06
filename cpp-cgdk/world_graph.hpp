@@ -1,5 +1,4 @@
-#ifndef STRATEGY_WORLD_GRAPH_HPP
-#define STRATEGY_WORLD_GRAPH_HPP
+#pragma once
 
 #include "graph.hpp"
 #include "point.hpp"
@@ -44,5 +43,3 @@ private:
 };
 
 }
-
-#endif

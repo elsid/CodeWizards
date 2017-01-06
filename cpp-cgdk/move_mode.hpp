@@ -1,5 +1,4 @@
-#ifndef STRATEGY_MOVE_MODE_HPP
-#define STRATEGY_MOVE_MODE_HPP
+#pragma once
 
 #include "mode.hpp"
 #include "world_graph.hpp"
@@ -43,5 +42,3 @@ private:
 };
 
 }
-
-#endif

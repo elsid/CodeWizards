@@ -1,5 +1,4 @@
-#ifndef STRATEGY_OPTIMAL_POSITION_HPP
-#define STRATEGY_OPTIMAL_POSITION_HPP
+#pragma once
 
 #include "context.hpp"
 #include "minimize.hpp"
@@ -549,5 +548,3 @@ private:
 };
 
 }
-
-#endif

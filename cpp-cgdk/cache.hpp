@@ -1,5 +1,4 @@
-#ifndef STRATEGY_CACHE_HPP
-#define STRATEGY_CACHE_HPP
+#pragma once
 
 #include "common.hpp"
 
@@ -170,5 +169,3 @@ private:
 };
 
 }
-
-#endif

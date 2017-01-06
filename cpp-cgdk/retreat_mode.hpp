@@ -1,5 +1,4 @@
-#ifndef STRATEGY_RETREAT_MODE_HPP
-#define STRATEGY_RETREAT_MODE_HPP
+#pragma once
 
 #include "battle_mode.hpp"
 #include "move_mode.hpp"
@@ -21,5 +20,3 @@ private:
 };
 
 }
-
-#endif

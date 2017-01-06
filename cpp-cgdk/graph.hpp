@@ -1,5 +1,4 @@
-#ifndef STRATEGY_GRAPH_HPP
-#define STRATEGY_GRAPH_HPP
+#pragma once
 
 #include <limits>
 #include <queue>
@@ -56,5 +55,3 @@ private:
 };
 
 }
-
-#endif

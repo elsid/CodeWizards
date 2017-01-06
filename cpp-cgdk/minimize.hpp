@@ -1,5 +1,4 @@
-#ifndef STRATEGY_MINIMIZE_HPP
-#define STRATEGY_MINIMIZE_HPP
+#pragma once
 
 #include "bobyqa.h"
 #include "point.hpp"
@@ -85,5 +84,3 @@ private:
 };
 
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef STRATEGY_MATH_HPP
-#define STRATEGY_MATH_HPP
+#pragma once
 
 #define _USE_MATH_DEFINES
 
@@ -46,5 +45,3 @@ inline double hypot(double x, double y) {
 
 }
 }
-
-#endif

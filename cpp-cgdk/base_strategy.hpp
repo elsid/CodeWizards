@@ -1,5 +1,4 @@
-#ifndef STRATEGY_BASE_STRATEGY_HPP
-#define STRATEGY_BASE_STRATEGY_HPP
+#pragma once
 
 #include "retreat_mode.hpp"
 #include "world_graph.hpp"
@@ -83,5 +82,3 @@ private:
 };
 
 }
-
-#endif

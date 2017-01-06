@@ -1,5 +1,4 @@
-#ifndef STRATEGY_LINE_HPP
-#define STRATEGY_LINE_HPP
+#pragma once
 
 #include "point.hpp"
 
@@ -74,5 +73,3 @@ private:
 };
 
 }
-
-#endif

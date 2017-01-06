@@ -1,5 +1,4 @@
-#ifndef STRATEGY_POINT_HPP
-#define STRATEGY_POINT_HPP
+#pragma once
 
 #include "math.hpp"
 
@@ -139,5 +138,3 @@ inline std::ostream& operator <<(std::ostream& stream, const PointInt& value) {
 }
 
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef STRATEGY_OPTIMAL_TARGET_HPP
-#define STRATEGY_OPTIMAL_TARGET_HPP
+#pragma once
 
 #include "context.hpp"
 #include "helpers.hpp"
@@ -167,5 +166,3 @@ bool has_candidates(const Context& context, double max_distance);
 Target get_optimal_target(const Context& context, double max_distance);
 
 }
-
-#endif

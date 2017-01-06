@@ -1,5 +1,4 @@
-#ifndef STRATEGY_COMMON
-#define STRATEGY_COMMON
+#pragma once
 
 #include "model/Wizard.h"
 #include "model/Game.h"
@@ -152,5 +151,3 @@ static const model::Game GAME(
 
 }
 }
-
-#endif

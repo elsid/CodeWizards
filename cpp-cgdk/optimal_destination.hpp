@@ -1,5 +1,4 @@
-#ifndef STRATEGY_OPTIMAL_DESTINATION_HPP
-#define STRATEGY_OPTIMAL_DESTINATION_HPP
+#pragma once
 
 #include "world_graph.hpp"
 #include "context.hpp"
@@ -162,5 +161,3 @@ std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context,
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane, const model::Wizard& wizard);
 
 }
-
-#endif
