@@ -57,7 +57,9 @@ public:
           prev_life_change_(tick),
           prev_life_(get_life(value)),
           first_position_(value.getX(), value.getY()),
-          last_activity_(get_remaining_action_cooldown_ticks(value) ? tick : -1) {
+          last_idle_(get_remaining_action_cooldown_ticks(value) ? 0 : tick),
+          last_action_(get_remaining_action_cooldown_ticks(value) ? tick : -1),
+          last_move_(value.getSpeedX() || value.getSpeedY() ? tick : -1) {
         speeds_.front() = Point(value.getSpeedX(), value.getSpeedY());
     }
 
@@ -86,8 +88,13 @@ public:
             prev_life_ = get_life(value);
             prev_life_change_ = last_seen;
         }
-        if (get_remaining_action_cooldown_ticks(value) || speeds_.front().norm()) {
-            last_activity_ = last_seen;
+        if (get_remaining_action_cooldown_ticks(value)) {
+            last_action_ = last_idle_ + 1;
+        } else {
+            last_idle_ = last_seen;
+        }
+        if (value.getSpeedX() || value.getSpeedY()) {
+            last_move_ = last_seen;
         }
     }
 
@@ -105,7 +112,7 @@ public:
     }
 
     Tick last_activity() const {
-        return last_activity_;
+        return std::max(last_move_, last_action_);
     }
 
     bool is_active(Tick tick) const {
@@ -121,7 +128,9 @@ private:
     Point first_position_;
     std::array<std::pair<Tick, int>, LIFE_CHANGES_SIZE> life_change_;
     std::array<Point, SPEEDS_SIZE> speeds_;
-    Tick last_activity_ = -1;
+    Tick last_idle_ = 0;
+    Tick last_action_ = -1;
+    Tick last_move_ = -1;
 };
 
 template <class T>
