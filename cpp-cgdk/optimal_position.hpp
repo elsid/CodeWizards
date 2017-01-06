@@ -141,7 +141,7 @@ public:
 
     static constexpr double UNITS_DANGER_PENALTY_WEIGHT = 1.2;
     static constexpr double UNITS_COLLISION_PENALTY_WEIGHT = 1.1;
-    static constexpr double BONUSES_PENALTY_WEIGHT = 0.5;
+    static constexpr double BONUSES_PENALTY_WEIGHT = 0.75;
     static constexpr double PROJECTILE_PENALTY_WEIGHT = 1.3;
     static constexpr double FRIENDLY_FIRE_PENALTY_WEIGHT = 0.1;
     static constexpr double TARGET_PENALTY_WEIGHT = 0.05;
