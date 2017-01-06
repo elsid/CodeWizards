@@ -57,11 +57,12 @@ TEST(GetTargetScore, for_me_and_enemy_wizard) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const GetTargetScore get_target_score {context};
-    EXPECT_DOUBLE_EQ(get_target_score(enemy), 6.0291220400532506);
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 3.0145610200266253);
     EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 13.125);
     EXPECT_DOUBLE_EQ(get_target_score.get_angle_probability(enemy), 1);
     EXPECT_DOUBLE_EQ(get_target_score.get_hit_probability(enemy), 0.5);
     EXPECT_DOUBLE_EQ(get_target_score.get_distance_probability(enemy), 0.91872335848430486);
+    EXPECT_DOUBLE_EQ(get_target_score.get_response_probability(enemy), 1);
 }
 
 TEST(get_optimal_target, for_me_and_enemy_wizard) {

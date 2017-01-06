@@ -94,26 +94,6 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     return get_base(unit, position, sum_enemy_damage);
 }
 
-double GetUnitAttackAbility::operator ()(const model::Building& unit) const {
-    const auto last_seen = get_units<model::Building>(context.cache()).at(unit.getId()).last_seen();
-    const auto remaining = std::max(unit.getRemainingActionCooldownTicks() - (context.world().getTickIndex() - last_seen), 0);
-    return 1.0 - double(remaining) / double(unit.getCooldownTicks());
-}
-
-double GetUnitAttackAbility::operator ()(const model::Minion& unit) const {
-    const auto frozen = find_status(unit.getStatuses(), model::STATUS_FROZEN);
-    const auto remaining = std::max(unit.getRemainingActionCooldownTicks(),
-                                    frozen == unit.getStatuses().end() ? 0 : frozen->getRemainingDurationTicks());
-    return 1.0 - double(remaining) / double(std::max(unit.getCooldownTicks(), remaining));
-}
-
-double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
-    const auto frozen = find_status(unit.getStatuses(), model::STATUS_FROZEN);
-    const auto remaining = std::max(unit.getRemainingActionCooldownTicks(),
-                                    frozen == unit.getStatuses().end() ? 0 : frozen->getRemainingDurationTicks());
-    return 1.0 - double(remaining) / double(std::max(context.game().getWizardActionCooldownTicks(), remaining));
-}
-
 Line GetProjectileTrajectory::operator ()(const CachedUnit<model::Projectile>& cached_unit) const {
     const auto& unit = cached_unit.value();
     switch (unit.getType()) {

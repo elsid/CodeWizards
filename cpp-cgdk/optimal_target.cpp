@@ -199,6 +199,26 @@ double GetLifeRegeneration::operator ()(const model::Wizard& unit) const {
             + unit.getLevel() * context.game().getWizardLifeRegenerationGrowthPerLevel();
 }
 
+double GetUnitAttackAbility::operator ()(const model::Building& unit) const {
+    const auto last_seen = get_units<model::Building>(context.cache()).at(unit.getId()).last_seen();
+    const auto remaining = std::max(unit.getRemainingActionCooldownTicks() - (context.world().getTickIndex() - last_seen), 0);
+    return 1.0 - double(remaining) / double(unit.getCooldownTicks());
+}
+
+double GetUnitAttackAbility::operator ()(const model::Minion& unit) const {
+    const auto frozen = find_status(unit.getStatuses(), model::STATUS_FROZEN);
+    const auto remaining = std::max(unit.getRemainingActionCooldownTicks(),
+                                    frozen == unit.getStatuses().end() ? 0 : frozen->getRemainingDurationTicks());
+    return 1.0 - double(remaining) / double(std::max(unit.getCooldownTicks(), remaining));
+}
+
+double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
+    const auto frozen = find_status(unit.getStatuses(), model::STATUS_FROZEN);
+    const auto remaining = std::max(unit.getRemainingActionCooldownTicks(),
+                                    frozen == unit.getStatuses().end() ? 0 : frozen->getRemainingDurationTicks());
+    return 1.0 - double(remaining) / double(std::max(context.game().getWizardActionCooldownTicks(), remaining));
+}
+
 double GetTargetScore::get_distance_probability(const model::Unit& unit) const {
     const auto distance = get_position(context.self()).distance(get_position(unit));
     return bounded_line_factor(distance, 2 * get_max_distance_for_unit_candidate(context), 0);

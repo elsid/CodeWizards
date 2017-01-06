@@ -60,19 +60,6 @@ struct GetRangedDamage {
     }
 };
 
-struct GetUnitAttackAbility {
-    const Context& context;
-
-    template <class Unit>
-    double operator ()(const Unit&) const {
-        return 0;
-    }
-
-    double operator ()(const model::Building& unit) const;
-    double operator ()(const model::Minion& unit) const;
-    double operator ()(const model::Wizard& unit) const;
-};
-
 struct GetCurrentDamage {
     const Context& context;
 
