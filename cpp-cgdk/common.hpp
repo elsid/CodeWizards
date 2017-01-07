@@ -21,7 +21,7 @@ private:
 };
 
 const Tick MESSAGE_TICKS = 20000;
-const int OPTIMAL_PATH_STEP_SIZE = 3;
+const int OPTIMAL_PATH_STEP_SIZE = 5;
 const Tick OPTIMAL_PATH_MAX_TICKS = 50;
 const Tick OPTIMAL_PATH_MAX_ITERATIONS = 1000;
 const double OPTIMAL_POSITION_PRECISION = 1e-3;
