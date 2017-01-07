@@ -368,8 +368,8 @@ struct SetResult {
         const auto optimal_position = GetOptimalPosition<Unit>()
                 .target(&candidate)
                 .max_distance(get_max_distance_for_optimal_position(context))
-                .precision(OPTIMAL_POSITION_PRECISION * 10)
-                .max_function_calls(OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS / 10)
+                .precision(1)
+                .max_function_calls(OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS)
                 (context);
         auto min_distance = std::min(get_position(context.self()).distance(get_position(candidate)),
                                      optimal_position.distance(get_position(candidate)));
