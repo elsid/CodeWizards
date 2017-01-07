@@ -319,7 +319,7 @@ void DebugStrategy::visualize_points(const Context& context) {
         const auto color = get_color((v.second - minmax.first->second) / (interval ? interval : 1));
         const auto& point = v.first;
         debug_.line(prev.x(), prev.y(), point.x(), point.y(), color);
-        debug_.fillCircle(point.x(), point.y(), 5, color);
+        debug_.fillCircle(point.x(), point.y(), 4, color);
         prev = point;
     }
 }
@@ -328,7 +328,7 @@ void DebugStrategy::visualize_path(const Context& context) {
     auto prev = get_position(context.self());
     for (const auto& point : base_->path()) {
         debug_.line(prev.x(), prev.y(), point.x(), point.y(), 0x000099);
-        debug_.fillCircle(point.x(), point.y(), 5, 0x000099);
+        debug_.fillCircle(point.x(), point.y(), 3, 0x000099);
         prev = point;
     }
 }

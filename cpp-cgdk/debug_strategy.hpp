@@ -101,7 +101,7 @@ private:
             std::tie(position, penalty) = v;
             const double normalized = (penalty - min) / norm;
             const auto color = get_color(normalized);
-            debug_.fillCircle(position.x(), position.y(), 5, color);
+            debug_.fillCircle(position.x(), position.y(), 4, color);
         }
     }
 };
