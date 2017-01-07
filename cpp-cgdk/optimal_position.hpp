@@ -298,7 +298,7 @@ public:
     }
 
     double get_friend_wizards_distance_penalty(const Point& position) const {
-        if (friend_wizards.empty()) {
+        if (friend_wizards.empty() || !context.game().isRawMessagesEnabled()) {
             return - std::numeric_limits<double>::max();
         }
 
