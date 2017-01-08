@@ -469,6 +469,12 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Building
 }
 
 void DebugStrategy::visualize_unit(const Context& context, const model::Minion& unit) {
+    const auto cached_unit = get_units<model::Minion>(context.cache()).at(unit.getId());
+
+    if (unit.getFaction() == model::FACTION_NEUTRAL && !cached_unit.is_active(context.world().getTickIndex())) {
+        return;
+    }
+
     double attack_range = unit.getType() == model::MINION_ORC_WOODCUTTER
             ? context.game().getOrcWoodcutterAttackRange()
             : context.game().getFetishBlowdartAttackRange();
