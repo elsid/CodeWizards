@@ -125,7 +125,7 @@ private:
             const auto distance_to_nearest = get_position(unit).distance(nearest_node.second);
             for (const auto& node : graph_.nodes()) {
                 const auto distance = get_position(unit).distance(node.second);
-                if (distance < wizard_.getVisionRange()) {
+                if (distance < 2 * wizard_.getVisionRange()) {
                     const auto distance_weight = distance_to_nearest / (distance ? distance : 1.0);
                     auto& node_info = nodes_info_[node.first];
                     if (unit.getFaction() == model::FACTION_ACADEMY || unit.getFaction() == model::FACTION_RENEGADES) {
