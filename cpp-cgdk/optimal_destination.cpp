@@ -176,8 +176,8 @@ double GetNodeScore::low_life_score(const NodeInfo& node_info) const {
         [&] (auto sum, auto v) { return sum + this->low_life_score_single(nodes_info_.at(v)); });
     const auto this_node = low_life_score_single(node_info);
 
-    return path_nodes + this_node - node_info.path_from_me.nodes.size() / 2
-            - node_info.path_from_friend_base.nodes.size() / 3;
+    return path_nodes + this_node - node_info.path_from_me.nodes.size() / 2.0
+            - node_info.path_from_friend_base.nodes.size() / 3.0;
 }
 
 double GetNodeScore::low_life_score_single(const NodeInfo& node_info) const {
