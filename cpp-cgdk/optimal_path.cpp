@@ -106,26 +106,6 @@ bool has_intersection_with_barriers(const Circle& barrier, const Point& final_po
         [&] (const auto& v) { return v.first.has_intersection(v.second, barrier, final_position); });
 }
 
-Path reconstruct_path(PointInt position, const std::map<PointInt, PointInt>& came_from, const Point& shift,
-                      const PointInt& target, const Point& target_shift) {
-    Path result;
-    std::set<PointInt> visited;
-    result.reserve(came_from.size());
-    while (true) {
-        if (!visited.insert(position).second) {
-            break;
-        }
-        result.push_back(position.to_double() + (position == target ? target_shift : shift));
-        const auto prev = came_from.find(position);
-        if (prev == came_from.end()) {
-            break;
-        }
-        position = prev->second;
-    }
-    std::reverse(result.begin(), result.end());
-    return result;
-}
-
 auto get_closest_circle(const std::vector<Circle>& barriers, const Line& path) {
     return std::min_element(barriers.begin(), barriers.end(),
          [&] (auto lhs, auto rhs) { return path.distance(lhs.position()) < path.distance(rhs.position()); });
@@ -193,6 +173,7 @@ private:
     double get_base_priority(const PointInt& position) const;
     double get_cost(const StepState& step_state, const PointInt& next_position) const;
     double get_next_tick(const StepState& step_state, const PointInt& next_position) const;
+    Path reconstruct_path(PointInt position, const std::map<PointInt, PointInt>& came_from) const;
 };
 
 GetOptimalPathImpl::GetOptimalPathImpl(const Context& context, const Point& target, int step_size, Tick max_ticks, std::size_t max_iterations)
@@ -312,6 +293,27 @@ double GetOptimalPathImpl::get_cost(const StepState& step_state, const PointInt&
     return step_state.cost() + distance;
 }
 
+Path GetOptimalPathImpl::reconstruct_path(PointInt position, const std::map<PointInt, PointInt>& came_from) const {
+    const auto target_shift = target - target.to_int().to_double();
+    const auto target_int = target.to_int();
+    Path result;
+    std::set<PointInt> visited;
+    result.reserve(came_from.size());
+    while (true) {
+        if (!visited.insert(position).second) {
+            break;
+        }
+        result.push_back(position.to_double() + (position == target_int ? target_shift : global_shift));
+        const auto prev = came_from.find(position);
+        if (prev == came_from.end()) {
+            break;
+        }
+        position = prev->second;
+    }
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
 Path GetOptimalPathImpl::operator ()() {
     const auto target_int = target.to_int();
 
@@ -409,7 +411,7 @@ Path GetOptimalPathImpl::operator ()() {
         }
     }
 
-    return reconstruct_path(final_position, came_from, global_shift, target_int, target - target.to_int().to_double());
+    return reconstruct_path(final_position, came_from);
 }
 
 Path GetOptimalPath::operator ()(const Context& context, const Point& target) const {
