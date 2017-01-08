@@ -110,8 +110,17 @@ public:
     }
 
     Point mean_speed() const {
-        const auto sum_speed = std::accumulate(speeds_.begin(), speeds_.end(), Point(0, 0), std::plus<Point>());
-        return sum_speed / speeds_.size();
+        double weight = 1;
+        double weights_sum = 0;
+        Point result;
+
+        for (const auto& speed : speeds_) {
+            result = result + weight * speed;
+            weights_sum += weight;
+            weight *= 0.9;
+        }
+
+        return result / weights_sum;
     }
 
     Tick last_activity() const {
