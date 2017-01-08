@@ -417,6 +417,7 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Wizard& 
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
 
     visualize_unit_mean_speed(context, unit);
+    visualize_unit_mean_life_change_speed(context, unit);
 
     for (int action = model::ACTION_STAFF, shift = 0; action < model::_ACTION_COUNT_; ++action) {
         const auto a = model::ActionType(action);
@@ -455,6 +456,8 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Building
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() + unit.getRadius(),
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
 
+    visualize_unit_mean_life_change_speed(context, unit);
+
     if (unit.getFaction() == context.self().getFaction()) {
         return;
     }
@@ -475,6 +478,7 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Minion& 
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
 
     visualize_unit_mean_speed(context, unit);
+    visualize_unit_mean_life_change_speed(context, unit);
 
     if (unit.getFaction() == context.self().getFaction()) {
         return;
@@ -496,6 +500,8 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Tree& un
     const auto interval = max_target_score - min_target_score;
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius(),
                 std::to_string(score).c_str(), get_color((score - min_target_score) / (interval ? interval : 1.0)));
+
+    visualize_unit_mean_life_change_speed(context, unit);
 }
 
 void DebugStrategy::visualize_states(const Context& context) {

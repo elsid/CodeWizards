@@ -77,6 +77,25 @@ private:
         debug_.line(unit.getX(), unit.getY(), mean_speed_end.x(), mean_speed_end.y(), 0x444444);
     }
 
+    template <class Unit>
+    void visualize_unit_mean_life_change_speed(const Context& context, const Unit& unit) {
+        const auto cached_unit = get_units<Unit>(context.cache()).at(unit.getId());
+        const auto mean_life_change_speed = cached_unit.mean_life_change_speed();
+        std::int32_t color;
+        if (mean_life_change_speed > 0) {
+            color = get_color(0, 1, 0);
+        } else if (mean_life_change_speed < 0) {
+            color = get_color(1, 0, 0);
+        } else {
+            color = get_color(0, 0, 0);
+        }
+
+        std::ostringstream stream;
+        stream << mean_life_change_speed;
+
+        debug_.text(unit.getX() - unit.getRadius(), unit.getY() + unit.getRadius() + 10, stream.str().c_str(), color);
+    }
+
     template <class T>
     void visualize_positions_penalties(const Context& context, const T* target) {
         const double max_distance = context.self().getVisionRange();
