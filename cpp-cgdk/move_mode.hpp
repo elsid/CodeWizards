@@ -28,6 +28,10 @@ public:
     Result apply(const Context& context) override final;
     void reset() override final;
 
+    const char* name() const override final {
+        return "move";
+    }
+
 private:
     const WorldGraph& graph_;
     std::pair<bool, WorldGraph::Node> destination_;

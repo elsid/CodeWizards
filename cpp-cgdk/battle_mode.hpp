@@ -13,6 +13,10 @@ public:
         return points_;
     }
 
+    const char* name() const override final {
+        return "battle";
+    }
+
 private:
     Target target_;
     std::pair<bool, Point> destination_;

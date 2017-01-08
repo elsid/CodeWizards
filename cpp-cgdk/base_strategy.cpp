@@ -19,7 +19,6 @@ BaseStrategy::BaseStrategy(const Context& context)
           battle_mode_(std::make_shared<BattleMode>()),
           move_mode_(std::make_shared<MoveMode>(graph_)),
           retreat_mode_(std::make_shared<RetreatMode>(battle_mode_, move_mode_)),
-          mode_(move_mode_),
           destination_(get_position(context.self())),
           state_(states_.end()),
           movement_(movements_.end()) {
@@ -80,7 +79,7 @@ void BaseStrategy::select_mode(const Context& context) {
     if (((mean_life_change < 0 && - context.self().getLife() / mean_life_change < TICKS_TO_DEATH_FOR_RETREAT)
          || context.self().getLife() < context.self().getMaxLife() / 3)
             && mode_ != move_mode_) {
-        return use_retreat_mode();
+        return use_retreat_mode(context);
     }
 
     double max_distance = get_max_distance_for_unit_candidate(context);
@@ -91,9 +90,9 @@ void BaseStrategy::select_mode(const Context& context) {
     }
 
     if (has_candidates(context, max_distance)) {
-        use_battle_mode();
+        use_battle_mode(context);
     } else {
-        use_move_mode();
+        use_move_mode(context);
     }
 }
 
@@ -168,20 +167,21 @@ void BaseStrategy::calculate_movements(const Context& context) {
     movement_ = movements_.begin();
 }
 
-void BaseStrategy::use_move_mode() {
-    use_mode(move_mode_);
+void BaseStrategy::use_move_mode(const Context& context) {
+    use_mode(context, move_mode_);
 }
 
-void BaseStrategy::use_battle_mode() {
-    use_mode(battle_mode_);
+void BaseStrategy::use_battle_mode(const Context& context) {
+    use_mode(context, battle_mode_);
 }
 
-void BaseStrategy::use_retreat_mode() {
-    use_mode(retreat_mode_);
+void BaseStrategy::use_retreat_mode(const Context& context) {
+    use_mode(context, retreat_mode_);
 }
 
-void BaseStrategy::use_mode(const std::shared_ptr<Mode>& mode) {
+void BaseStrategy::use_mode(const Context& context, const std::shared_ptr<Mode>& mode) {
     if (mode_ != mode) {
+        SLOG(context) << "use " << mode->name() << " mode\n";
         mode_ticks_ = 0;
         mode_ = mode;
         mode_->reset();
