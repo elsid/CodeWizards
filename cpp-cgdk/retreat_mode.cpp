@@ -9,7 +9,7 @@ Mode::Result RetreatMode::apply(const Context& context) {
     const auto battle_result = battle_mode_->apply(context);
     const auto move_result = move_mode_->apply(context);
 
-    if (battle_result.active() && move_result.active()) {
+    if (battle_result.active() && battle_result.target().is_some() && move_result.active()) {
         return Result(battle_result.target(), move_result.destination());
     } else if (battle_result.active()) {
         return battle_result;
