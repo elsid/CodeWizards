@@ -416,6 +416,8 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Wizard& 
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() + unit.getRadius(),
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
 
+    visualize_unit_mean_speed(context, unit);
+
     for (int action = model::ACTION_STAFF, shift = 0; action < model::_ACTION_COUNT_; ++action) {
         const auto a = model::ActionType(action);
         const auto skill = ACTIONS_SKILLS.at(a);
@@ -471,6 +473,8 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Minion& 
     debug_.circle(unit.getX(), unit.getY(), attack_range, 0xFF4444);
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() + unit.getRadius(),
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
+
+    visualize_unit_mean_speed(context, unit);
 
     if (unit.getFaction() == context.self().getFaction()) {
         return;

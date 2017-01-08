@@ -69,6 +69,14 @@ private:
     void visualize_states(const Context& context);
     void visualize_ticks_states(const Context& context);
 
+    template <class Unit>
+    void visualize_unit_mean_speed(const Context& context, const Unit& unit) {
+        const auto cached_unit = get_units<Unit>(context.cache()).at(unit.getId());
+        const auto mean_speed = cached_unit.mean_speed();
+        const auto mean_speed_end = get_position(unit) + mean_speed.normalized() * (10 * mean_speed.norm() + unit.getRadius());
+        debug_.line(unit.getX(), unit.getY(), mean_speed_end.x(), mean_speed_end.y(), 0x444444);
+    }
+
     template <class T>
     void visualize_positions_penalties(const Context& context, const T* target) {
         const double max_distance = context.self().getVisionRange();
