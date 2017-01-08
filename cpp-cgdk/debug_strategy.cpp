@@ -90,9 +90,8 @@ void DebugStrategy::apply(Context& context) {
     count_stats(context);
 
     if (context.move().getSkillToLearn() != model::_SKILL_UNKNOWN_) {
-        std::cout << "[" << context.world().getTickIndex() << "] learn_skill "
-                  << SKILLS_NAMES.at(context.move().getSkillToLearn())
-                  << " at level " << context.self().getLevel() << '\n';
+        SLOG(context) << "learn_skill " << SKILLS_NAMES.at(context.move().getSkillToLearn())
+                      << " at level " << context.self().getLevel() << '\n';
     }
 }
 
@@ -151,69 +150,69 @@ void DebugStrategy::count_stats(const Context& context) {
             trees_.hits_count += bool(trees_hits_count);
             wizards_.hits_count += bool(wizards_hits_count);
 
-            std::cout << "[" << context.world().getTickIndex() << "] hits/casts "
-                      << " all: "
-                      << hits_count_ << "/"
-                      << casts_count_ << "="
-                      << double(hits_count_) / double(casts_count_)
-                      << " buildings: "
-                      << buildings_.target_hits_count << " "
-                      << double(buildings_.target_hits_count) / double(buildings_.target_casts_count) << " "
-                      << buildings_.hits_count << " "
-                      << double(buildings_.hits_count) / double(casts_count_)
-                      << " minions: "
-                      << minions_.target_hits_count << " "
-                      << double(minions_.target_hits_count) / double(minions_.target_casts_count) << " "
-                      << minions_.hits_count << " "
-                      << double(minions_.hits_count) / double(casts_count_)
-                      << " trees: "
-                      << trees_.target_hits_count << " "
-                      << double(trees_.target_hits_count) / double(trees_.target_casts_count) << " "
-                      << trees_.hits_count << " "
-                      << double(trees_.hits_count) / double(casts_count_)
-                      << " wizards: "
-                      << wizards_.target_hits_count << " "
-                      << double(wizards_.target_hits_count) / double(wizards_.target_casts_count) << " "
-                      << wizards_.hits_count << " "
-                      << double(wizards_.hits_count) / double(casts_count_)
-                      << '\n';
+            SLOG(context) << "hits/casts "
+                << " all: "
+                << hits_count_ << "/"
+                << casts_count_ << "="
+                << double(hits_count_) / double(casts_count_)
+                << " buildings: "
+                << buildings_.target_hits_count << " "
+                << double(buildings_.target_hits_count) / double(buildings_.target_casts_count) << " "
+                << buildings_.hits_count << " "
+                << double(buildings_.hits_count) / double(casts_count_)
+                << " minions: "
+                << minions_.target_hits_count << " "
+                << double(minions_.target_hits_count) / double(minions_.target_casts_count) << " "
+                << minions_.hits_count << " "
+                << double(minions_.hits_count) / double(casts_count_)
+                << " trees: "
+                << trees_.target_hits_count << " "
+                << double(trees_.target_hits_count) / double(trees_.target_casts_count) << " "
+                << trees_.hits_count << " "
+                << double(trees_.hits_count) / double(casts_count_)
+                << " wizards: "
+                << wizards_.target_hits_count << " "
+                << double(wizards_.target_hits_count) / double(wizards_.target_casts_count) << " "
+                << wizards_.hits_count << " "
+                << double(wizards_.hits_count) / double(casts_count_)
+                << '\n';
 
             const auto ticks_count = buildings_.target_ticks_count + minions_.target_ticks_count + trees_.target_ticks_count + wizards_.target_ticks_count;
 
-            std::cout << "[" << context.world().getTickIndex() << "] target_casts/target_ticks "
-                      << "all: "
-                      << casts_count_ << "/"
-                      << ticks_count << "="
-                      << double(casts_count_) / double(ticks_count) << "~"
-                      << double(casts_count_) / double(ticks_count) * 60 << " "
-                      << "buildings: "
-                      << buildings_.target_casts_count << "/"
-                      << buildings_.target_ticks_count << "="
-                      << double(buildings_.target_casts_count) / double(buildings_.target_ticks_count) << "~"
-                      << double(buildings_.target_casts_count) / double(buildings_.target_ticks_count) * 60 << " "
-                      << "minions: "
-                      << minions_.target_casts_count << "/"
-                      << minions_.target_ticks_count << "="
-                      << double(minions_.target_casts_count) / double(minions_.target_ticks_count) << "~"
-                      << double(minions_.target_casts_count) / double(minions_.target_ticks_count) * 60 << " "
-                      << "trees: "
-                      << trees_.target_casts_count << "/"
-                      << trees_.target_ticks_count << "="
-                      << double(trees_.target_casts_count) / double(trees_.target_ticks_count) << "~"
-                      << double(trees_.target_casts_count) / double(trees_.target_ticks_count) * 60 << " "
-                      << "wizards: "
-                      << wizards_.target_casts_count << "/"
-                      << wizards_.target_ticks_count << "="
-                      << double(wizards_.target_casts_count) / double(wizards_.target_ticks_count) << "~"
-                      << double(wizards_.target_casts_count) / double(wizards_.target_ticks_count) * 60 << " "
-                      << '\n';
+            SLOG(context) << "target_casts/target_ticks "
+                << "all: "
+                << casts_count_ << "/"
+                << ticks_count << "="
+                << double(casts_count_) / double(ticks_count) << "~"
+                << double(casts_count_) / double(ticks_count) * 60 << " "
+                << "buildings: "
+                << buildings_.target_casts_count << "/"
+                << buildings_.target_ticks_count << "="
+                << double(buildings_.target_casts_count) / double(buildings_.target_ticks_count) << "~"
+                << double(buildings_.target_casts_count) / double(buildings_.target_ticks_count) * 60 << " "
+                << "minions: "
+                << minions_.target_casts_count << "/"
+                << minions_.target_ticks_count << "="
+                << double(minions_.target_casts_count) / double(minions_.target_ticks_count) << "~"
+                << double(minions_.target_casts_count) / double(minions_.target_ticks_count) * 60 << " "
+                << "trees: "
+                << trees_.target_casts_count << "/"
+                << trees_.target_ticks_count << "="
+                << double(trees_.target_casts_count) / double(trees_.target_ticks_count) << "~"
+                << double(trees_.target_casts_count) / double(trees_.target_ticks_count) * 60 << " "
+                << "wizards: "
+                << wizards_.target_casts_count << "/"
+                << wizards_.target_ticks_count << "="
+                << double(wizards_.target_casts_count) / double(wizards_.target_ticks_count) << "~"
+                << double(wizards_.target_casts_count) / double(wizards_.target_ticks_count) * 60 << " "
+                << '\n';
 
-            std::cout << "[" << context.world().getTickIndex() << "] target_ticks/ticks "
-                      << "all: "
-                      << ticks_count << "/"
-                      << context.world().getTickIndex() << "="
-                      << double(ticks_count) / double(context.world().getTickIndex()) << " "
-                      << '\n';
+            SLOG(context) << " target_ticks/ticks "
+                << "all: "
+                << ticks_count << "/"
+                << context.world().getTickIndex() << "="
+                << double(ticks_count) / double(context.world().getTickIndex()) << " "
+                << '\n';
         }
     }
 
@@ -222,17 +221,17 @@ void DebugStrategy::count_stats(const Context& context) {
     } else if (prev_my_life_ > context.self().getLife()) {
         const auto damage = prev_my_life_ - context.self().getLife();
         sum_damage_to_me_ += damage;
-        std::cout << "[" << context.world().getTickIndex() << "]"
-                  << " damage: " << damage
-                  << " life: " << context.self().getLife()
-                  << " sum: " << sum_damage_to_me_
-                  << '\n';
+        SLOG(context)
+            << " damage: " << damage
+            << " life: " << context.self().getLife()
+            << " sum: " << sum_damage_to_me_
+            << '\n';
         prev_my_life_ = context.self().getLife();
     }
 
     if (prev_tick_ && prev_tick_ != context.world().getTickIndex() - 1) {
         ++deaths_count_;
-        std::cout << "[" << context.world().getTickIndex() << "] death: " << deaths_count_ << " tick: " << prev_tick_ + 1 << '\n';
+        SLOG(context) << "death: " << deaths_count_ << " tick: " << prev_tick_ + 1 << '\n';
     }
     prev_tick_ = context.world().getTickIndex();
 }

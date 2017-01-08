@@ -29,4 +29,21 @@ const long OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS = 1000;
 const Tick BATTLE_MODE_TICKS = 2500;
 const Tick TICKS_TO_DEATH_FOR_RETREAT = 150;
 
+#ifdef ELSID_STRATEGY_DEBUG
+
+#define SLOG(context) std::cout << '[' << context.world().getTickIndex() << "] "
+
+#else
+
+struct DevNull {};
+
+template <class T>
+DevNull operator <<(DevNull, const T&) {
+    return DevNull();
+}
+
+#define SLOG(context) (void) context, DevNull()
+
+#endif
+
 }
