@@ -160,9 +160,7 @@ private:
 
     std::vector<Circle> static_barriers;
 
-    std::unordered_map<double, TickState> ticks_states {{
-        {0, make_tick_state(0, 0)},
-    }};
+    std::unordered_map<double, TickState> ticks_states;
 
     Point shifted(const PointInt& position) const;
     TickState make_tick_state(double prev_tick, double tick) const;
@@ -194,6 +192,8 @@ GetOptimalPathImpl::GetOptimalPathImpl(const Context& context, const Point& targ
     static_barriers.reserve(buildings.size() + trees.size());
     std::transform(buildings.begin(), buildings.end(), std::back_inserter(static_barriers), make_circle);
     std::transform(trees.begin(), trees.end(), std::back_inserter(static_barriers), make_circle);
+
+    ticks_states.insert({0, make_tick_state(0, 0)});
 }
 
 Point GetOptimalPathImpl::shifted(const PointInt& position) const {
