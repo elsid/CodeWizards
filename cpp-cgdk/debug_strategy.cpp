@@ -247,6 +247,7 @@ void DebugStrategy::visualize(const Context& context) {
     visualize_destination(context);
     visualize_target(context);
     visualize_units(context);
+    visualize_states(context);
 }
 
 void DebugStrategy::visualize_graph(const Context& context) {
@@ -490,6 +491,30 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Tree& un
     const auto interval = max_target_score - min_target_score;
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() - unit.getRadius(),
                 std::to_string(score).c_str(), get_color((score - min_target_score) / (interval ? interval : 1.0)));
+}
+
+void DebugStrategy::visualize_states(const Context& context) {
+    const auto& states = base_->states();
+
+    if (states.empty()) {
+        return;
+    }
+
+    const auto& first = states.front();
+    const auto& last = states.back();
+    const double norm = last.tick() - first.tick();
+
+    for (const auto state : states) {
+        const auto heat = double(state.tick() - first.tick()) / (norm ? norm : 1);
+        const auto color = get_color(heat);
+
+        debug_.circle(state.position().x(), state.position().y(), context.self().getRadius(), color);
+
+        const auto direction = Point(context.self().getRadius(), 0).rotated(state.angle());
+        const auto direction_end = state.position() + direction;
+
+        debug_.line(state.position().x(), state.position().y(), direction_end.x(), direction_end.y(), color);
+    }
 }
 
 std::int32_t get_color(double red, double green, double blue) {
