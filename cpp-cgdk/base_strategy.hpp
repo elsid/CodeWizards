@@ -46,6 +46,14 @@ public:
         return *move_mode_;
     }
 
+    const std::map<double, TickState>& ticks_states() const {
+        return ticks_states_;
+    }
+
+    const std::vector<StepState>& steps_states() const {
+        return steps_states_;
+    }
+
     void apply(Context& context) override final;
 
 private:
@@ -63,6 +71,8 @@ private:
     Movements::const_iterator movement_;
     model::SkillType skill_from_message_ = model::_SKILL_UNKNOWN_;
     Tick mode_ticks_ = 0;
+    std::map<double, TickState> ticks_states_;
+    std::vector<StepState> steps_states_;
 
     void handle_messages(const Context& context);
     void select_mode(const Context& context);

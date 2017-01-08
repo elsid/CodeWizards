@@ -148,10 +148,16 @@ void BaseStrategy::apply_action(Context& context) {
 }
 
 void BaseStrategy::calculate_movements(const Context& context) {
+    ticks_states_.clear();
+    steps_states_.clear();
     path_ = GetOptimalPath()
             .step_size(OPTIMAL_PATH_STEP_SIZE)
             .max_ticks(OPTIMAL_PATH_MAX_TICKS)
             .max_iterations(OPTIMAL_PATH_MAX_ITERATIONS)
+#ifdef ELSID_STRATEGY_DEBUG
+            .ticks_states(&ticks_states_)
+            .steps_states(&steps_states_)
+#endif
             (context, destination_);
     if (const auto unit = target_.circular_unit(context.cache())) {
         std::tie(states_, movements_) = get_optimal_movement(context, path_, {true, get_position(*unit) + get_speed(*unit)});

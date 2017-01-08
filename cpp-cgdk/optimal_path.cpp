@@ -20,64 +20,6 @@ Circle make_circle(const model::CircularUnit* unit) {
     return Circle(get_position(*unit), unit->getRadius());
 }
 
-using DynamicBarriers = std::vector<std::pair<Circle, Point>>;
-
-class TickState {
-public:
-    using Occupier = std::pair<bool, Circle>;
-
-    TickState(DynamicBarriers dynamic_barriers,
-              const Occupier& occupier, double max_distance_error)
-            : dynamic_barriers_(std::move(dynamic_barriers)),
-              occupier_(occupier),
-              max_distance_error_(max_distance_error) {}
-
-    double max_distance_error() const {
-        return max_distance_error_;
-    }
-
-    const Occupier& occupier() const {
-        return occupier_;
-    }
-
-    const DynamicBarriers& dynamic_barriers() const {
-        return dynamic_barriers_;
-    }
-
-private:
-    DynamicBarriers dynamic_barriers_;
-    Occupier occupier_;
-    double max_distance_error_;
-};
-
-class StepState {
-public:
-    StepState(double priority, double cost, double tick, PointInt position)
-        : priority_(priority), cost_(cost), tick_(tick), position_(position) {}
-
-    double priority() const {
-        return priority_;
-    }
-
-    double cost() const {
-        return cost_;
-    }
-
-    double tick() const {
-        return tick_;
-    }
-
-    const PointInt& position() const {
-        return position_;
-    }
-
-private:
-    double priority_;
-    double cost_;
-    double tick_;
-    PointInt position_;
-};
-
 bool operator <(const StepState& lhs, const StepState& rhs) {
     return lhs.priority() < rhs.priority();
 }
@@ -130,6 +72,14 @@ public:
 
     Path operator ()();
 
+    const std::unordered_map<double, TickState>& get_ticks_states() const {
+        return ticks_states;
+    }
+
+    const std::vector<StepState>& get_steps_states() const {
+        return steps_states;
+    }
+
 private:
     const Context& context;
     const Point target;
@@ -161,6 +111,7 @@ private:
     std::vector<Circle> static_barriers;
 
     std::unordered_map<double, TickState> ticks_states;
+    std::vector<StepState> steps_states;
 
     Point shifted(const PointInt& position) const;
     TickState make_tick_state(double prev_tick, double tick) const;
@@ -171,7 +122,8 @@ private:
     double get_base_priority(const PointInt& position) const;
     double get_cost(const StepState& step_state, const PointInt& next_position) const;
     double get_next_tick(const StepState& step_state, const PointInt& next_position) const;
-    Path reconstruct_path(PointInt position, const std::map<PointInt, PointInt>& came_from) const;
+    Path reconstruct_path(PointInt position, const std::map<PointInt, StepState>& came_from) const;
+    void fill_steps_states(StepState step_state, const std::map<PointInt, StepState>& came_from);
 };
 
 GetOptimalPathImpl::GetOptimalPathImpl(const Context& context, const Point& target, int step_size, Tick max_ticks, std::size_t max_iterations)
@@ -293,7 +245,7 @@ double GetOptimalPathImpl::get_cost(const StepState& step_state, const PointInt&
     return step_state.cost() + distance;
 }
 
-Path GetOptimalPathImpl::reconstruct_path(PointInt position, const std::map<PointInt, PointInt>& came_from) const {
+Path GetOptimalPathImpl::reconstruct_path(PointInt position, const std::map<PointInt, StepState>& came_from) const {
     const auto target_shift = target - target.to_int().to_double();
     const auto target_int = target.to_int();
     Path result;
@@ -308,10 +260,28 @@ Path GetOptimalPathImpl::reconstruct_path(PointInt position, const std::map<Poin
         if (prev == came_from.end()) {
             break;
         }
-        position = prev->second;
+        position = prev->second.position();
     }
     std::reverse(result.begin(), result.end());
     return result;
+}
+
+void GetOptimalPathImpl::fill_steps_states(StepState step_state, const std::map<PointInt, StepState>& came_from) {
+    steps_states.clear();
+    steps_states.reserve(came_from.size());
+    std::set<PointInt> visited;
+    while (true) {
+        if (!visited.insert(step_state.position()).second) {
+            break;
+        }
+        steps_states.push_back(step_state);
+        const auto prev = came_from.find(step_state.position());
+        if (prev == came_from.end()) {
+            break;
+        }
+        step_state = prev->second;
+    }
+    std::reverse(steps_states.begin(), steps_states.end());
 }
 
 Path GetOptimalPathImpl::operator ()() {
@@ -319,7 +289,7 @@ Path GetOptimalPathImpl::operator ()() {
 
     std::set<PointInt> closed;
     std::set<PointInt> opened({initial_position_int});
-    std::map<PointInt, PointInt> came_from;
+    std::map<PointInt, StepState> came_from;
     std::map<PointInt, double> costs;
     std::priority_queue<StepState, std::deque<StepState>> queue;
 
@@ -327,9 +297,11 @@ Path GetOptimalPathImpl::operator ()() {
 
     costs[initial_position_int] = 0;
 
-    queue.push(StepState(max_priority, 0, 0, initial_position_int));
+    const StepState initial_state(max_priority, 0, 0, initial_position_int);
 
-    PointInt final_position;
+    queue.push(initial_state);
+
+    StepState final_state = initial_state;
     std::size_t iterations = 0;
     std::size_t current_max_iterations = max_iterations;
     const auto time_limit = context.time_limit();
@@ -344,21 +316,13 @@ Path GetOptimalPathImpl::operator ()() {
         const TickState& tick_state = ticks_states.at(step_state.tick());
 
         if (shifted(step_state.position()).distance(target) <= tick_state.max_distance_error()) {
-            if (!tick_state.occupier().first && target != shifted(step_state.position()) && !came_from.count(target_int)) {
-                const auto it = came_from.find(step_state.position());
-                if (it != came_from.end()) {
-                    came_from[target_int] = it->second;
-                    final_position = target_int;
-                    break;
-                }
-            }
-            final_position = step_state.position();
+            final_state = step_state;
             break;
         }
 
         if (max_priority < step_state.priority()) {
             max_priority = step_state.priority();
-            final_position = step_state.position();
+            final_state = step_state;
         }
 
         if (++iterations >= current_max_iterations) {
@@ -397,7 +361,7 @@ Path GetOptimalPathImpl::operator ()() {
                 continue;
             }
 
-            came_from[next_position] = step_state.position();
+            came_from[next_position] = step_state;
             costs[next_position] = cost;
         }
 
@@ -411,11 +375,26 @@ Path GetOptimalPathImpl::operator ()() {
         }
     }
 
-    return reconstruct_path(final_position, came_from);
+    fill_steps_states(final_state, came_from);
+
+    return reconstruct_path(final_state.position(), came_from);
 }
 
 Path GetOptimalPath::operator ()(const Context& context, const Point& target) const {
-    return GetOptimalPathImpl(context, target, step_size_, max_ticks_, max_iterations_)();
+    GetOptimalPathImpl impl(context, target, step_size_, max_ticks_, max_iterations_);
+    const auto result = impl();
+
+    if (ticks_states_) {
+        const auto& src = impl.get_ticks_states();
+        std::copy(src.begin(), src.end(), std::inserter(*ticks_states_, ticks_states_->end()));
+    }
+
+    if (steps_states_) {
+        const auto& src = impl.get_steps_states();
+        std::copy(src.begin(), src.end(), std::back_inserter(*steps_states_));
+    }
+
+    return result;
 }
 
 GetOptimalPath& GetOptimalPath::step_size(int value) {
@@ -430,6 +409,16 @@ GetOptimalPath& GetOptimalPath::max_ticks(Tick value) {
 
 GetOptimalPath& GetOptimalPath::max_iterations(std::size_t value) {
     max_iterations_ = value;
+    return *this;
+}
+
+GetOptimalPath& GetOptimalPath::ticks_states(std::map<double, TickState>* value) {
+    ticks_states_ = value;
+    return *this;
+}
+
+GetOptimalPath& GetOptimalPath::steps_states(std::vector<StepState>* value) {
+    steps_states_ = value;
     return *this;
 }
 

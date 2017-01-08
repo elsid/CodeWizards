@@ -248,6 +248,7 @@ void DebugStrategy::visualize(const Context& context) {
     visualize_target(context);
     visualize_units(context);
     visualize_states(context);
+    visualize_ticks_states(context);
 }
 
 void DebugStrategy::visualize_graph(const Context& context) {
@@ -514,6 +515,37 @@ void DebugStrategy::visualize_states(const Context& context) {
         const auto direction_end = state.position() + direction;
 
         debug_.line(state.position().x(), state.position().y(), direction_end.x(), direction_end.y(), color);
+    }
+}
+
+void DebugStrategy::visualize_ticks_states(const Context&) {
+    const auto& steps_states = base_->steps_states();
+
+    if (steps_states.empty()) {
+        return;
+    }
+
+    const auto& ticks_states = base_->ticks_states();
+
+    if (ticks_states.empty()) {
+        return;
+    }
+
+    const auto& first_tick = steps_states.front().tick();
+    const auto& last_tick = steps_states.back().tick();
+    const auto norm = last_tick - first_tick;
+
+    for (const auto& step_state : steps_states) {
+        const auto& ticks_state = ticks_states.at(step_state.tick());
+        const auto heat = (step_state.tick() - first_tick) / (norm ? norm : 1);
+        const auto color = get_color(heat);
+
+        for (const auto dynamic_barrier : ticks_state.dynamic_barriers()) {
+            const auto& circle = dynamic_barrier.first;
+            const auto& next_position = dynamic_barrier.second;
+            debug_.circle(next_position.x(), next_position.y(), circle.radius(), color);
+            debug_.line(circle.position().x(), circle.position().y(), next_position.x(), next_position.y(), color);
+        }
     }
 }
 
