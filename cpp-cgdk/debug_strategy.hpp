@@ -124,7 +124,7 @@ private:
 
         const int step = 2 * context.self().getRadius();
         const int count = std::round(max_distance / step);
-        const auto origin = self_position.to_int() + self_position.to_int() % step;
+        const auto origin = self_position.to_int() - self_position.to_int() % step;
 
         for (int x = -count; x < count; ++x) {
             for (int y = -count; y < count; ++y) {
