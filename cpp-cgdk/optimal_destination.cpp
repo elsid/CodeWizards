@@ -174,9 +174,10 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
 double GetNodeScore::low_life_score(const NodeInfo& node_info) const {
     const auto path_nodes = std::accumulate(node_info.path_from_me.nodes.begin(), node_info.path_from_me.nodes.end(), 0.0,
         [&] (auto sum, auto v) { return sum + this->low_life_score_single(nodes_info_.at(v)); });
+    const auto path_nodes_mean = path_nodes / (node_info.path_from_me.nodes.size() ? node_info.path_from_me.nodes.size() : 1);
     const auto this_node = low_life_score_single(node_info);
 
-    return path_nodes + this_node - node_info.path_from_me.nodes.size() / 4.0
+    return path_nodes_mean + this_node - node_info.path_from_me.nodes.size() / 4.0
             - node_info.path_from_friend_base.nodes.size() / 2.0;
 }
 
