@@ -397,6 +397,9 @@ void DebugStrategy::visualize_units(const Context& context) {
     for (const auto& unit : get_units<model::Tree>(context.cache())) {
         visualize_unit(context, unit.second.value());
     }
+    for (const auto& unit : get_units<model::Projectile>(context.cache())) {
+        visualize_unit(context, unit.second.value());
+    }
 }
 
 void DebugStrategy::visualize_unit(const Context& context, const model::Wizard& unit) {
@@ -511,6 +514,11 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Tree& un
                 std::to_string(score).c_str(), get_color((score - min_target_score) / (interval ? interval : 1.0)));
 
     visualize_unit_mean_life_change_speed(context, unit);
+}
+
+void DebugStrategy::visualize_unit(const Context& context, const model::Projectile& unit) {
+    visualize_unit_speed(unit);
+    visualize_unit_mean_speed(context, unit);
 }
 
 void DebugStrategy::visualize_states(const Context& context) {

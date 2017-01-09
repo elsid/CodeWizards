@@ -66,6 +66,7 @@ private:
     void visualize_unit(const Context& context, const model::Building& unit);
     void visualize_unit(const Context& context, const model::Minion& unit);
     void visualize_unit(const Context& context, const model::Tree& unit);
+    void visualize_unit(const Context& context, const model::Projectile& unit);
     void visualize_states(const Context& context);
     void visualize_ticks_states(const Context& context);
 
