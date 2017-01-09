@@ -83,6 +83,18 @@ private:
     }
 
     template <class Unit>
+    void visualize_unit_speed(const Unit& unit) {
+        const auto speed = get_speed(unit);
+        const auto speed_end = get_position(unit) + speed.normalized() * (10 * speed.norm() + unit.getRadius());
+        debug_.line(unit.getX(), unit.getY(), speed_end.x(), speed_end.y(), 0x990000);
+
+        std::ostringstream stream;
+        stream << speed.x() << ", " << speed.y() << " (" << speed.norm() << ')';
+        const auto text_position = speed_end + speed.normalized() * 10;
+        debug_.text(text_position.x(), text_position.y(), stream.str().c_str(), 0x990000);
+    }
+
+    template <class Unit>
     void visualize_unit_mean_life_change_speed(const Context& context, const Unit& unit) {
         const auto cached_unit = get_units<Unit>(context.cache()).at(unit.getId());
         const auto mean_life_change_speed = cached_unit.mean_life_change_speed();

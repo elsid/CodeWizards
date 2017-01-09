@@ -417,6 +417,7 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Wizard& 
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() + unit.getRadius(),
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
 
+    visualize_unit_speed(unit);
     visualize_unit_mean_speed(context, unit);
     visualize_unit_mean_life_change_speed(context, unit);
 
@@ -484,6 +485,7 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Minion& 
     debug_.text(unit.getX() + unit.getRadius(), unit.getY() + unit.getRadius(),
                 std::to_string(unit.getRemainingActionCooldownTicks()).c_str(), 0x444444);
 
+    visualize_unit_speed(unit);
     visualize_unit_mean_speed(context, unit);
     visualize_unit_mean_life_change_speed(context, unit);
 
