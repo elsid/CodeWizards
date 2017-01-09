@@ -46,6 +46,10 @@ public:
         return *move_mode_;
     }
 
+    const Mode& mode() const {
+        return *mode_;
+    }
+
     const std::map<double, TickState>& ticks_states() const {
         return ticks_states_;
     }

@@ -345,7 +345,7 @@ void DebugStrategy::visualize_positions_penalties(const Context& context) {
         visualize_positions_penalties(context, target);
     } else if (const auto target = base_->target().unit<model::Tree>(context.cache())) {
         visualize_positions_penalties(context, target);
-    } else {
+    } else if (&base_->mode() != &base_->move_mode()) {
         visualize_positions_penalties(context, static_cast<const model::LivingUnit*>(nullptr));
     }
 }
