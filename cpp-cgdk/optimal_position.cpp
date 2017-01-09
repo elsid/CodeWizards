@@ -86,8 +86,11 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
         [&] (auto lhs, auto rhs) {
             return unit_position.distance(get_position(*lhs)) < unit_position.distance(get_position(*rhs));
         });
-    const auto distance_to_nearest = std::max(unit_position.distance(get_position(**nearest_friend)),
-                                              unit.getRadius() + (*nearest_friend)->getRadius());
+    const auto distance_to_nearest = std::max({
+        unit_position.distance(get_position(**nearest_friend)),
+        unit.getRadius() + (*nearest_friend)->getRadius(),
+        unit.getRadius() + context.game().getStaffRange(),
+    });
     if (distance_to_me - distance_to_nearest > context.self().getRadius()) {
         return line_factor(distance_to_me, distance_to_nearest, 0);
     }
