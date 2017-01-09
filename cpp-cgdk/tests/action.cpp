@@ -393,7 +393,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_not_proper_rang
     );
     const model::Wizard enemy(
         2, // Id
-        1463, // X
+        1503, // X
         1000, // Y
         0, // SpeedX
         0, // SpeedY
@@ -412,7 +412,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_not_proper_rang
         0, // Xp
         0, // Level
         {}, // Skills
-        0, // RemainingActionCooldownTicks
+        30, // RemainingActionCooldownTicks
         {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
         true, // Master
         {} // Messages

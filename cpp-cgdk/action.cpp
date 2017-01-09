@@ -270,13 +270,14 @@ struct GetCastAction {
         const auto unit_action_tick = get_max_damage.next_attack_action(target.value(), distance + 2 * context.self().getRadius()).second;
         const auto ticks = std::ceil(distance / get_projectile_speed(projectile_type, context.game()));
 
-        if (ticks > unit_action_tick) {
+        if (ticks <= unit_action_tick + 1) {
             const auto unit_bounds = make_unit_bounds(context, target.value());
             const auto unit_speed = (unit_bounds.max_speed(0) - unit_bounds.min_speed(0) + 2 * unit_bounds.max_strafe_speed(0)) / 4;
             const auto unit_path_length = ticks * unit_speed;
-            const auto radius_sum = target.value().getRadius() + get_projectile_radius(projectile_type, context.game());
+            const auto range = unit_path_length + distance;
+            const auto max_range = context.self().getCastRange() + target.value().getRadius() + get_projectile_radius(projectile_type, context.game());
 
-            if (unit_path_length > radius_sum || context.self().getCastRange() < distance + unit_path_length) {
+            if (range >  max_range) {
                 return {false, Action {}};
             }
         }
