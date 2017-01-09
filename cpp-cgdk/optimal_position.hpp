@@ -342,11 +342,24 @@ private:
 
     double get_projectile_penalty(const CachedUnit<model::Projectile>& cached_unit, const Point& position) const {
         const auto& unit = cached_unit.value();
+
+        if (unit.getFaction() == context.self().getFaction()) {
+            return - std::numeric_limits<double>::max();
+        }
+
         const auto trajectory = get_projectile_trajectory(cached_unit);
-        const auto center = (trajectory.begin() + trajectory.end()) * 0.5;
         const auto lethal_area = get_projectile_lethal_area(unit.getType());
-        const auto distance = position.distance(center);
-        return line_factor(distance, trajectory.length() + lethal_area, 0);
+        const auto nearest = trajectory.nearest(position);
+        const auto has_point = trajectory.has_point(nearest);
+        const auto distance = has_point ? nearest.distance(position)
+                                        : std::min(trajectory.begin().distance(position), trajectory.end().distance(position));
+        const auto safe_distance = lethal_area + context.self().getRadius() + 1;
+
+        if (distance < safe_distance) {
+            return 1 + 0.1 * line_factor(distance, safe_distance, 0);
+        } else {
+            return line_factor(distance, 2 * safe_distance, safe_distance);
+        }
     }
 
     Line get_projectile_trajectory(const CachedUnit<model::Projectile>& cached_unit) const {
