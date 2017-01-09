@@ -27,20 +27,141 @@ inline std::ostream& operator <<(std::ostream& stream, const model::Bonus& value
     return stream << ")";
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Projectile& /* value */) {
-    return stream;
+inline std::ostream& operator <<(std::ostream& stream, const model::Projectile& value) {
+    stream << "model::Projectile(\n";
+    stream << "    " << value.getId() << ", // Id\n";
+    stream << "    " << value.getX() << ", // X\n";
+    stream << "    " << value.getY() << ", // Y\n";
+    stream << "    " << value.getSpeedX() << ", // SpeedX\n";
+    stream << "    " << value.getSpeedY() << ", // SpeedY\n";
+    stream << "    " << value.getAngle() << ", // Angle\n";
+    stream << "    " << value.getFaction() << ", // Faction\n";
+    stream << "    " << value.getRadius() << ", // Radius\n";
+    stream << "    " << value.getType() << ", // Type\n";
+    stream << "    " << value.getOwnerUnitId() << ", // OwnerUnitId\n";
+    stream << "    " << value.getOwnerPlayerId() << " // OwnerPlayerId\n";
+    return stream << ")";
 }
 
 inline std::ostream& operator <<(std::ostream& stream, const model::Player& /* value */) {
     return stream;
 }
 
-inline std::ostream& operator <<(std::ostream& stream, const model::Status& /* value */) {
-    return stream;
+inline std::ostream& operator <<(std::ostream& stream, model::StatusType value) {
+    switch (value) {
+        case model::_STATUS_UNKNOWN_:
+            return stream << "model::_STATUS_UNKNOWN_";
+        case model::STATUS_BURNING:
+            return stream << "model::STATUS_BURNING";
+        case model::STATUS_EMPOWERED:
+            return stream << "model::STATUS_EMPOWERED";
+        case model::STATUS_FROZEN:
+            return stream << "model::STATUS_FROZEN";
+        case model::STATUS_HASTENED:
+            return stream << "model::STATUS_HASTENED";
+        case model::STATUS_SHIELDED:
+            return stream << "model::STATUS_SHIELDED";
+        case model::_STATUS_COUNT_:
+            return stream << "model::_STATUS_COUNT_";
+    }
+    std::ostringstream error;
+    error << "Invalid model::StatusType value: " << int(value)
+          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+    throw std::logic_error(error.str());
+}
+
+inline std::ostream& operator <<(std::ostream& stream, const model::Status& value) {
+    stream << "model::Status(\n";
+    stream << "    " << value.getId() << ", // Id\n";
+    stream << "    " << value.getType() << ", // Type\n";
+    stream << "    " << value.getWizardId() << ", // WizardId\n";
+    stream << "    " << value.getPlayerId() << ", // PlayerId\n";
+    stream << "    " << value.getRemainingDurationTicks() << " // RemainingDurationTicks\n";
+    return stream << ")";
 }
 
 inline std::ostream& operator <<(std::ostream& stream, const model::Message& /* value */) {
     return stream;
+}
+
+inline std::ostream& operator <<(std::ostream& stream, model::MinionType value) {
+    switch (value) {
+        case model::_MINION_UNKNOWN_:
+            return stream << "model::_MINION_UNKNOWN_";
+        case model::MINION_ORC_WOODCUTTER:
+            return stream << "model::MINION_ORC_WOODCUTTER";
+        case model::MINION_FETISH_BLOWDART:
+            return stream << "model::MINION_FETISH_BLOWDART";
+        case model::_MINION_COUNT_:
+            return stream << "model::_MINION_COUNT_";
+    }
+    std::ostringstream error;
+    error << "Invalid model::MinionType value: " << int(value)
+          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+    throw std::logic_error(error.str());
+}
+
+inline std::ostream& operator <<(std::ostream& stream, model::SkillType value) {
+    switch (value) {
+        case model::_SKILL_UNKNOWN_:
+            return stream << "model::_SKILL_UNKNOWN_";
+        case model::SKILL_RANGE_BONUS_PASSIVE_1:
+            return stream << "model::SKILL_RANGE_BONUS_PASSIVE_1";
+        case model::SKILL_RANGE_BONUS_AURA_1:
+            return stream << "model::SKILL_RANGE_BONUS_AURA_1";
+        case model::SKILL_RANGE_BONUS_PASSIVE_2:
+            return stream << "model::SKILL_RANGE_BONUS_PASSIVE_2";
+        case model::SKILL_RANGE_BONUS_AURA_2:
+            return stream << "model::SKILL_RANGE_BONUS_AURA_2";
+        case model::SKILL_ADVANCED_MAGIC_MISSILE:
+            return stream << "model::SKILL_ADVANCED_MAGIC_MISSILE";
+        case model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1:
+            return stream << "model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1";
+        case model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_1:
+            return stream << "model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_1";
+        case model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2:
+            return stream << "model::SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2";
+        case model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_2:
+            return stream << "model::SKILL_MAGICAL_DAMAGE_BONUS_AURA_2";
+        case model::SKILL_FROST_BOLT:
+            return stream << "model::SKILL_FROST_BOLT";
+        case model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1:
+            return stream << "model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1";
+        case model::SKILL_STAFF_DAMAGE_BONUS_AURA_1:
+            return stream << "model::SKILL_STAFF_DAMAGE_BONUS_AURA_1";
+        case model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2:
+            return stream << "model::SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2";
+        case model::SKILL_STAFF_DAMAGE_BONUS_AURA_2:
+            return stream << "model::SKILL_STAFF_DAMAGE_BONUS_AURA_2";
+        case model::SKILL_FIREBALL:
+            return stream << "model::SKILL_FIREBALL";
+        case model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1:
+            return stream << "model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1";
+        case model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_1:
+            return stream << "model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_1";
+        case model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2:
+            return stream << "model::SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2";
+        case model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_2:
+            return stream << "model::SKILL_MOVEMENT_BONUS_FACTOR_AURA_2";
+        case model::SKILL_HASTE:
+            return stream << "model::SKILL_HASTE";
+        case model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1:
+            return stream << "model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1";
+        case model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1:
+            return stream << "model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1";
+        case model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2:
+            return stream << "model::SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2";
+        case model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2:
+            return stream << "model::SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2";
+        case model::SKILL_SHIELD:
+            return stream << "model::SKILL_SHIELD";
+        case model::_SKILL_COUNT_:
+            return stream << "model::_SKILL_COUNT_";
+    }
+    std::ostringstream error;
+    error << "Invalid model::SkillType value: " << int(value)
+          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+    throw std::logic_error(error.str());
 }
 
 inline std::ostream& operator <<(std::ostream& stream, model::Faction value) {
