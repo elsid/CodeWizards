@@ -150,7 +150,7 @@ void DebugStrategy::count_stats(const Context& context) {
             trees_.hits_count += bool(trees_hits_count);
             wizards_.hits_count += bool(wizards_hits_count);
 
-            SLOG(context) << "hits/casts "
+            SLOG(context) << "hits/casts"
                 << " all: "
                 << hits_count_ << "/"
                 << casts_count_ << "="
@@ -179,8 +179,8 @@ void DebugStrategy::count_stats(const Context& context) {
 
             const auto ticks_count = buildings_.target_ticks_count + minions_.target_ticks_count + trees_.target_ticks_count + wizards_.target_ticks_count;
 
-            SLOG(context) << "target_casts/target_ticks "
-                << "all: "
+            SLOG(context) << "target_casts/target_ticks"
+                << " all: "
                 << casts_count_ << "/"
                 << ticks_count << "="
                 << double(casts_count_) / double(ticks_count) << "~"
@@ -207,8 +207,8 @@ void DebugStrategy::count_stats(const Context& context) {
                 << double(wizards_.target_casts_count) / double(wizards_.target_ticks_count) * 60 << " "
                 << '\n';
 
-            SLOG(context) << " target_ticks/ticks "
-                << "all: "
+            SLOG(context) << "target_ticks/ticks"
+                << " all: "
                 << ticks_count << "/"
                 << context.world().getTickIndex() << "="
                 << double(ticks_count) / double(context.world().getTickIndex()) << " "
@@ -221,8 +221,8 @@ void DebugStrategy::count_stats(const Context& context) {
     } else if (prev_my_life_ > context.self().getLife()) {
         const auto damage = prev_my_life_ - context.self().getLife();
         sum_damage_to_me_ += damage;
-        SLOG(context)
-            << " damage: " << damage
+        SLOG(context) << "damage_to_me"
+            << " value: " << damage
             << " life: " << context.self().getLife()
             << " sum: " << sum_damage_to_me_
             << '\n';
@@ -231,7 +231,7 @@ void DebugStrategy::count_stats(const Context& context) {
 
     if (prev_tick_ && prev_tick_ != context.world().getTickIndex() - 1) {
         ++deaths_count_;
-        SLOG(context) << "death: " << deaths_count_ << " tick: " << prev_tick_ + 1 << '\n';
+        SLOG(context) << "death count: " << deaths_count_ << " tick: " << prev_tick_ + 1 << '\n';
     }
     prev_tick_ = context.world().getTickIndex();
 }
