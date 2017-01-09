@@ -330,6 +330,13 @@ private:
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
         const auto distance = position.distance(get_position(unit));
+        const auto has_nearest_friend = friend_wizards.end() != std::find_if(friend_wizards.begin(), friend_wizards.end(),
+                     [&] (auto v) { return get_position(*v).distance(get_position(unit)) < distance; });
+
+        if (has_nearest_friend) {
+            return - std::numeric_limits<double>::max();
+        }
+
         return line_factor(distance, 0, max_distance);
     }
 
