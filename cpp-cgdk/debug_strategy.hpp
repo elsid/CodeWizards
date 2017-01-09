@@ -74,7 +74,12 @@ private:
         const auto cached_unit = get_units<Unit>(context.cache()).at(unit.getId());
         const auto mean_speed = cached_unit.mean_speed();
         const auto mean_speed_end = get_position(unit) + mean_speed.normalized() * (10 * mean_speed.norm() + unit.getRadius());
-        debug_.line(unit.getX(), unit.getY(), mean_speed_end.x(), mean_speed_end.y(), 0x444444);
+        debug_.line(unit.getX(), unit.getY(), mean_speed_end.x(), mean_speed_end.y(), 0x0);
+
+        std::ostringstream stream;
+        stream << mean_speed.x() << ", " << mean_speed.y() << " (" << mean_speed.norm() << ')';
+        const auto text_position = mean_speed_end + mean_speed.normalized() * 10;
+        debug_.text(text_position.x(), text_position.y(), stream.str().c_str(), 0x0);
     }
 
     template <class Unit>
