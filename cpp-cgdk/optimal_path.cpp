@@ -128,13 +128,18 @@ private:
 
 GetOptimalPathImpl::GetOptimalPathImpl(const Context& context, const Point& target, int step_size, Tick max_ticks, std::size_t max_iterations)
         : context(context), target(target), step_size(step_size), max_ticks(max_ticks), max_iterations(max_iterations) {
+    const IsInMyRange is_projectile_in_my_range {context, context.self().getVisionRange()};
     const IsInMyRange is_in_my_range {context, max_range};
+
+    const auto initial_projectiles_filter = [&] (const auto& units) {
+        return filter_units(units, [&] (const auto& unit) { return is_projectile_in_my_range(unit); });
+    };
 
     const auto initial_filter = [&] (const auto& units) {
         return filter_units(units, [&] (const auto& unit) { return !is_me(unit) && is_in_my_range(unit); });
     };
 
-    projectiles = initial_filter(context.world().getProjectiles());
+    projectiles = initial_projectiles_filter(context.world().getProjectiles());
     minions = initial_filter(context.world().getMinions());
     wizards = initial_filter(context.world().getWizards());
 
