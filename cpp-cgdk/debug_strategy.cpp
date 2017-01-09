@@ -243,11 +243,11 @@ void DebugStrategy::visualize(const Context& context) {
     visualize_positions_penalties(context);
     visualize_points(context);
     visualize_path(context);
+    visualize_ticks_states(context);
+    visualize_states(context);
     visualize_destination(context);
     visualize_target(context);
     visualize_units(context);
-    visualize_states(context);
-    visualize_ticks_states(context);
 }
 
 void DebugStrategy::visualize_graph(const Context& context) {
