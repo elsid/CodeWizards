@@ -39,7 +39,7 @@ public:
     static constexpr double ENEMY_BASE_REDUCE_FACTOR = 800.0;
     static constexpr double FRIEND_WIZARD_REDUCE_FACTOR = 8.0;
     static constexpr double FRIEND_MINION_REDUCE_FACTOR = 1.0;
-    static constexpr double PATH_LENGTH_REDUCE_FACTOR = 0.25;
+    static constexpr double PATH_LENGTH_REDUCE_FACTOR = 0.2;
     static constexpr double FRIEND_TOWER_MULT_FACTOR = 1.0;
     static constexpr double FRIEND_BASE_MULT_FACTOR = 2.0;
     static constexpr double WIZARD_DAMAGE_PROBABILITY = 0.25;
