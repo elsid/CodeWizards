@@ -44,7 +44,7 @@ struct GetRangedDamage {
     const Context& context;
 
     template <class Unit>
-    double operator ()(const Unit& unit, const Point& position) const {
+    Damage operator ()(const Unit& unit, const Point& position) const {
         const GetAttackRange get_attack_range {context};
         const GetMaxDamage get_damage {context};
         const auto current_distance = position.distance(get_position(unit));
@@ -64,7 +64,7 @@ struct GetCurrentDamage {
     const Context& context;
 
     template <class Unit>
-    double operator ()(const Unit& unit, const Point& position) const {
+    Damage operator ()(const Unit& unit, const Point& position) const {
         const GetRangedDamage get_ranged_damage {context};
         const GetUnitAttackAbility get_attack_ability {context};
         const auto ranged_damage = get_ranged_damage(unit, position);
@@ -187,10 +187,6 @@ public:
         std::copy(friend_wizards.begin(), friend_wizards.end(), std::back_inserter(friend_units));
         std::copy(friend_minions.begin(), friend_minions.end(), std::back_inserter(friend_units));
         std::copy(friend_buildings.begin(), friend_buildings.end(), std::back_inserter(friend_units));
-
-        const GetDefenceFactor get_defence_factor {context};
-
-        my_defence_factor = get_defence_factor(context.self());
     }
 
     double operator ()(const Point& position) const {
@@ -326,7 +322,6 @@ private:
     std::vector<const model::CircularUnit*> friend_units;
     std::vector<const model::Wizard*> friend_wizards;
     std::vector<const model::Building*> friend_buildings;
-    double my_defence_factor = 1;
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
         const auto distance = position.distance(get_position(unit));
@@ -450,7 +445,10 @@ private:
     template <class Unit>
     double get_unit_current_damage(const Unit& unit, const Point& position) const {
         const GetCurrentDamage get_current_damage {context};
-        return my_defence_factor * get_current_damage(unit, position);
+        const ReduceDamage reduce_damage {context};
+        const auto current_damage = get_current_damage(unit, position);
+        const auto reduced_damage = reduce_damage(context.self(), current_damage);
+        return reduced_damage.sum();
     }
 
     template <class Unit>
@@ -484,7 +482,7 @@ private:
         const auto ticks_factor = bounded_line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
         const auto my_life_factor = double(context.self().getLife()) / double(context.self().getMaxLife());
         const auto distance_factor = line_factor(distance, 0, range);
-        const auto unit_life_factor = 1 + bounded_line_factor(unit.getLife(), 2 * get_max_damage(context.self(), distance), 0);
+        const auto unit_life_factor = 1 + bounded_line_factor(unit.getLife(), 2 * get_max_damage(context.self(), distance).sum(), 0);
         return distance_factor * ticks_factor * my_life_factor * unit_life_factor;
     }
 

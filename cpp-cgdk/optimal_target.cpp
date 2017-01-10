@@ -67,23 +67,23 @@ double GetAttackRange::operator ()(const model::Wizard& unit, model::ActionType 
     }
 }
 
-double GetMaxDamage::operator ()(const model::Bonus&, double) const {
-    return 0.0;
+Damage GetMaxDamage::operator ()(const model::Bonus&, double) const {
+    return Damage();
 }
 
-double GetMaxDamage::operator ()(const model::Tree&, double) const {
-    return 0.0;
+Damage GetMaxDamage::operator ()(const model::Tree&, double) const {
+    return Damage();
 }
 
-double GetMaxDamage::operator ()(const model::Building& unit, double) const {
-    return (1.0 + status_factor(unit)) * unit.getDamage();
+Damage GetMaxDamage::operator ()(const model::Building& unit, double) const {
+    return Damage::Magic {(1.0 + status_factor(unit)) * unit.getDamage()};
 }
 
-double GetMaxDamage::operator ()(const model::Minion& unit, double) const {
-    return (1.0 + status_factor(unit)) * unit.getDamage();
+Damage GetMaxDamage::operator ()(const model::Minion& unit, double) const {
+    return Damage::Physic {(1.0 + status_factor(unit)) * unit.getDamage()};
 }
 
-double GetMaxDamage::operator ()(const model::Wizard& unit, double distance) const {
+Damage GetMaxDamage::operator ()(const model::Wizard& unit, double distance) const {
     const auto attack_action = next_attack_action(unit, distance).first;
     return action_damage(attack_action, unit);
 }
@@ -105,22 +105,22 @@ double GetMaxDamage::action_factor(const model::Wizard& unit, model::ActionType 
     }
 }
 
-double GetMaxDamage::action_damage(model::ActionType attack_action, const model::Wizard& unit) const {
+Damage GetMaxDamage::action_damage(model::ActionType attack_action, const model::Wizard& unit) const {
     return (1.0 + status_factor(unit) + action_factor(unit, attack_action)) * action_damage(attack_action);
 }
 
-double GetMaxDamage::action_damage(model::ActionType attack_action) const {
+Damage GetMaxDamage::action_damage(model::ActionType attack_action) const {
     switch (attack_action) {
         case model::ACTION_STAFF:
-            return context.game().getStaffDamage();
+            return Damage::Physic {double(context.game().getStaffDamage())};
         case model::ACTION_MAGIC_MISSILE:
-            return context.game().getMagicMissileDirectDamage();
+            return Damage::Magic {double(context.game().getMagicMissileDirectDamage())};
         case model::ACTION_FROST_BOLT:
-            return context.game().getFrostBoltDirectDamage();
+            return Damage::Magic {double(context.game().getFrostBoltDirectDamage())};
         case model::ACTION_FIREBALL:
-            return context.game().getFireballExplosionMaxDamage() + context.game().getBurningSummaryDamage();
+            return Damage::Magic {double(context.game().getFireballExplosionMaxDamage() + context.game().getBurningSummaryDamage())};
         default:
-            return 0;
+            return Damage();
     }
 }
 
@@ -133,7 +133,7 @@ std::pair<model::ActionType, Tick> GetMaxDamage::next_attack_action(const model:
         const auto skill = ACTIONS_SKILLS.at(model::ActionType(action));
         if (skill == model::_SKILL_UNKNOWN_ || has_skill(unit, skill)) {
             const auto ticks = std::max(unit.getRemainingCooldownTicksByAction()[action], unit.getRemainingActionCooldownTicks());
-            const auto damage = action_damage(action, unit);
+            const auto damage = action_damage(action, unit).sum();
             if ((min_ticks > ticks || (min_ticks == ticks && max_damage < damage)) && distance <= get_attack_range(unit, model::ActionType(action))) {
                 min_ticks = ticks;
                 max_damage = damage;
@@ -174,19 +174,22 @@ Tick GetMaxDamage::action_cooldown(model::ActionType attack_action, const model:
     }
 }
 
-double GetDefenceFactor::operator ()(const model::LivingUnit& unit) const {
-    return 1.0 - status_factor(unit);
+Damage ReduceDamage::operator ()(const model::LivingUnit& unit, const Damage& damage) const {
+    const auto status_factor = 1 - get_status_factor(unit);
+    return Damage(Damage::Physic {damage.physic()}, Damage::Magic {damage.magic() * status_factor});
 }
 
-double GetDefenceFactor::operator ()(const model::Wizard& unit) const {
-    return 1.0 - status_factor(unit) - skills_factor(unit);
+Damage ReduceDamage::operator ()(const model::Wizard& unit, const Damage& damage) const {
+    const auto status_factor = 1 - get_status_factor(unit);
+    const auto skills_reduction = get_skills_reduction(unit);
+    return Damage(Damage::Physic {damage.physic()}, Damage::Magic {damage.magic() * status_factor - skills_reduction});
 }
 
-double GetDefenceFactor::status_factor(const model::LivingUnit& unit) const {
+double ReduceDamage::get_status_factor(const model::LivingUnit& unit) const {
     return is_shielded(unit) * context.game().getShieldedDirectDamageAbsorptionFactor();
 }
 
-double GetDefenceFactor::skills_factor(const model::Wizard& unit) const {
+double ReduceDamage::get_skills_reduction(const model::Wizard& unit) const {
     return get_magical_damage_absorption_level(unit) * context.game().getMagicalDamageAbsorptionPerSkillLevel();
 }
 
@@ -303,7 +306,7 @@ double GetTargetScore::get_base(const model::Wizard& unit) const {
                           context.game().getWizardEliminationScoreFactor());
 }
 
-double GetTargetScore::get_my_max_damage(double distance) const {
+Damage GetTargetScore::get_my_max_damage(double distance) const {
     const GetMaxDamage get_max_damage {context};
     return get_max_damage(context.self(), distance);
 }

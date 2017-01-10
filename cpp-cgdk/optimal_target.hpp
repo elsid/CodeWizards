@@ -18,21 +18,61 @@ struct GetAttackRange {
     double operator ()(const model::Wizard& unit, model::ActionType action) const;
 };
 
+class Damage {
+public:
+    struct Physic {
+        double value;
+    };
+
+    struct Magic {
+        double value;
+    };
+
+    Damage() = default;
+    Damage(Physic physic) : physic_(physic.value) {}
+    Damage(Magic magic) : magic_(magic.value) {}
+    Damage(Physic physic, Magic magic) : physic_(physic.value), magic_(magic.value) {}
+
+    double physic() const {
+        return physic_;
+    }
+
+    double magic() const {
+        return magic_;
+    }
+
+    double sum() const {
+        return physic() + magic();
+    }
+
+private:
+    double physic_ = 0;
+    double magic_ = 0;
+};
+
+inline Damage operator *(double factor, const Damage& damage) {
+    return Damage(Damage::Physic {factor * damage.physic()}, Damage::Magic {factor * damage.magic()});
+}
+
+inline Damage operator *(const Damage& damage, double factor) {
+    return factor * damage;
+}
+
 struct GetMaxDamage {
     static const std::array<model::ActionType, 4> ATTACK_ACTIONS;
 
     const Context& context;
 
-    double operator ()(const model::Bonus&, double distance) const;
-    double operator ()(const model::Tree&, double distance) const;
-    double operator ()(const model::Building& unit, double distance) const;
-    double operator ()(const model::Minion& unit, double distance) const;
-    double operator ()(const model::Wizard& unit, double distance) const;
+    Damage operator ()(const model::Bonus&, double distance) const;
+    Damage operator ()(const model::Tree&, double distance) const;
+    Damage operator ()(const model::Building& unit, double distance) const;
+    Damage operator ()(const model::Minion& unit, double distance) const;
+    Damage operator ()(const model::Wizard& unit, double distance) const;
 
     double status_factor(const model::LivingUnit& unit) const;
     double action_factor(const model::Wizard& unit, model::ActionType attack_action) const;
-    double action_damage(model::ActionType attack_action, const model::Wizard& unit) const;
-    double action_damage(model::ActionType attack_action) const;
+    Damage action_damage(model::ActionType attack_action, const model::Wizard& unit) const;
+    Damage action_damage(model::ActionType attack_action) const;
     Tick action_cooldown(model::ActionType attack_action, const model::Wizard& unit) const;
     std::pair<model::ActionType, Tick> next_attack_action(const model::Wizard& unit, double distance) const;
 };
@@ -47,14 +87,14 @@ struct IsInMyRange {
     }
 };
 
-struct GetDefenceFactor {
+struct ReduceDamage {
     const Context& context;
 
-    double operator ()(const model::LivingUnit& unit) const;
-    double operator ()(const model::Wizard& unit) const;
+    Damage operator ()(const model::LivingUnit& unit, const Damage& damage) const;
+    Damage operator ()(const model::Wizard& unit, const Damage& damage) const;
 
-    double status_factor(const model::LivingUnit& unit) const;
-    double skills_factor(const model::Wizard& unit) const;
+    double get_status_factor(const model::LivingUnit& unit) const;
+    double get_skills_reduction(const model::Wizard& unit) const;
 };
 
 struct GetLifeRegeneration {
@@ -121,13 +161,13 @@ struct GetTargetScore {
 
     template <class Unit>
     double get_base_by_damage(const Unit& unit, double damage_score, double elimination_score_factor) const {
-        const GetDefenceFactor get_defence_factor {context};
+        const ReduceDamage reduce_damage {context};
         const GetLifeRegeneration get_life_regeneration {context};
-        const auto defence_factor = get_defence_factor(unit);
         const auto distance = get_position(context.self()).distance(get_position(unit));
         const auto my_max_damage = get_my_max_damage(distance);
+        const auto reduced_my_max_damage = reduce_damage(unit, my_max_damage);
         const auto life_regeneration = get_life_regeneration(unit);
-        const auto max_damage = my_max_damage * defence_factor - life_regeneration * context.game().getWizardActionCooldownTicks();
+        const auto max_damage = reduced_my_max_damage.sum() - life_regeneration * context.game().getWizardActionCooldownTicks();
         if (unit.getLife() <= max_damage) {
             return max_damage * damage_score + elimination_score_factor * unit.getMaxLife();
         } else {
@@ -135,7 +175,7 @@ struct GetTargetScore {
         }
     }
 
-    double get_my_max_damage(double distance) const;
+    Damage get_my_max_damage(double distance) const;
 };
 
 struct MakeTargetCandidates {
