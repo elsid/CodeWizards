@@ -2,6 +2,7 @@
 
 #include "optimal_target.hpp"
 #include "cache.hpp"
+#include "master_strategy.hpp"
 
 #ifdef ELSID_STRATEGY_DEBUG
 
@@ -32,13 +33,28 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
         strategy::Context context(self, world, game, move, cache_, history_cache_, profiler, strategy::Duration::max());
         if (!strategy_) {
             auto base = std::make_unique<strategy::BaseStrategy>(context);
+            if (self.isMaster()) {
 #ifdef ELSID_STRATEGY_DEBUG
-            strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(base));
-#elif defined(ELSID_STRATEGY_BASE)
-            strategy_ = std::move(base);
-#else
-            strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(base));
+                const auto& base_cref = *base;
 #endif
+                strategy_ = std::make_unique<strategy::MasterStrategy>(std::move(base), context);
+#ifdef ELSID_STRATEGY_DEBUG
+                strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(strategy_), base_cref);
+#elif defined(ELSID_STRATEGY_BASE)
+                strategy_ = std::move(master);
+#else
+                strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(strategy_));
+#endif
+            } else {
+#ifdef ELSID_STRATEGY_DEBUG
+                const auto& base_cref = *base;
+                strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(base), base_cref);
+#elif defined(ELSID_STRATEGY_BASE)
+                strategy_ = std::move(base);
+#else
+                strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(base));
+#endif
+            }
         }
         strategy_->apply(context);
 #ifndef ELSID_STRATEGY_DEBUG

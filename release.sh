@@ -16,6 +16,7 @@ cp battle_mode.cpp ${DIR}
 cp circle.cpp ${DIR}
 cp graph.cpp ${DIR}
 cp helpers.cpp ${DIR}
+cp master_strategy.cpp ${DIR}
 cp move_mode.cpp ${DIR}
 cp MyStrategy.cpp ${DIR}
 cp optimal_destination.cpp ${DIR}
@@ -39,6 +40,7 @@ cp golden_section.hpp ${DIR}
 cp graph.hpp ${DIR}
 cp helpers.hpp ${DIR}
 cp line.hpp ${DIR}
+cp master_strategy.hpp ${DIR}
 cp math.hpp ${DIR}
 cp minimize.hpp ${DIR}
 cp mode.hpp ${DIR}

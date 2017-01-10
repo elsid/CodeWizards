@@ -85,7 +85,6 @@ private:
     void apply_move(Context& context) const;
     void apply_action(Context& context) const;
     void learn_skills(Context& Context) const;
-    void command(Context& context) const;
 
     void use_move_mode(const Context& context);
     void use_battle_mode(const Context& context);

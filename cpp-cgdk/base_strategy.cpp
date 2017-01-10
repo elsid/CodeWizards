@@ -41,11 +41,6 @@ void BaseStrategy::apply(Context &context) {
     learn_skills(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     update_movements(context);
-    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
-    if (context.self().isMaster()) {
-        command(context);
-    }
-    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
 }
 
 void BaseStrategy::handle_messages(const Context& context) {
@@ -60,17 +55,6 @@ void BaseStrategy::learn_skills(Context& context) const {
         if (skill != model::_SKILL_UNKNOWN_) {
             context.move().setSkillToLearn(skill);
         }
-    }
-}
-
-void BaseStrategy::command(Context& context) const {
-    if (context.world().getTickIndex() == 0) {
-        context.move().setMessages({
-            model::Message(model::LANE_TOP, model::_SKILL_UNKNOWN_, {}),
-            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
-            model::Message(model::LANE_MIDDLE, model::_SKILL_UNKNOWN_, {}),
-            model::Message(model::LANE_BOTTOM, model::_SKILL_UNKNOWN_, {}),
-        });
     }
 }
 

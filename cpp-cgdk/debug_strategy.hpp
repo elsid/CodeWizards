@@ -20,7 +20,8 @@ std::int32_t get_color(double heat);
 
 class DebugStrategy : public Strategy {
 public:
-    DebugStrategy(std::unique_ptr<BaseStrategy> base) : base_(std::move(base)) {}
+    DebugStrategy(std::unique_ptr<Strategy> component, const BaseStrategy& base)
+        : component_(std::move(component)), base_(base) {}
 
     void apply(Context& context) override final;
 
@@ -32,7 +33,8 @@ private:
         std::size_t target_ticks_count = 0;
     };
 
-    std::unique_ptr<BaseStrategy> base_;
+    const std::unique_ptr<Strategy> component_;
+    const BaseStrategy& base_;
     Debug debug_;
 
     std::size_t casts_count_ = 0;

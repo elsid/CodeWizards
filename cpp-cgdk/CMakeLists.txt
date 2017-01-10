@@ -67,6 +67,7 @@ set(SOURCES
     helpers.cpp
     retreat_mode.cpp
     skills.cpp
+    master_strategy.cpp
 )
 
 add_executable(cpp-cgdk

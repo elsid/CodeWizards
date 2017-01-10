@@ -85,7 +85,7 @@ struct Abs {
 };
 
 void DebugStrategy::apply(Context& context) {
-    base_->apply(context);
+    component_->apply(context);
     visualize(context);
     count_stats(context);
 
@@ -96,13 +96,13 @@ void DebugStrategy::apply(Context& context) {
 }
 
 void DebugStrategy::count_stats(const Context& context) {
-    if (base_->target().is<model::Building>()) {
+    if (base_.target().is<model::Building>()) {
         ++buildings_.target_ticks_count;
-    } else if (base_->target().is<model::Minion>()) {
+    } else if (base_.target().is<model::Minion>()) {
         ++minions_.target_ticks_count;
-    } else if (base_->target().is<model::Tree>()) {
+    } else if (base_.target().is<model::Tree>()) {
         ++trees_.target_ticks_count;
-    } else if (base_->target().is<model::Wizard>()) {
+    } else if (base_.target().is<model::Wizard>()) {
         ++wizards_.target_ticks_count;
     }
 
@@ -128,16 +128,16 @@ void DebugStrategy::count_stats(const Context& context) {
 
             const auto units_hits_count = buildings_hits_count + minions_hits_count + trees_hits_count + wizards_hits_count;
 
-            if (const auto target = base_->target().unit<model::Building>(context.history_cache())) {
+            if (const auto target = base_.target().unit<model::Building>(context.history_cache())) {
                 buildings_.target_hits_count += is_hit(*target);
                 ++buildings_.target_casts_count;
-            } else if (const auto target = base_->target().unit<model::Minion>(context.history_cache())) {
+            } else if (const auto target = base_.target().unit<model::Minion>(context.history_cache())) {
                 minions_.target_hits_count += is_hit(*target);
                 ++minions_.target_casts_count;
-            } else if (const auto target = base_->target().unit<model::Tree>(context.history_cache())) {
+            } else if (const auto target = base_.target().unit<model::Tree>(context.history_cache())) {
                 trees_.target_hits_count += is_hit(*target);
                 ++trees_.target_casts_count;
-            } else if (const auto target = base_->target().unit<model::Wizard>(context.history_cache())) {
+            } else if (const auto target = base_.target().unit<model::Wizard>(context.history_cache())) {
                 wizards_.target_hits_count += is_hit(*target);
                 ++wizards_.target_casts_count;
             }
@@ -251,9 +251,9 @@ void DebugStrategy::visualize(const Context& context) {
 }
 
 void DebugStrategy::visualize_graph(const Context& context) {
-    const GetNodeScore get_node_score(context, base_->graph(), base_->move_mode().target_lane(), context.self());
-    const auto& nodes = base_->graph().nodes();
-    const auto& arcs = base_->graph().arcs();
+    const GetNodeScore get_node_score(context, base_.graph(), base_.move_mode().target_lane(), context.self());
+    const auto& nodes = base_.graph().nodes();
+    const auto& arcs = base_.graph().arcs();
     Matrix visualized_arcs(nodes.size(), 0);
     for (const auto& src : nodes) {
         for (const auto& dst : nodes) {
@@ -278,27 +278,27 @@ void DebugStrategy::visualize_graph(const Context& context) {
         debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
         debug_.text(node.second.x() + 30, node.second.y() - 30, std::to_string(score).c_str(), color);
         const auto lane_type = std::find_if(LANES_COLORS.begin(), LANES_COLORS.end(),
-            [&] (auto lane) { return base_->graph().lanes_nodes().at(lane.first).count(node.first); });
+            [&] (auto lane) { return base_.graph().lanes_nodes().at(lane.first).count(node.first); });
         if (lane_type != LANES_COLORS.end()) {
             debug_.circle(node.second.x(), node.second.y(), 15, lane_type->second);
         }
     }
-    const auto friend_base = nodes.at(base_->graph().friend_base());
+    const auto friend_base = nodes.at(base_.graph().friend_base());
     debug_.circle(friend_base.x(), friend_base.y(), 40, 0x00AA00);
-    const auto enemy_base = nodes.at(base_->graph().enemy_base());
+    const auto enemy_base = nodes.at(base_.graph().enemy_base());
     debug_.circle(enemy_base.x(), enemy_base.y(), 40, 0xAA0000);
 }
 
 void DebugStrategy::visualize_graph_path(const Context& context) {
     Point prev = get_position(context.self());
-    const auto& nodes = base_->graph().nodes();
-    for (auto node = base_->move_mode().path_node(); node != base_->move_mode().path().end(); ++node) {
+    const auto& nodes = base_.graph().nodes();
+    for (auto node = base_.move_mode().path_node(); node != base_.move_mode().path().end(); ++node) {
         const auto position = nodes.at(*node);
         debug_.line(prev.x(), prev.y(), position.x(), position.y(), 0x222222);
         debug_.circle(position.x(), position.y(), 20, 0x222222);
         prev = position;
     }
-    const auto& destination = base_->move_mode().destination();
+    const auto& destination = base_.move_mode().destination();
     if (destination.first) {
         const auto& position = nodes.at(destination.second);
         debug_.circle(position.x(), position.y(), 30, 0x222222);
@@ -306,7 +306,7 @@ void DebugStrategy::visualize_graph_path(const Context& context) {
 }
 
 void DebugStrategy::visualize_points(const Context& context) {
-    const auto& points = base_->battle_mode().points();
+    const auto& points = base_.battle_mode().points();
 
     if (points.empty()) {
         return;
@@ -316,7 +316,7 @@ void DebugStrategy::visualize_points(const Context& context) {
         [&] (const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
     const auto interval = minmax.second->second - minmax.first->second;
     auto prev = get_position(context.self());
-    for (const auto& v : base_->battle_mode().points()) {
+    for (const auto& v : base_.battle_mode().points()) {
         const auto color = get_color((v.second - minmax.first->second) / (interval ? interval : 1));
         const auto& point = v.first;
         debug_.line(prev.x(), prev.y(), point.x(), point.y(), color);
@@ -327,7 +327,7 @@ void DebugStrategy::visualize_points(const Context& context) {
 
 void DebugStrategy::visualize_path(const Context& context) {
     auto prev = get_position(context.self());
-    for (const auto& point : base_->path()) {
+    for (const auto& point : base_.path()) {
         debug_.line(prev.x(), prev.y(), point.x(), point.y(), 0x000099);
         debug_.fillCircle(point.x(), point.y(), 3, 0x000099);
         prev = point;
@@ -335,30 +335,30 @@ void DebugStrategy::visualize_path(const Context& context) {
 }
 
 void DebugStrategy::visualize_positions_penalties(const Context& context) {
-    if (const auto target = base_->target().unit<model::Bonus>(context.cache())) {
+    if (const auto target = base_.target().unit<model::Bonus>(context.cache())) {
         visualize_positions_penalties(context, target);
-    } else if (const auto target = base_->target().unit<model::Building>(context.cache())) {
+    } else if (const auto target = base_.target().unit<model::Building>(context.cache())) {
         visualize_positions_penalties(context, target);
-    } else if (const auto target = base_->target().unit<model::Minion>(context.cache())) {
+    } else if (const auto target = base_.target().unit<model::Minion>(context.cache())) {
         visualize_positions_penalties(context, target);
-    } else if (const auto target = base_->target().unit<model::Wizard>(context.cache())) {
+    } else if (const auto target = base_.target().unit<model::Wizard>(context.cache())) {
         visualize_positions_penalties(context, target);
-    } else if (const auto target = base_->target().unit<model::Tree>(context.cache())) {
+    } else if (const auto target = base_.target().unit<model::Tree>(context.cache())) {
         visualize_positions_penalties(context, target);
-    } else if (&base_->mode() != &base_->move_mode()) {
+    } else if (&base_.mode() != &base_.move_mode()) {
         visualize_positions_penalties(context, static_cast<const model::LivingUnit*>(nullptr));
     }
 }
 
 void DebugStrategy::visualize_destination(const Context& /*context*/) {
-    debug_.line(base_->destination().x() - 35, base_->destination().y() - 35,
-                base_->destination().x() + 35, base_->destination().y() + 35, 0x0000FF);
-    debug_.line(base_->destination().x() + 35, base_->destination().y() - 35,
-                base_->destination().x() - 35, base_->destination().y() + 35, 0x0000FF);
+    debug_.line(base_.destination().x() - 35, base_.destination().y() - 35,
+                base_.destination().x() + 35, base_.destination().y() + 35, 0x0000FF);
+    debug_.line(base_.destination().x() + 35, base_.destination().y() - 35,
+                base_.destination().x() - 35, base_.destination().y() + 35, 0x0000FF);
 }
 
 void DebugStrategy::visualize_target(const Context& context) {
-    if (const auto target = base_->target().circular_unit(context.cache())) {
+    if (const auto target = base_.target().circular_unit(context.cache())) {
         debug_.circle(target->getX(), target->getY(), target->getRadius() + 20, 0xAA0000);
     }
 }
@@ -522,7 +522,7 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Projecti
 }
 
 void DebugStrategy::visualize_states(const Context& context) {
-    const auto& states = base_->states();
+    const auto& states = base_.states();
 
     if (states.empty()) {
         return;
@@ -546,13 +546,13 @@ void DebugStrategy::visualize_states(const Context& context) {
 }
 
 void DebugStrategy::visualize_ticks_states(const Context&) {
-    const auto& steps_states = base_->steps_states();
+    const auto& steps_states = base_.steps_states();
 
     if (steps_states.empty()) {
         return;
     }
 
-    const auto& ticks_states = base_->ticks_states();
+    const auto& ticks_states = base_.ticks_states();
 
     if (ticks_states.empty()) {
         return;

@@ -31,6 +31,154 @@ const std::unordered_map<model::SkillType, std::vector<model::SkillType>> SKILLS
     {model::SKILL_HASTE, {model::SKILL_HASTE}},
 });
 
+const std::array<int, model::_SKILL_COUNT_> FROST_SKILLS_PRIORITIES = {{
+    4, // SKILL_RANGE_BONUS_PASSIVE_1
+    4, // SKILL_RANGE_BONUS_AURA_1
+    4, // SKILL_RANGE_BONUS_PASSIVE_2
+    4, // SKILL_RANGE_BONUS_AURA_2
+    4, // SKILL_ADVANCED_MAGIC_MISSILE
+    5, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
+    5, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
+    5, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
+    5, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
+    5, // SKILL_FROST_BOLT
+    3, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
+    3, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
+    3, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
+    3, // SKILL_STAFF_DAMAGE_BONUS_AURA_2
+    3, // SKILL_FIREBALL
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_1
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_2
+    1, // SKILL_HASTE
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2
+    2, // SKILL_SHIELD
+}};
+
+const std::array<int, model::_SKILL_COUNT_> RANGE_SKILLS_PRIORITIES = {{
+    5, // SKILL_RANGE_BONUS_PASSIVE_1
+    5, // SKILL_RANGE_BONUS_AURA_1
+    5, // SKILL_RANGE_BONUS_PASSIVE_2
+    5, // SKILL_RANGE_BONUS_AURA_2
+    5, // SKILL_ADVANCED_MAGIC_MISSILE
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
+    4, // SKILL_FROST_BOLT
+    3, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
+    3, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
+    3, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
+    3, // SKILL_STAFF_DAMAGE_BONUS_AURA_2
+    3, // SKILL_FIREBALL
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_1
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_2
+    1, // SKILL_HASTE
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2
+    2, // SKILL_SHIELD
+}};
+
+const std::array<int, model::_SKILL_COUNT_> FIRE_SKILLS_PRIORITIES = {{
+    3, // SKILL_RANGE_BONUS_PASSIVE_1
+    3, // SKILL_RANGE_BONUS_AURA_1
+    3, // SKILL_RANGE_BONUS_PASSIVE_2
+    3, // SKILL_RANGE_BONUS_AURA_2
+    3, // SKILL_ADVANCED_MAGIC_MISSILE
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
+    3, // SKILL_FROST_BOLT
+    5, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
+    5, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
+    5, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
+    5, // SKILL_STAFF_DAMAGE_BONUS_AURA_2
+    5, // SKILL_FIREBALL
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_1
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_2
+    1, // SKILL_HASTE
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2
+    2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2
+    2, // SKILL_SHIELD
+}};
+
+const std::array<int, model::_SKILL_COUNT_> SHIELD_SKILLS_PRIORITIES = {{
+    3, // SKILL_RANGE_BONUS_PASSIVE_1
+    3, // SKILL_RANGE_BONUS_AURA_1
+    3, // SKILL_RANGE_BONUS_PASSIVE_2
+    3, // SKILL_RANGE_BONUS_AURA_2
+    3, // SKILL_ADVANCED_MAGIC_MISSILE
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
+    4, // SKILL_FROST_BOLT
+    2, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
+    2, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
+    2, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
+    2, // SKILL_STAFF_DAMAGE_BONUS_AURA_2
+    2, // SKILL_FIREBALL
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_1
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2
+    1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_2
+    1, // SKILL_HASTE
+    5, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1
+    5, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1
+    5, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2
+    5, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2
+    5, // SKILL_SHIELD
+}};
+
+const std::array<int, model::_SKILL_COUNT_> HASTE_SKILLS_PRIORITIES = {{
+    3, // SKILL_RANGE_BONUS_PASSIVE_1
+    3, // SKILL_RANGE_BONUS_AURA_1
+    3, // SKILL_RANGE_BONUS_PASSIVE_2
+    3, // SKILL_RANGE_BONUS_AURA_2
+    3, // SKILL_ADVANCED_MAGIC_MISSILE
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
+    4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
+    4, // SKILL_FROST_BOLT
+    2, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
+    2, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
+    2, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
+    2, // SKILL_STAFF_DAMAGE_BONUS_AURA_2
+    2, // SKILL_FIREBALL
+    5, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1
+    5, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_1
+    5, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2
+    5, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_2
+    5, // SKILL_HASTE
+    1, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1
+    1, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1
+    1, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2
+    1, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2
+    1, // SKILL_SHIELD
+}};
+
+std::array<const std::array<int, model::_SKILL_COUNT_>, model::_SKILL_COUNT_> SPECIALIZATIONS = {{
+    FROST_SKILLS_PRIORITIES,
+    RANGE_SKILLS_PRIORITIES,
+    FIRE_SKILLS_PRIORITIES,
+    SHIELD_SKILLS_PRIORITIES,
+    HASTE_SKILLS_PRIORITIES,
+}};
+
 std::pair<model::SkillType, int> get_opposite_skill(const Context& context) {
     const auto& wizards = get_units<model::Wizard>(context.history_cache());
     auto enemy_wizards = filter_units<model::Wizard>(wizards,
@@ -70,33 +218,7 @@ model::SkillType get_next_skill_to_learn(const model::Wizard& unit, model::Skill
 }
 
 model::SkillType get_skill_to_learn(const Context& context, model::SkillType skill_from_message) {
-    std::array<int, model::_SKILL_COUNT_> skills_priorities = {{
-        4, // SKILL_RANGE_BONUS_PASSIVE_1
-        4, // SKILL_RANGE_BONUS_AURA_1
-        4, // SKILL_RANGE_BONUS_PASSIVE_2
-        4, // SKILL_RANGE_BONUS_AURA_2
-        4, // SKILL_ADVANCED_MAGIC_MISSILE
-        5, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_1
-        5, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
-        5, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
-        5, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
-        5, // SKILL_FROST_BOLT
-        3, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
-        3, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
-        3, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
-        3, // SKILL_STAFF_DAMAGE_BONUS_AURA_2
-        3, // SKILL_FIREBALL
-        1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_1
-        1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_1
-        1, // SKILL_MOVEMENT_BONUS_FACTOR_PASSIVE_2
-        1, // SKILL_MOVEMENT_BONUS_FACTOR_AURA_2
-        1, // SKILL_HASTE
-        2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_1
-        2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_1
-        2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_PASSIVE_2
-        2, // SKILL_MAGICAL_DAMAGE_ABSORPTION_AURA_2
-        2, // SKILL_SHIELD
-    }};
+    auto skills_priorities = FROST_SKILLS_PRIORITIES;
 
     for (const auto skill : context.self().getSkills()) {
         skills_priorities[skill] = 0;
@@ -104,7 +226,7 @@ model::SkillType get_skill_to_learn(const Context& context, model::SkillType ski
 
     if (skill_from_message != model::_SKILL_UNKNOWN_ && skill_from_message != model::_SKILL_COUNT_
             && !has_skill(context.self(), skill_from_message)) {
-        skills_priorities[skill_from_message] += 5;
+        skills_priorities[skill_from_message] += 10;
     }
 
     model::SkillType opposite;
@@ -118,6 +240,58 @@ model::SkillType get_skill_to_learn(const Context& context, model::SkillType ski
     const auto max = std::max_element(skills_priorities.begin(), skills_priorities.end());
 
     return get_next_skill_to_learn(context.self(), model::SkillType(max - skills_priorities.begin()));
+}
+
+model::SkillType get_skill_to_recommend(const model::Wizard& wizard, Specialization specialization) {
+    auto skills_priorities = SPECIALIZATIONS[std::size_t(specialization)];
+
+    for (const auto skill : wizard.getSkills()) {
+        skills_priorities[skill] = 0;
+    }
+
+    const auto max = std::max_element(skills_priorities.begin(), skills_priorities.end());
+
+    return get_next_skill_to_learn(wizard, model::SkillType(max - skills_priorities.begin()));
+}
+
+const std::array<Specialization, 5> FIRE_FROST_SHIELD_SPECIALIZATIONS_DISTRIBUTION = {{
+    Specialization::FIRE,
+    Specialization::FROST,
+    Specialization::SHIELD,
+    Specialization::FROST,
+    Specialization::FIRE,
+}};
+
+const std::array<Specialization, 5> FIRE_FROST_SPECIALIZATIONS_DISTRIBUTION = {{
+    Specialization::FIRE,
+    Specialization::FROST,
+    Specialization::FIRE,
+    Specialization::FROST,
+    Specialization::FIRE,
+}};
+
+const std::array<Specialization, 5>& get_specializations_distribution(const Context& context) {
+    if (context.game().isRawMessagesEnabled()) {
+        return FIRE_FROST_SHIELD_SPECIALIZATIONS_DISTRIBUTION;
+    } else {
+        return FIRE_FROST_SPECIALIZATIONS_DISTRIBUTION;
+    }
+}
+
+std::map<UnitId, Specialization> distribute_specializations(const Context& context) {
+    const auto& distribution = get_specializations_distribution(context);
+    auto specialization = distribution.begin();
+    std::map<UnitId, Specialization> result;
+    for (const auto& v : get_units<model::Wizard>(context.cache())) {
+        const auto& unit = v.second;
+        if (unit.value().getFaction() == context.self().getFaction()) {
+            result.insert({v.first, *specialization++});
+            if (specialization == distribution.end()) {
+                specialization = distribution.begin();
+            }
+        }
+    }
+    return result;
 }
 
 }
