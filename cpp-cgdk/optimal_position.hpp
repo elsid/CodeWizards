@@ -180,7 +180,7 @@ public:
         }
 
         friend_wizards = filter_friends(wizards, context.self().getFaction());
-        const auto friend_minions = filter_friends(minions, context.self().getFaction());
+        friend_minions = filter_friends(minions, context.self().getFaction());
         friend_buildings = filter_friends(buildings, context.self().getFaction());
 
         friend_units.reserve(friend_wizards.size() + friend_minions.size() + friend_buildings.size());
@@ -322,6 +322,7 @@ private:
     std::vector<const model::CircularUnit*> friend_units;
     std::vector<const model::Wizard*> friend_wizards;
     std::vector<const model::Building*> friend_buildings;
+    std::vector<const model::Minion*> friend_minions;
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
         const auto distance = position.distance(get_position(unit));
@@ -448,7 +449,18 @@ private:
         const ReduceDamage reduce_damage {context};
         const auto current_damage = get_current_damage(unit, position);
         const auto reduced_damage = reduce_damage(context.self(), current_damage);
-        return reduced_damage.sum();
+
+        if (context.self().getLife() <= 3.0 * context.self().getMaxLife() / 4) {
+            return reduced_damage.sum();
+        }
+
+        const auto unit_position = get_position(unit);
+        const auto distance = position.distance(unit_position);
+        const auto is_nearest = [&] (auto v) { return get_position(*v).distance(unit_position) < distance; };
+        const auto nearest_minions_count = std::count_if(friend_minions.begin(), friend_minions.end(), is_nearest);
+        const auto nearest_wizards_count = std::count_if(friend_wizards.begin(), friend_wizards.end(), is_nearest);
+
+        return reduced_damage.sum() / (1 + nearest_minions_count + std::sqrt(nearest_wizards_count));
     }
 
     template <class Unit>
