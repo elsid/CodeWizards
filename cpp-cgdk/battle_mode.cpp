@@ -46,6 +46,13 @@ void BattleMode::update_target(const Context& context) {
             break;
         }
     }
+
+    if (!destination_.first || will_cast_later(context)) {
+        target_ = Target();
+        points_.clear();
+        destination_ = {true, this->get_optimal_position(context)};
+        return;
+    }
 }
 
 bool BattleMode::is_under_fire(const Context& context) const {
@@ -77,6 +84,19 @@ bool BattleMode::is_under_fire(const Context& context) const {
     const auto& projectiles = get_units<model::Projectile>(context.cache());
 
     return projectiles.end() != std::find_if(projectiles.begin(), projectiles.end(), can_reach_me);
+}
+
+bool BattleMode::will_cast_later(const Context& context) const {
+    const GetMaxDamage get_max_damage {context};
+    const auto distance = target_.apply(context.cache(), [&] (auto unit) {
+        if (unit) {
+            return get_position(context.self()).distance(get_position(*unit));
+        } else {
+            return context.self().getVisionRange();
+        }
+    });
+    const auto ticks = get_max_damage.next_attack_action(context.self(), distance).second;
+    return ticks > context.game().getWizardActionCooldownTicks();
 }
 
 template <class TargetT>
