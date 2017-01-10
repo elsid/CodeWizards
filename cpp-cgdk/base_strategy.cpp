@@ -54,7 +54,7 @@ void BaseStrategy::handle_messages(const Context& context) {
     }
 }
 
-void BaseStrategy::learn_skills(Context& context) {
+void BaseStrategy::learn_skills(Context& context) const {
     if (context.self().getSkills().size() < std::size_t(context.self().getLevel())) {
         const auto skill = get_skill_to_learn(context, skill_from_message_);
         if (skill != model::_SKILL_UNKNOWN_) {
@@ -63,7 +63,7 @@ void BaseStrategy::learn_skills(Context& context) {
     }
 }
 
-void BaseStrategy::command(Context& context) {
+void BaseStrategy::command(Context& context) const {
     if (context.world().getTickIndex() == 0) {
         context.move().setMessages({
             model::Message(model::LANE_TOP, model::_SKILL_UNKNOWN_, {}),
@@ -120,7 +120,7 @@ void BaseStrategy::update_movements(const Context& context) {
     calculate_movements(context);
 }
 
-void BaseStrategy::apply_move(Context& context) {
+void BaseStrategy::apply_move(Context& context) const {
     if (movement_ != movements_.end()) {
         context.move().setSpeed(movement_->speed());
         context.move().setStrafeSpeed(movement_->strafe_speed());
@@ -128,7 +128,7 @@ void BaseStrategy::apply_move(Context& context) {
     }
 }
 
-void BaseStrategy::apply_action(Context& context) {
+void BaseStrategy::apply_action(Context& context) const {
     const auto actions = get_actions_by_priority_order(context, target_);
 
     for (const auto action_type : actions) {
