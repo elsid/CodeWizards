@@ -49,12 +49,12 @@ double normalize_angle(double value) {
     return value;
 }
 
-bool is_friend(const model::Unit& unit, model::Faction my_faction, UnitId) {
+bool is_friend(const model::Unit& unit, model::Faction my_faction) {
     return unit.getFaction() == my_faction;
 }
 
-bool is_friend(const model::Wizard& unit, model::Faction my_faction, UnitId my_id) {
-    return unit.getFaction() == my_faction && unit.getId() != my_id;
+bool is_friend(const model::Wizard& unit, model::Faction my_faction) {
+    return unit.getFaction() == my_faction && !unit.isMe();
 }
 
 bool is_me(const model::Wizard& unit) {

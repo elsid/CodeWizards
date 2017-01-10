@@ -120,8 +120,8 @@ double normalize_angle(double value);
 
 bool is_enemy(const model::Unit& unit, model::Faction my_faction);
 
-bool is_friend(const model::Unit& unit, model::Faction my_faction, UnitId my_id);
-bool is_friend(const model::Wizard& unit, model::Faction my_faction, UnitId my_id);
+bool is_friend(const model::Unit& unit, model::Faction my_faction);
+bool is_friend(const model::Wizard& unit, model::Faction my_faction);
 
 bool is_me(const model::Wizard& unit);
 bool is_me(const model::Unit&);
@@ -190,13 +190,13 @@ inline std::vector<const T*> filter_units(const std::unordered_map<UnitId, Cache
 }
 
 template <class T>
-inline std::vector<const T*> filter_friends(const std::vector<const T*>& units, model::Faction my_faction, UnitId my_id) {
-    return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
+inline std::vector<const T*> filter_friends(const std::vector<const T*>& units, model::Faction my_faction) {
+    return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction); });
 }
 
 template <class T>
-inline std::vector<const T*> filter_friends(const std::vector<T>& units, model::Faction my_faction, UnitId my_id) {
-    return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction, my_id); });
+inline std::vector<const T*> filter_friends(const std::vector<T>& units, model::Faction my_faction) {
+    return filter_units(units, [&] (const auto& v) { return is_friend(v, my_faction); });
 }
 
 double bounded_line_factor(double value, double zero_at, double one_at);

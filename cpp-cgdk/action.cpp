@@ -140,7 +140,7 @@ std::pair<bool, Action> need_apply_staff(const Context& context, const Target& t
     const auto wizards = get_units<model::Wizard>(context.world());
     const auto is_any_friend_in_attack_range = wizards.end() != std::find_if(wizards.begin(), wizards.end(),
         [&] (const auto& unit) {
-            return is_friend(unit, context.self().getFaction(), context.self().getId()) && is_in_attack_range(unit);
+            return is_friend(unit, context.self().getFaction()) && is_in_attack_range(unit);
         });
 
     return {!is_any_friend_in_attack_range, Action()};

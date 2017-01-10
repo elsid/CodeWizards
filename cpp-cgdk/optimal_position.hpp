@@ -179,9 +179,9 @@ public:
             }
         }
 
-        friend_wizards = filter_friends(wizards, context.self().getFaction(), context.self().getId());
-        const auto friend_minions = filter_friends(minions, context.self().getFaction(), context.self().getId());
-        friend_buildings = filter_friends(buildings, context.self().getFaction(), context.self().getId());
+        friend_wizards = filter_friends(wizards, context.self().getFaction());
+        const auto friend_minions = filter_friends(minions, context.self().getFaction());
+        friend_buildings = filter_friends(buildings, context.self().getFaction());
 
         friend_units.reserve(friend_wizards.size() + friend_minions.size() + friend_buildings.size());
         std::copy(friend_wizards.begin(), friend_wizards.end(), std::back_inserter(friend_units));
