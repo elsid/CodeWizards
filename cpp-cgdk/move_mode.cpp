@@ -12,7 +12,9 @@ MoveMode::MoveMode(const WorldGraph& graph)
 }
 
 MoveMode::Result MoveMode::apply(const Context& context) {
-    handle_messages(context);
+    if (!context.self().isMaster()) {
+        handle_messages(context);
+    }
     update_path(context);
     next_path_node(context);
 
