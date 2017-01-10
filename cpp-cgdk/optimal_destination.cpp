@@ -214,7 +214,8 @@ double GetNodeScore::low_life_score_single(const NodeInfo& node_info) const {
             - node_info.enemy_towers_weight
             - node_info.enemy_base_weight
             - node_info.enemy_immortal_base_weight
-            - node_info.enemy_immortal_towers_weight;
+            - node_info.enemy_immortal_towers_weight
+            + node_info.bonus_weight;
 }
 
 double GetLaneScore::operator ()(model::LaneType lane) const {
