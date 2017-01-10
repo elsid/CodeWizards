@@ -83,12 +83,29 @@ std::vector<model::ActionType> get_actions_by_priority_order(const Context& cont
     return result;
 }
 
-std::pair<bool, Action> need_apply_haste(const Context&) {
-    return {true, Action {}};
+std::pair<bool, Action> need_apply_status(const Context& context, model::StatusType status) {
+    const auto my_position = get_position(context.self());
+    const model::Wizard* target = nullptr;
+
+    for (const auto &unit : context.world().getWizards()) {
+        if (unit.getFaction() == context.self().getFaction()
+                && !unit.isMe()
+                && get_position(unit).distance(my_position) <= context.self().getCastRange()
+                && !is_with_status(unit, status)
+                && (!target || unit.getLife() < target->getLife())) {
+            target = &unit;
+        }
+    }
+
+    return {true, (target ? Action(target->getId()) : Action())};
 }
 
-std::pair<bool, Action> need_apply_shield(const Context&) {
-    return {true, Action {}};
+std::pair<bool, Action> need_apply_haste(const Context& context) {
+    return need_apply_status(context, model::STATUS_HASTENED);
+}
+
+std::pair<bool, Action> need_apply_shield(const Context& context) {
+    return need_apply_status(context, model::STATUS_SHIELDED);
 }
 
 std::pair<bool, Action> need_apply_staff(const Context& context, const Target& target) {
@@ -107,17 +124,17 @@ std::pair<bool, Action> need_apply_staff(const Context& context, const Target& t
     };
 
     if (target.is<model::Bonus>()) {
-        return {false, Action {}};
+        return {false, Action()};
     }
 
     const auto target_unit = target.circular_unit(context.cache());
 
     if (!target_unit) {
-        return {false, Action {}};
+        return {false, Action()};
     }
 
     if (!is_in_attack_range(*target_unit)) {
-        return {false, Action {}};
+        return {false, Action()};
     }
 
     const auto wizards = get_units<model::Wizard>(context.world());
@@ -126,7 +143,7 @@ std::pair<bool, Action> need_apply_staff(const Context& context, const Target& t
             return is_friend(unit, context.self().getFaction(), context.self().getId()) && is_in_attack_range(unit);
         });
 
-    return {!is_any_friend_in_attack_range, Action {}};
+    return {!is_any_friend_in_attack_range, Action()};
 }
 
 class GetTimeDelta {
@@ -242,24 +259,24 @@ struct GetCastAction {
         std::tie(has_intersection, intersection) = get_time_delta.get_intersection(cast_angle);
 
         if (!has_intersection) {
-            return {false, Action {}};
+            return {false, Action()};
         }
 
         const auto distance_to_intersection = my_position.distance(intersection);
         const auto min_cast_distance = distance_to_intersection - get_min_cast_distance_reduce(target);
 
         if (min_cast_distance > context.self().getCastRange() - 1) {
-            return {false, Action {}};
+            return {false, Action()};
         }
 
         if (is_friendly_fire(projectile_type, cast_angle, min_cast_distance, intersection)) {
-            return {false, Action {}};
+            return {false, Action()};
         }
 
         const auto max_cast_distance = projectile_type == model::PROJECTILE_FIREBALL
                 ? distance_to_intersection : std::numeric_limits<double>::max();
 
-        return {true, Action {cast_angle, min_cast_distance, max_cast_distance}};
+        return {true, Action(cast_angle, min_cast_distance, max_cast_distance)};
     }
 
     std::pair<bool, Action> operator ()(const CachedUnit<model::Wizard>& target, model::ProjectileType projectile_type) const {
@@ -278,7 +295,7 @@ struct GetCastAction {
             const auto max_range = context.self().getCastRange() + target.value().getRadius() + get_projectile_radius(projectile_type, context.game());
 
             if (range >  max_range) {
-                return {false, Action {}};
+                return {false, Action()};
             }
         }
 
@@ -299,19 +316,19 @@ struct GetCastAction {
         const auto radius_sum = projectile_radius + target.getRadius();
 
         if (distance > radius_sum) {
-            return {false, Action {}};
+            return {false, Action()};
         }
 
         const auto distance_to_collision = my_position.distance(projectile_on_collision);
 
         if (is_friendly_fire(projectile_type, cast_angle, distance_to_collision, projectile_on_collision)) {
-            return {false, Action {}};
+            return {false, Action()};
         }
 
         const auto max_cast_distance = projectile_type == model::PROJECTILE_FIREBALL
                 ? distance_to_collision : std::numeric_limits<double>::max();
 
-        return {true, Action {cast_angle, distance_to_collision, max_cast_distance}};
+        return {true, Action(cast_angle, distance_to_collision, max_cast_distance)};
     }
 
     double get_cast_angle_for_static(const model::Unit& target) const {
@@ -359,7 +376,7 @@ struct GetCastAction {
 
 std::pair<bool, Action> need_apply_cast(const Context& context, const Target& target, model::ProjectileType projectile_type) {
     if (target.is<model::Bonus>() || !target.circular_unit(context.cache())) {
-        return {false, Action {}};
+        return {false, Action()};
     }
 
     const GetCastAction get_cast_action {context};
@@ -378,7 +395,7 @@ std::pair<bool, Action> need_apply_fireball(const Context& context, const Target
 
 std::pair<bool, Action> need_apply_frostbolt(const Context& context, const Target& target) {
     if (target.is<model::Building>() || target.is<model::Tree>()) {
-        return {false, Action {}};
+        return {false, Action()};
     }
     return need_apply_cast(context, target, model::PROJECTILE_FROST_BOLT);
 }
@@ -398,7 +415,7 @@ std::pair<bool, Action> need_apply_action(const Context& context, const Target& 
         case model::ACTION_SHIELD:
             return need_apply_shield(context);
         default:
-            return {false, Action {}};
+            return {false, Action()};
     }
 }
 

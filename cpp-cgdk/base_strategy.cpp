@@ -138,9 +138,10 @@ void BaseStrategy::apply_action(Context& context) {
 
         if (need_apply) {
             context.move().setAction(action_type);
-            context.move().setCastAngle(action.cast_angle);
-            context.move().setMinCastDistance(action.min_cast_distance);
-            context.move().setMaxCastDistance(action.max_cast_distance);
+            context.move().setCastAngle(action.cast_angle());
+            context.move().setMinCastDistance(action.min_cast_distance());
+            context.move().setMaxCastDistance(action.max_cast_distance());
+            context.move().setStatusTargetId(action.status_target_id());
             break;
         }
     }

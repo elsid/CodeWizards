@@ -8,14 +8,19 @@
 namespace strategy {
 
 bool operator ==(const Action& lhs, const Action& rhs) {
-    return lhs.cast_angle == rhs.cast_angle
-            && lhs.min_cast_distance == rhs.min_cast_distance
-            && lhs.max_cast_distance == rhs.max_cast_distance;
+    return lhs.cast_angle() == rhs.cast_angle()
+            && lhs.min_cast_distance() == rhs.min_cast_distance()
+            && lhs.max_cast_distance() == rhs.max_cast_distance()
+            && lhs.status_target_id() == rhs.status_target_id();
 }
 
 std::ostream& operator <<(std::ostream& stream, const Action& action) {
-    return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
-                  << "Action {" << action.cast_angle << ", " << action.min_cast_distance << ", " << action.max_cast_distance << "}";
+    if (action.status_target_id() == -1) {
+        return stream << std::setprecision(std::numeric_limits<double>::max_digits10)
+                      << "Action(" << action.cast_angle() << ", " << action.min_cast_distance() << ", " << action.max_cast_distance() << ")";
+    } else {
+        return stream << "Action(" << action.status_target_id() << ")";
+    }
 }
 
 namespace tests {
@@ -85,7 +90,7 @@ TEST(need_apply_action, magic_missile_for_me_and_not_tree_out_of_cast_range) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(false, strategy::Action {}));
+    EXPECT_EQ(result, std::make_pair(false, strategy::Action()));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_not_tree_in_a_half_of_cast_range) {
@@ -151,7 +156,7 @@ TEST(need_apply_action, magic_missile_for_me_and_not_tree_in_a_half_of_cast_rang
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action {0, 305, 1.7976931348623157e+308}));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 305, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_close_tree) {
@@ -217,7 +222,7 @@ TEST(need_apply_action, magic_missile_for_me_and_close_tree) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action {0, 55, 1.7976931348623157e+308}));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 55, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, staff_for_me_and_close_tree) {
@@ -283,7 +288,7 @@ TEST(need_apply_action, staff_for_me_and_close_tree) {
 
     const auto result = need_apply_action(context, target, model::ACTION_STAFF);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action {}));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action()));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_proper_range) {
@@ -361,7 +366,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_proper_range) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action {0, 400, 1.7976931348623157e+308}));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 400, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_not_proper_range) {
@@ -439,7 +444,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_not_proper_rang
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(false, strategy::Action {}));
+    EXPECT_EQ(result, std::make_pair(false, strategy::Action()));
 }
 
 }
