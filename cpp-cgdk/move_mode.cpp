@@ -28,16 +28,19 @@ void MoveMode::reset() {
 void MoveMode::handle_messages(const Context& context) {
     if (!context.self().getMessages().empty()) {
         last_message_ = context.world().getTickIndex();
-        if (context.self().getMessages().back().getLane() != model::_LANE_COUNT_) {
+        const auto lane = context.self().getMessages().back().getLane();
+        if (lane != model::_LANE_COUNT_ && lane != target_lane_) {
             target_lane_ = context.self().getMessages().back().getLane();
+            destination_.first = false;
         }
     } else if (context.world().getTickIndex() - last_message_ > MESSAGE_TICKS) {
         target_lane_ = model::_LANE_UNKNOWN_;
+        destination_.first = false;
     }
 }
 
 void MoveMode::update_path(const Context& context) {
-    if (destination_.first && path_node_ != path_.end() && last_message_ != context.world().getTickIndex()) {
+    if (destination_.first && path_node_ != path_.end()) {
         return;
     }
     const auto destination = get_optimal_destination(context, graph_, target_lane_, context.self());
