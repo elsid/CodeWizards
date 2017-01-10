@@ -203,9 +203,9 @@ double GetNodeScore::low_life_score(const NodeInfo& node_info) const {
         [&] (auto sum, auto v) { return sum + this->low_life_score_single(nodes_info_.at(v)); });
     const auto path_nodes_mean = path_nodes / (node_info.path_from_me.nodes.size() ? node_info.path_from_me.nodes.size() : 1);
     const auto this_node = low_life_score_single(node_info);
+    const auto path_length_penalty = (node_info.path_from_me.nodes.size() + node_info.path_from_friend_base.nodes.size()) * PATH_LENGTH_REDUCE_FACTOR;
 
-    return path_nodes_mean + this_node - node_info.path_from_me.nodes.size() / 4.0
-            - node_info.path_from_friend_base.nodes.size() / 2.0;
+    return path_nodes_mean + this_node - (this_node ? path_length_penalty : 0);
 }
 
 double GetNodeScore::low_life_score_single(const NodeInfo& node_info) const {
