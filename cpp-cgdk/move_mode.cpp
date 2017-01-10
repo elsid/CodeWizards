@@ -30,7 +30,7 @@ void MoveMode::handle_messages(const Context& context) {
         last_message_ = context.world().getTickIndex();
         const auto lane = context.self().getMessages().back().getLane();
         if (lane != model::_LANE_COUNT_ && lane != target_lane_) {
-            target_lane_ = context.self().getMessages().back().getLane();
+            target_lane_ = lane;
             destination_.first = false;
         }
     } else if (context.world().getTickIndex() - last_message_ > MESSAGE_TICKS) {
