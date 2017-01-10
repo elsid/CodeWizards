@@ -1040,5 +1040,159 @@ TEST(GetOptimalPosition, for_me_low_life_and_enemy_building_with_active_cooldown
     EXPECT_EQ(result, Point(1401.7585370404208, 934.53911653848388));
 }
 
+TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_low_life) {
+    const model::Wizard self(
+        1, // Id
+        1000, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Wizard enemy(
+        2, // Id
+        900, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        35, // Radius
+        12, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        false, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {enemy, self}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
+    const auto& target = world.getWizards()[0];
+    const auto result = GetOptimalPosition<model::Wizard>().target(&target).max_distance(1000)(context);
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 182.51502668685058);
+    EXPECT_EQ(result, Point(1082.2826208442946, 1009.2076655367648));
+}
+
+TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_low_life_and_active_cooldown) {
+    const model::Wizard self(
+        1, // Id
+        1000, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Wizard enemy(
+        2, // Id
+        900, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        35, // Radius
+        12, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        false, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        30, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {enemy, self}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
+    const auto& target = world.getWizards()[0];
+    const auto result = GetOptimalPosition<model::Wizard>().target(&target).max_distance(1000)(context);
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 98.23829751639488);
+    EXPECT_EQ(result, Point(998.23722945279337, 999.54190791434087));
+}
+
 }
 }
