@@ -88,15 +88,23 @@ bool BattleMode::is_under_fire(const Context& context) const {
 
 bool BattleMode::will_cast_later(const Context& context) const {
     const GetMaxDamage get_max_damage {context};
-    const auto distance = target_.apply(context.cache(), [&] (auto unit) {
+    const auto distance = target_distance(context);
+    const auto ticks = get_max_damage.next_attack_action(context.self(), distance).second;
+    return distance > 2 * context.game().getStaffRange() && ticks > context.game().getWizardActionCooldownTicks();
+}
+
+double BattleMode::target_distance(const Context& context) const {
+    if (!target_.is_some()) {
+        return std::numeric_limits<double>::max();
+    }
+
+    return target_.apply(context.cache(), [&] (auto unit) {
         if (unit) {
             return get_position(context.self()).distance(get_position(*unit));
         } else {
-            return context.self().getVisionRange();
+            return std::numeric_limits<double>::max();
         }
     });
-    const auto ticks = get_max_damage.next_attack_action(context.self(), distance).second;
-    return ticks > context.game().getWizardActionCooldownTicks();
 }
 
 template <class TargetT>

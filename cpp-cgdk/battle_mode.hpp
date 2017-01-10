@@ -25,6 +25,7 @@ private:
     void update_target(const Context& context);
     bool is_under_fire(const Context& context) const;
     bool will_cast_later(const Context& context) const;
+    double target_distance(const Context& context) const;
 
     template <class TargetT>
     Point get_optimal_position(const Context& context, const TargetT* target);
