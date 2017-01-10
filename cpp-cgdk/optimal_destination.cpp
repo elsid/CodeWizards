@@ -72,6 +72,33 @@ TowerNumber TowersOrder::get_number(const model::Building& unit, const std::arra
     return number == towers.end() ? TowerNumber::UNKNOWN : TowerNumber(number - towers.begin());
 }
 
+bool is_immortal(const Context& context, const model::Building& unit) {
+    const TowersOrder tower_order(context.world(), context.self().getFaction());
+    bool result = true;
+
+    const auto is_tower_exists = [&] (const auto& position) {
+        const auto& buildings = get_units<model::Building>(context.cache());
+        return buildings.end() != std::find_if(buildings.begin(), buildings.end(),
+            [&] (const auto& v) { return get_position(v.second.value()).distance(position) < 100; });
+    };
+
+    if (unit.getType() == model::BUILDING_FACTION_BASE) {
+        const auto lanes = {model::LANE_TOP, model::LANE_MIDDLE, model::LANE_BOTTOM};
+        result = lanes.end() == std::find_if_not(lanes.begin(), lanes.end(),
+            [&] (auto lane) { return is_tower_exists(tower_order.get_enemy_tower(lane, TowerNumber::FIRST)); });
+    } else {
+        const auto lane = tower_order.get_lane(unit);
+        const auto second = tower_order.get_enemy_tower(lane, TowerNumber::SECOND);
+        if (get_position(unit).distance(second) < 100) {
+            result = false;
+        } else {
+            result = is_tower_exists(second);
+        }
+    }
+
+    return result;
+}
+
 template <class Predicate>
 std::vector<WorldGraph::Pair> filter_nodes(const WorldGraph::Nodes& nodes, const Predicate& predicate) {
     std::vector<WorldGraph::Pair> result;
@@ -185,7 +212,9 @@ double GetNodeScore::low_life_score_single(const NodeInfo& node_info) const {
     return - node_info.enemy_minions_weight
             - node_info.enemy_wizards_weight
             - node_info.enemy_towers_weight
-            - node_info.enemy_base_weight;
+            - node_info.enemy_base_weight
+            - node_info.enemy_immortal_base_weight
+            - node_info.enemy_immortal_towers_weight;
 }
 
 double GetLaneScore::operator ()(model::LaneType lane) const {

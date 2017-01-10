@@ -29,6 +29,8 @@ private:
     TowerNumber get_number(const model::Building& unit, const std::array<Point, 2>& towers) const;
 };
 
+bool is_immortal(const Context& context, const model::Building& unit);
+
 class GetNodeScore {
 public:
     static constexpr double ENEMY_WIZARD_REDUCE_FACTOR = 16.0;
@@ -47,11 +49,13 @@ public:
         double enemy_wizards_weight = 0;
         double enemy_minions_weight = 0;
         double enemy_towers_weight = 0;
+        double enemy_immortal_towers_weight = 0;
         double friend_wizards_weight = 0;
         double friend_minions_weight = 0;
         double friend_towers_weight = 0;
         double bonus_weight = 0;
         double enemy_base_weight = 0;
+        double enemy_immortal_base_weight = 0;
         double friend_base_weight = 0;
         WorldGraph::Path path_from_me;
         WorldGraph::Path path_from_friend_base;
@@ -62,21 +66,29 @@ public:
             bonus_weight = weight;
         }
 
-        void add_enemy(const model::Unit&, double) {}
+        void add_enemy(const Context&, const model::Unit&, double) {}
 
-        void add_enemy(const model::Wizard&, double weight) {
+        void add_enemy(const Context&, const model::Wizard&, double weight) {
             enemy_wizards_weight += weight;
         }
 
-        void add_enemy(const model::Minion&, double weight) {
+        void add_enemy(const Context&, const model::Minion&, double weight) {
             enemy_minions_weight += weight;
         }
 
-        void add_enemy(const model::Building& unit, double weight) {
+        void add_enemy(const Context& context, const model::Building& unit, double weight) {
             if (unit.getType() == model::BUILDING_FACTION_BASE) {
-                enemy_base_weight = weight;
+                if (is_immortal(context, unit)) {
+                    enemy_immortal_base_weight = weight;
+                } else {
+                    enemy_base_weight = weight;
+                }
             } else {
-                enemy_towers_weight += weight;
+                if (is_immortal(context, unit)) {
+                    enemy_immortal_towers_weight += weight;
+                } else {
+                    enemy_towers_weight += weight;
+                }
             }
         }
 
@@ -132,7 +144,7 @@ private:
                         if (unit.getFaction() == wizard_.getFaction()) {
                             node_info.add_friend(unit, distance_weight);
                         } else {
-                            node_info.add_enemy(unit, distance_weight);
+                            node_info.add_enemy(context_, unit, distance_weight);
                         }
                     } else {
                         node_info.add_other(unit, distance_weight);
