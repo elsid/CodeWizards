@@ -173,9 +173,8 @@ public:
             return std::numeric_limits<double>::max();
         }
 
-        const auto projectile_time = intersection.distance(my_position) / projectile_speed_norm;
-        const auto projectile_path_length = std::min(projectile_speed_norm * projectile_time,
-                                                     context_.self().getCastRange());
+        const auto distance_to_intersection = intersection.distance(my_position);
+        const auto projectile_path_length = std::min(distance_to_intersection, context_.self().getCastRange());
         const auto projectile_target = my_position + projectile_direction * projectile_path_length;
         const auto unit_time = intersection.distance(unit_position_) / unit_speed_norm_;
         const auto unit_target = unit_position_ + unit_speed_ * unit_time;
@@ -184,6 +183,8 @@ public:
         if (distance > unit_radius_ + get_projectile_radius(projectile_type_, context_.game()) - 1) {
             return std::numeric_limits<double>::max();
         }
+
+        const auto projectile_time = distance_to_intersection / projectile_speed_norm;
 
         return std::abs(projectile_time - unit_time);
     }
