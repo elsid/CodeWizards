@@ -202,10 +202,6 @@ public:
         return unit_speed_;
     }
 
-    double unit_speed_norm() const {
-        return unit_speed_norm_;
-    }
-
 private:
     const Context& context_;
     model::ProjectileType projectile_type_;
@@ -226,9 +222,7 @@ struct GetCastAction {
 
     template <class Unit>
     std::pair<bool, Action> operator ()(const Unit& target, model::ProjectileType projectile_type, const GetTimeDelta& get_time_delta) const {
-        const auto unit_speed_norm = get_time_delta.unit_speed_norm();
-
-        if (unit_speed_norm == 0) {
+        if (!target.getSpeedX() && !target.getSpeedY()) {
             return (*this)(target, projectile_type);
         }
 
