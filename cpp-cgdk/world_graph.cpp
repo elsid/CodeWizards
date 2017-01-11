@@ -84,8 +84,6 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
 
     add_edge(1, 1, 1, 0);
     add_edge(1, 1, 0, 1);
-    add_edge(1, 1, 2, 0);
-    add_edge(1, 1, 0, 2);
     add_edge(0, 1, 1, 0);
     add_edge(1, 0, 0, 1);
 
@@ -96,8 +94,6 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
 
     add_edge(tiles - 2, tiles - 2, tiles - 2, tiles - 1);
     add_edge(tiles - 2, tiles - 2, tiles - 1, tiles - 2);
-    add_edge(tiles - 2, tiles - 2, tiles - 3, tiles - 1);
-    add_edge(tiles - 2, tiles - 2, tiles - 1, tiles - 3);
     add_edge(tiles - 1, tiles - 2, tiles - 2, tiles - 1);
     add_edge(tiles - 2, tiles - 1, tiles - 1, tiles - 2);
 
