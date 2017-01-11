@@ -176,6 +176,11 @@ public:
         const auto distance_to_intersection = intersection.distance(my_position);
         const auto projectile_path_length = std::min(distance_to_intersection, context_.self().getCastRange());
         const auto projectile_target = my_position + projectile_direction * projectile_path_length;
+
+        if (projectile_target.distance(intersection) > 1e-3) {
+            return std::numeric_limits<double>::max();
+        }
+
         const auto unit_time = intersection.distance(unit_position_) / unit_speed_norm_;
         const auto unit_target = unit_position_ + unit_speed_ * unit_time;
         const auto distance = projectile_target.distance(unit_target);
