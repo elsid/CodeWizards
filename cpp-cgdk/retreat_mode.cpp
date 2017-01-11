@@ -1,4 +1,5 @@
 #include "retreat_mode.hpp"
+#include "helpers.hpp"
 
 namespace strategy {
 
@@ -9,10 +10,25 @@ Mode::Result RetreatMode::apply(const Context& context) {
     const auto battle_result = battle_mode_->apply(context);
     const auto move_result = move_mode_->apply(context);
 
-    if (battle_result.active() && battle_result.target().is_some() && move_result.active()) {
-        return Result(battle_result.target(), move_result.destination());
-    } else if (battle_result.active()) {
+    if (!battle_result.active()) {
+        return move_result;
+    }
+
+    if (!battle_result.target().is_some()) {
         return battle_result;
+    }
+
+    const auto use_target = battle_result.target().apply(context.cache(), [&] (auto unit) {
+        if (unit) {
+            const auto distance = get_position(context.self()).distance(get_position(*unit));
+            return distance <= context.game().getStaffRange() + unit->getRadius();
+        } else {
+            return false;
+        }
+    });
+
+    if (use_target) {
+        return Result(battle_result.target(), move_result.destination());
     } else {
         return move_result;
     }
