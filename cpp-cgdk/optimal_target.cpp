@@ -216,8 +216,11 @@ double GetUnitAttackAbility::operator ()(const model::Minion& unit) const {
 }
 
 double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
+    const GetMaxDamage get_max_damage {context};
+    const auto distance = get_position(context.self()).distance(get_position(unit));
+    const auto ticks_to_action = get_max_damage.next_attack_action(unit, distance).second;
     const auto frozen = find_status(unit.getStatuses(), model::STATUS_FROZEN);
-    const auto remaining = std::max(unit.getRemainingActionCooldownTicks(),
+    const auto remaining = std::max(ticks_to_action,
                                     frozen == unit.getStatuses().end() ? 0 : frozen->getRemainingDurationTicks());
     return 1.0 - double(remaining) / double(std::max(context.game().getWizardActionCooldownTicks(), remaining));
 }
