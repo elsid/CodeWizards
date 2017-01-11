@@ -286,6 +286,16 @@ struct GetCastAction {
         const auto distance = my_position.distance(unit_position);
         const auto unit_action_tick = get_max_damage.next_attack_action(target.value(), distance + 2 * context.self().getRadius()).second;
         const auto ticks = std::ceil(distance / get_projectile_speed(projectile_type, context.game()));
+        const auto cast_angle = get_cast_angle_for_static(target.value());
+        const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
+        const auto limit = my_position + direction * context.self().getCastRange();
+        const Line trajectory(my_position, limit);
+        const auto nearest = trajectory.nearest(unit_position);
+        const auto has_point = trajectory.has_point(nearest);
+
+        if (!has_point || nearest.distance(unit_position) > 1e-3) {
+            return {false, Action()};
+        }
 
         if (ticks <= unit_action_tick + 1) {
             const auto unit_bounds = make_unit_bounds(context, target.value());
