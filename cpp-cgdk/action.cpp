@@ -284,7 +284,7 @@ struct GetCastAction {
         const auto my_position = get_position(context.self());
         const auto unit_position = get_position(target.value());
         const auto distance = my_position.distance(unit_position);
-        const auto unit_action_tick = get_max_damage.next_attack_action(target.value(), distance + 2 * context.self().getRadius()).second;
+        const auto unit_action_tick = get_max_damage.next_attack_action(target.value(), distance).second;
         const auto ticks = std::ceil(distance / get_projectile_speed(projectile_type, context.game()));
         const auto cast_angle = get_cast_angle_for_static(target.value());
         const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
