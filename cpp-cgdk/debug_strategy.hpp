@@ -132,7 +132,9 @@ private:
         for (int x = -count; x < count; ++x) {
             for (int y = -count; y < count; ++y) {
                 const auto position = (origin + PointInt(x, y) * step).to_double();
-                if (position.distance(self_position) <= max_distance) {
+                if (0 < position.x() && position.x() < context.world().getWidth()
+                        && 0 < position.y() && position.y() < context.world().getHeight()
+                        && position.distance(self_position) <= max_distance) {
                     penalties.emplace_back(position, get_position_penalty(position));
                 }
             }
