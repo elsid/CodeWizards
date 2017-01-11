@@ -447,5 +447,145 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_not_proper_rang
     EXPECT_EQ(result, std::make_pair(false, strategy::Action()));
 }
 
+TEST(need_apply_action, magic_missile_for_me_and_enemy_minion_moving_in_front) {
+    const model::Wizard self(
+        1, // Id
+        1000, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Minion enemy(
+        2, // Id
+        1400, // X
+        1000, // Y
+        0, // SpeedX
+        3, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        25, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        model::MINION_ORC_WOODCUTTER, // Type
+        400, // VisionRange
+        12, // Damage
+        60, // CooldownTicks
+        0 // RemainingActionCooldownTicks
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self}, // Wizards
+        {enemy}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
+    const Target target(Id<model::Minion>(enemy.getId()));
+
+    const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
+
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0.011803218035748051, 375.02786480846083, 1.7976931348623157e+308)));
+}
+
+TEST(need_apply_action, magic_missile_for_me_and_enemy_minion_moving_at_back) {
+    const model::Wizard self(
+        1, // Id
+        1000, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Minion enemy(
+        2, // Id
+        600, // X
+        1000, // Y
+        0, // SpeedX
+        3, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        25, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        model::MINION_ORC_WOODCUTTER, // Type
+        400, // VisionRange
+        12, // Damage
+        60, // CooldownTicks
+        0 // RemainingActionCooldownTicks
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self}, // Wizards
+        {enemy}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
+    const Target target(Id<model::Minion>(enemy.getId()));
+
+    const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
+
+    EXPECT_EQ(result, std::make_pair(false, strategy::Action()));
+}
+
 }
 }
