@@ -321,7 +321,8 @@ struct GetCastAction {
         const Line trajectory(my_position, limit);
         const auto unit_position = get_position(target);
         const auto nearest = trajectory.nearest(unit_position);
-        const auto projectile_on_collision = nearest.distance(my_position) <= context.self().getCastRange() ? nearest : limit;
+        const auto has_point = trajectory.has_point(nearest);
+        const auto projectile_on_collision = has_point ? nearest : limit;
         const auto distance = projectile_on_collision.distance(unit_position);
         const auto radius_sum = projectile_radius + target.getRadius();
 
