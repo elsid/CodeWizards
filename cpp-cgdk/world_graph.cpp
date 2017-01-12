@@ -1,6 +1,8 @@
 #include "world_graph.hpp"
 
 #include <algorithm>
+#include <array>
+#include <sstream>
 
 #ifdef ELSID_STRATEGY_DEBUG
 
