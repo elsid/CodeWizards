@@ -156,6 +156,10 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
 }
 
 double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node_info) const {
+    if (wizard_nearest_node_ == node) {
+        return 0;
+    }
+
     const auto reduce_factor = 1.0 / (
                 node_info.enemy_minions_weight * ENEMY_MINION_REDUCE_FACTOR
                 + node_info.enemy_wizards_weight * ENEMY_WIZARD_REDUCE_FACTOR
@@ -169,8 +173,7 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
     const auto bonus_score = node_info.bonus_weight
             * context_.game().getBonusScoreAmount();
 
-    if ((target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node))
-            || wizard_nearest_node_ == node) {
+    if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
         return bonus_score * reduce_factor;
     }
 
