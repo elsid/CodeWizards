@@ -60,10 +60,30 @@ void BaseStrategy::learn_skills(Context& context) const {
 
 void BaseStrategy::select_mode(const Context& context) {
     const auto mean_life_change = get_units<model::Wizard>(context.cache()).at(context.self().getId()).mean_life_change_speed();
-    if (((mean_life_change < 0 && - context.self().getLife() / mean_life_change < TICKS_TO_DEATH_FOR_RETREAT)
-         || context.self().getLife() < context.self().getMaxLife() / 3)
-            && mode_ != move_mode_) {
-        return use_retreat_mode(context);
+
+    if (context.self().getLife() < context.self().getMaxLife() / 3 && mode_ != move_mode_) {
+        if (mode_ != retreat_mode_ || mode_ticks_ % 100 == 0) {
+            SLOG(context) << "use_retreat_mode"
+                << " reason: life < max_life / 3, where"
+                << " life=" << context.self().getLife() << ','
+                << " max_life=" << context.self().getMaxLife() << ','
+                << " max_life / 3=" << context.self().getMaxLife() / 3
+                << "\n";
+        }
+        return use_retreat_mode();
+    }
+
+    if (mean_life_change < 0 && - context.self().getLife() / mean_life_change < TICKS_TO_DEATH_FOR_RETREAT && mode_ != move_mode_) {
+        if (mode_ != retreat_mode_ || mode_ticks_ % 100 == 0) {
+            SLOG(context) << "use_retreat_mode"
+                << " reason: mean_life_change < 0 and - life / mean_life_change < TICKS_TO_DEATH_FOR_RETREAT, where"
+                << " mean_life_change=" << mean_life_change << ','
+                << " life=" << context.self().getLife() << ','
+                << " life / mean_life_change=" << context.self().getLife() / mean_life_change << ','
+                << " TICKS_TO_DEATH_FOR_RETREAT=" << TICKS_TO_DEATH_FOR_RETREAT
+                << "\n";
+        }
+        return use_retreat_mode();
     }
 
     double max_distance = get_max_distance_for_unit_candidate(context);
@@ -74,9 +94,21 @@ void BaseStrategy::select_mode(const Context& context) {
     }
 
     if (has_candidates(context, max_distance)) {
-        use_battle_mode(context);
+        if (mode_ != battle_mode_) {
+            SLOG(context) << "use_battle_mode"
+                << " reason: has_candidates in max_distance, where"
+                << " max_distance=" << max_distance
+                << "\n";
+        }
+        use_battle_mode();
     } else {
-        use_move_mode(context);
+        if (mode_ != move_mode_) {
+            SLOG(context) << "use_move_mode"
+                << " reason: not has_candidates in max_distance, where"
+                << " max_distance=" << max_distance
+                << "\n";
+        }
+        use_move_mode();
     }
 }
 
@@ -152,21 +184,20 @@ void BaseStrategy::calculate_movements(const Context& context) {
     movement_ = movements_.begin();
 }
 
-void BaseStrategy::use_move_mode(const Context& context) {
-    use_mode(context, move_mode_);
+void BaseStrategy::use_move_mode() {
+    use_mode(move_mode_);
 }
 
-void BaseStrategy::use_battle_mode(const Context& context) {
-    use_mode(context, battle_mode_);
+void BaseStrategy::use_battle_mode() {
+    use_mode(battle_mode_);
 }
 
-void BaseStrategy::use_retreat_mode(const Context& context) {
-    use_mode(context, retreat_mode_);
+void BaseStrategy::use_retreat_mode() {
+    use_mode(retreat_mode_);
 }
 
-void BaseStrategy::use_mode(const Context& context, const std::shared_ptr<Mode>& mode) {
+void BaseStrategy::use_mode(const std::shared_ptr<Mode>& mode) {
     if (mode_ != mode) {
-        SLOG(context) << "use " << mode->name() << " mode\n";
         mode_ticks_ = 0;
         mode_ = mode;
         mode_->reset();

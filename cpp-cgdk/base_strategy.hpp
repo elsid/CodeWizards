@@ -86,10 +86,10 @@ private:
     void apply_action(Context& context) const;
     void learn_skills(Context& Context) const;
 
-    void use_move_mode(const Context& context);
-    void use_battle_mode(const Context& context);
-    void use_retreat_mode(const Context& context);
-    void use_mode(const Context& context, const std::shared_ptr<Mode>& mode);
+    void use_move_mode();
+    void use_battle_mode();
+    void use_retreat_mode();
+    void use_mode(const std::shared_ptr<Mode>& mode);
 
     void calculate_movements(const Context& context);
 };
