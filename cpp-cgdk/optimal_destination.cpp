@@ -124,6 +124,13 @@ WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& p
         [&] (const auto& lhs, const auto& rhs) { return position.distance(lhs.second) < position.distance(rhs.second); });
 }
 
+bool is_retreat(const Context& context) {
+    const auto mean_life_change = get_units<model::Wizard>(context.cache()).at(context.self().getId()).mean_life_change_speed();
+    const auto ticks_to_death = - context.self().getLife() / mean_life_change;
+    return (mean_life_change < 0 && ticks_to_death <= TICKS_TO_DEATH_FOR_RETREAT)
+            || context.self().getLife() <= context.self().getMaxLife() / 2;
+}
+
 GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, model::LaneType target_lane, const model::Wizard& wizard)
         : context_(context),
           graph_(graph),
@@ -145,13 +152,11 @@ GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, mode
 
 double GetNodeScore::operator ()(WorldGraph::Node node) const {
     const auto& node_info = nodes_info_.at(node);
-    const auto mean_life_change = get_units<model::Wizard>(context_.cache()).at(context_.self().getId()).mean_life_change_speed();
 
-    if ((mean_life_change >= 0 || (mean_life_change < 0 && - context_.self().getLife() / mean_life_change >= TICKS_TO_DEATH_FOR_RETREAT))
-            && context_.self().getLife() > context_.self().getMaxLife() / 2) {
-        return high_life_score(node, node_info);
-    } else {
+    if (is_retreat(context_)) {
         return low_life_score(node, node_info);
+    } else {
+        return high_life_score(node, node_info);
     }
 }
 
@@ -271,7 +276,7 @@ std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context,
 }
 
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane, const model::Wizard& wizard) {
-    if (target_lane == model::_LANE_UNKNOWN_) {
+    if (target_lane == model::_LANE_UNKNOWN_ && !is_retreat(context)) {
         const auto lanes_score = get_lanes_scores(context, graph, wizard);
         target_lane = model::LaneType(std::max_element(lanes_score.begin(), lanes_score.end()) - lanes_score.begin());
     }
