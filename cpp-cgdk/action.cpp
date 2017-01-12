@@ -208,6 +208,10 @@ public:
         return unit_speed_;
     }
 
+    double unit_speed_norm() const {
+        return unit_speed_norm_;
+    }
+
 private:
     const Context& context_;
     model::ProjectileType projectile_type_;
@@ -245,14 +249,27 @@ struct GetCastAction {
         double max_cast_angle;
 
         if (current_angle < future_angle) {
+            if (current_angle > M_PI / 12) {
+                return {false, Action()};
+            }
             min_cast_angle = std::max(- M_PI / 12, current_angle);
             max_cast_angle = M_PI / 12;
         } else {
+            if (current_angle < - M_PI / 12) {
+                return {false, Action()};
+            }
             min_cast_angle = - M_PI / 12;
             max_cast_angle = std::min(M_PI / 12, current_angle);
         }
 
         const auto cast_angle = golden_section(get_time_delta, min_cast_angle, max_cast_angle, iterations);
+        const auto time_delta = get_time_delta(cast_angle);
+        const auto radius_sum = target.getRadius() + projectile_radius;
+        const auto unit_radius_time = radius_sum / get_time_delta.unit_speed_norm();
+
+        if (time_delta > unit_radius_time) {
+            return {false, Action()};
+        }
 
         bool has_intersection;
         Point intersection;
