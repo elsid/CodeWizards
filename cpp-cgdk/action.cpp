@@ -297,11 +297,9 @@ struct GetCastAction {
     }
 
     std::pair<bool, Action> operator ()(const CachedUnit<model::Wizard>& target, model::ProjectileType projectile_type) const {
-        const GetMaxDamage get_max_damage {context};
         const auto my_position = get_position(context.self());
         const auto unit_position = get_position(target.value());
         const auto distance = my_position.distance(unit_position);
-        const auto unit_action_tick = get_max_damage.next_attack_action(target.value(), distance).second;
         const auto ticks = std::ceil(distance / get_projectile_speed(projectile_type, context.game()));
         const auto cast_angle = get_cast_angle_for_static(target.value());
         const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
@@ -314,16 +312,14 @@ struct GetCastAction {
             return {false, Action()};
         }
 
-        if (ticks <= unit_action_tick + 1) {
-            const auto unit_bounds = make_unit_bounds(context, target.value());
-            const auto unit_speed = (unit_bounds.max_speed(0) - unit_bounds.min_speed(0) + 2 * unit_bounds.max_strafe_speed(0)) / 4;
-            const auto unit_path_length = ticks * unit_speed;
-            const auto range = unit_path_length + distance;
-            const auto max_range = context.self().getCastRange() + target.value().getRadius() + get_projectile_radius(projectile_type, context.game());
+        const auto unit_bounds = make_unit_bounds(context, target.value());
+        const auto unit_speed = (unit_bounds.max_speed(0) - unit_bounds.min_speed(0) + 2 * unit_bounds.max_strafe_speed(0)) / 4;
+        const auto unit_path_length = ticks * unit_speed;
+        const auto range = unit_path_length + distance;
+        const auto max_range = context.self().getCastRange() + target.value().getRadius() + get_projectile_radius(projectile_type, context.game());
 
-            if (range >  max_range) {
-                return {false, Action()};
-            }
+        if (range >  max_range) {
+            return {false, Action()};
         }
 
         return (*this)(target.value(), projectile_type);
