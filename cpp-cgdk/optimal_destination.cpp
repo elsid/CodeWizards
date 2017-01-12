@@ -203,13 +203,13 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
 
 double GetNodeScore::low_life_score(WorldGraph::Node node, const NodeInfo& node_info) const {
     if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
-        return - 11 * graph_.nodes().size();
+        return - 11 * double(graph_.nodes().size());
     }
 
     const auto this_node = low_life_score_single(node_info);
 
     if (this_node < 0) {
-        return - 11 * graph_.nodes().size();
+        return - 11 * double(graph_.nodes().size());
     }
 
     return - 10 * double(node_info.path_from_me.nodes.size()) - double(node_info.path_from_friend_base.nodes.size());
