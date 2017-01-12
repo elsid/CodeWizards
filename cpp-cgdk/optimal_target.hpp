@@ -119,7 +119,7 @@ struct GetUnitAttackAbility {
 
 struct GetTargetScore {
     static constexpr double BUILDING_HIT_PROBABILITY = 1.0;
-    static constexpr double MINION_HIT_PROBABILITY = 0.8;
+    static constexpr double MINION_HIT_PROBABILITY = 1.0;
     static constexpr double TREE_HIT_PROBABILITY = 1.0;
     static constexpr double WIZARD_HIT_PROBABILITY = 0.5;
 
