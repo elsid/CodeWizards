@@ -28,7 +28,8 @@ TEST(GetOptimalPath, with_only_me) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
@@ -77,7 +78,8 @@ TEST(GetOptimalPath, with_only_me_with_shift) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(self, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200.3, 1200.3);
     const auto result = GetOptimalPath().step_size(3)(context, target);
@@ -100,7 +102,8 @@ TEST(GetOptimalPath, with_only_me_to_my_position) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const auto result = GetOptimalPath().step_size(3)(context, get_position(SELF));
     EXPECT_EQ(result, Path({get_position(SELF)}));
@@ -161,7 +164,8 @@ TEST(GetOptimalPath, with_static_barrier) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
@@ -238,7 +242,8 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
@@ -315,7 +320,8 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_opposite_direction) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
@@ -392,7 +398,8 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_crossing_direction) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
@@ -456,7 +463,8 @@ TEST(GetOptimalPath, with_static_occupier) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
@@ -520,7 +528,8 @@ TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3).max_iterations(50)(context, target);

@@ -157,7 +157,8 @@ TEST(get_optimal_target, for_me_and_friend_wizard) {
     );
     model::Move move;
     const Profiler profiler;
-    const FullCache cache;
+    FullCache cache;
+    update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto result = get_optimal_target(context, 1000);
     EXPECT_FALSE(result.is_some());
