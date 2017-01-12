@@ -72,6 +72,10 @@ public:
         return time_limit() - profiler().duration();
     }
 
+    const CachedUnit<model::Wizard>& cached_self() const {
+        return get_units<model::Wizard>(cache()).at(self().getId());
+    }
+
     void check_timeout(const char* function, const char* file, int line) const {
         using Ms = std::chrono::duration<double, std::milli>;
         if (profiler().duration() > time_limit()) {

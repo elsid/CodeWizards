@@ -490,17 +490,45 @@ private:
         const auto current_distance = position.distance(get_position(unit));
         const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
         const auto distance = std::max(current_distance, future_distance);
-        const auto range = context.game().getStaffRange() + unit.getRadius() - 1;
+        const auto range = get_target_range(unit);
+
+        if (distance <= range) {
+            return line_factor(distance, range, 0);
+        }
+
         const auto ticks_to_action = get_max_damage.next_attack_action(context.self(), distance).second;
         const auto ticks_factor = bounded_line_factor(ticks_to_action, context.game().getWizardActionCooldownTicks(), 0);
         const auto my_life_factor = double(context.self().getLife()) / double(context.self().getMaxLife());
-        const auto distance_factor = line_factor(distance, 0, range);
+        const auto distance_factor = line_factor(distance, 0, range) - 1;
         const auto unit_life_factor = 1 + bounded_line_factor(unit.getLife(), 2 * get_max_damage(context.self(), distance).sum(), 0);
         return distance_factor * ticks_factor * my_life_factor * unit_life_factor;
     }
 
     double get_target_penalty(const model::Bonus& unit, const Point& position) const {
         return get_bonus_penalty(unit, position);
+    }
+
+    double get_target_penalty(const model::LivingUnit&, const Point&) const {
+        return 0;
+    }
+
+    template <class Unit>
+    double get_target_range(const Unit& unit) const {
+        const auto& cached_unit = get_units<Unit>(context.cache()).at(unit.getId());
+        const auto unit_mean_life_change_speed = cached_unit.mean_life_change_speed();
+        const auto my_mean_life_change_speed = context.cached_self().mean_life_change_speed();
+
+        if (unit_mean_life_change_speed < 0 && my_mean_life_change_speed < 0) {
+            const auto unit_ticks_to_die = - unit.getLife() / unit_mean_life_change_speed;
+            const auto my_ticks_to_die = - context.self().getLife() / my_mean_life_change_speed;
+            return unit_ticks_to_die < my_ticks_to_die
+                    ? context.game().getStaffRange() + unit.getRadius() - 1
+                    : context.self().getCastRange() - 1;
+        } else if (unit_mean_life_change_speed < 0 || unit.getLife() < context.self().getLife()) {
+            return context.game().getStaffRange() + unit.getRadius() - 1;
+        } else {
+            return context.self().getCastRange() - 1;
+        }
     }
 };
 

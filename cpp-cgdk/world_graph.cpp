@@ -25,6 +25,9 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
 
     const auto add_node = [&] (std::size_t x, std::size_t y) {
         const Node node = nodes_.size();
+        if (node == 36) {
+            ;
+        }
         nodes[x + tiles * y] = node;
         return nodes_.emplace(node, get_tile_point(x, y)).first->first;
     };
