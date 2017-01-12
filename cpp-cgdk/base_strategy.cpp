@@ -117,6 +117,10 @@ void BaseStrategy::select_mode(const Context& context) {
                 * bounded_line_factor(mode_ticks_, BATTLE_MODE_TICKS, BATTLE_MODE_TICKS - context.game().getWizardActionCooldownTicks());
     }
 
+    if (context.world().getTickIndex() - context.cached_self().last_activity() > INACTIVE_TIMEOUT) {
+        max_distance /= (context.cached_self().last_activity() - INACTIVE_TIMEOUT);
+    }
+
     if (has_candidates(context, max_distance)) {
         if (mode_ != battle_mode_) {
             SLOG(context) << "use_battle_mode"
