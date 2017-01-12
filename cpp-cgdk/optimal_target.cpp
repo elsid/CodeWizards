@@ -222,7 +222,8 @@ double GetUnitAttackAbility::operator ()(const model::Wizard& unit) const {
     const auto frozen = find_status(unit.getStatuses(), model::STATUS_FROZEN);
     const auto remaining = std::max(ticks_to_action,
                                     frozen == unit.getStatuses().end() ? 0 : frozen->getRemainingDurationTicks());
-    return 1.0 - double(remaining) / double(std::max(context.game().getWizardActionCooldownTicks(), remaining));
+    return 1.0 - (std::max(context.game().getWizardActionCooldownTicks(), remaining) - context.game().getWizardActionCooldownTicks())
+            / double(context.game().getWizardActionCooldownTicks());
 }
 
 double GetTargetScore::get_distance_probability(const model::Unit& unit) const {

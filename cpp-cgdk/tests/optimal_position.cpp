@@ -115,7 +115,7 @@ TEST(GetOptimalPosition, for_me_and_enemy_wizard) {
     EXPECT_EQ(result, Point(958.90318103085838, 973.58966373392934));
 }
 
-TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_active_cooldown) {
+TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_max_cooldown) {
     const model::Wizard enemy(
         2, // Id
         1100, // X
@@ -138,7 +138,7 @@ TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_active_cooldown) {
         0, // Level
         {}, // Skills
         30, // RemainingActionCooldownTicks
-        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        {60, 60, 60, 60, 60, 60, 60}, // RemainingCooldownTicksByAction
         true, // Master
         {} // Messages
     );
@@ -214,8 +214,8 @@ TEST(GetOptimalPosition, for_me_with_low_life_and_enemy_wizard_with_max_cooldown
         0, // Xp
         0, // Level
         {}, // Skills
-        GAME.getWizardActionCooldownTicks(), // RemainingActionCooldownTicks
-        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        30, // RemainingActionCooldownTicks
+        {60, 60, 60, 60, 60, 60, 60}, // RemainingCooldownTicksByAction
         true, // Master
         {} // Messages
     );
@@ -291,8 +291,8 @@ TEST(GetOptimalPosition, for_me_with_low_life_and_enemy_wizard_with_half_cooldow
         0, // Xp
         0, // Level
         {}, // Skills
-        GAME.getWizardActionCooldownTicks() * 0.5, // RemainingActionCooldownTicks
-        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        30, // RemainingActionCooldownTicks
+        {45, 45, 45, 45, 45, 45, 45}, // RemainingCooldownTicksByAction
         true, // Master
         {} // Messages
     );
@@ -1117,7 +1117,7 @@ TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_low_life) {
     EXPECT_EQ(result, Point(1082.2826208442946, 1009.2076655367648));
 }
 
-TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_low_life_and_active_cooldown) {
+TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_low_life_and_max_cooldown) {
     const model::Wizard self(
         1, // Id
         1000, // X
@@ -1166,7 +1166,7 @@ TEST(GetOptimalPosition, for_me_and_enemy_wizard_with_low_life_and_active_cooldo
         0, // Level
         {}, // Skills
         30, // RemainingActionCooldownTicks
-        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        {60, 60, 60, 60, 60, 60, 60}, // RemainingCooldownTicksByAction
         true, // Master
         {} // Messages
     );
