@@ -2,6 +2,7 @@
 #include "optimal_destination.hpp"
 
 #include <iostream>
+#include <iterator>
 
 namespace model {
 
@@ -24,6 +25,12 @@ inline std::ostream& operator <<(std::ostream& stream, LaneType value) {
 }
 
 namespace strategy {
+
+std::ostream& operator <<(std::ostream& stream, const std::vector<WorldGraph::Node>& value) {
+    stream << '{';
+    std::copy(value.begin(), value.end(), std::ostream_iterator<WorldGraph::Node>(stream, ", "));
+    return stream << '}';
+}
 
 MoveMode::MoveMode(const WorldGraph& graph)
         : graph_(graph),
@@ -78,7 +85,7 @@ void MoveMode::update_path(const Context& context) {
         path_.push_back(nearest_node);
     }
     path_node_ = path_.begin();
-    SLOG(context) << "move_to_node " << destination << '\n';
+    SLOG(context) << "move_to_node source=" << nearest_node << ", destination=" << destination << ", path=" << path_ << '\n';
 }
 
 void MoveMode::next_path_node(const Context& context) {
