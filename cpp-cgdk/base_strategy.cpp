@@ -14,6 +14,30 @@
 
 namespace strategy {
 
+std::ostream& operator <<(std::ostream& stream, model::ActionType value) {
+    switch (value) {
+        case model::_ACTION_UNKNOWN_:
+            return stream << "model::_ACTION_UNKNOWN_";
+        case model::ACTION_NONE:
+            return stream << "model::ACTION_NONE";
+        case model::ACTION_STAFF:
+            return stream << "model::ACTION_STAFF";
+        case model::ACTION_MAGIC_MISSILE:
+            return stream << "model::ACTION_MAGIC_MISSILE";
+        case model::ACTION_FROST_BOLT:
+            return stream << "model::ACTION_FROST_BOLT";
+        case model::ACTION_FIREBALL:
+            return stream << "model::ACTION_FIREBALL";
+        case model::ACTION_HASTE:
+            return stream << "model::ACTION_HASTE";
+        case model::ACTION_SHIELD:
+            return stream << "model::ACTION_SHIELD";
+        case model::_ACTION_COUNT_:
+            return stream << "model::_ACTION_COUNT_";
+    }
+    return stream;
+}
+
 BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
           battle_mode_(std::make_shared<BattleMode>()),
@@ -145,12 +169,65 @@ void BaseStrategy::apply_move(Context& context) const {
 }
 
 void BaseStrategy::apply_action(Context& context) const {
-    const auto actions = get_actions_by_priority_order(context, target_);
+    if (apply_action(context, target_)) {
+        SLOG(context) << "apply_action_to_target"
+            << " action_type=" << context.move().getAction()
+            << " cast_angle=" << context.move().getCastAngle()
+            << " min_cast_distance=" << context.move().getMinCastDistance()
+            << " max_cast_distance=" << context.move().getMaxCastDistance()
+            << " status_target_id=" << context.move().getStatusTargetId()
+            << '\n';
+        return;
+    }
+
+    if (target_.is_some()) {
+        return;
+    }
+
+    std::vector<Target> candidates;
+    candidates.reserve(context.world().getWizards().size() + context.world().getMinions().size() + context.world().getBuildings().size());
+
+    const auto add_candidates = [&] (const auto& units) {
+        for (const auto& unit : units) {
+            if (is_enemy(unit, context.self().getFaction())) {
+                candidates.push_back(Target(get_id(unit)));
+            }
+        }
+    };
+
+    add_candidates(context.world().getWizards());
+    add_candidates(context.world().getMinions());
+    add_candidates(context.world().getBuildings());
+
+    const auto get_target_position = [&] (auto unit) { return get_position(*unit); };
+
+    std::sort(candidates.begin(), candidates.end(),
+        [&] (const auto& lhs, const auto& rhs) {
+            return lhs.apply(context.cache(), get_target_position).distance(get_position(context.self()))
+                    < rhs.apply(context.cache(), get_target_position).distance(get_position(context.self()));
+    });
+
+    for (const auto& candidate : candidates) {
+        if (apply_action(context, candidate)) {
+            SLOG(context) << "apply_action_to_candidate"
+                << " action_type=" << context.move().getAction()
+                << " cast_angle=" << context.move().getCastAngle()
+                << " min_cast_distance=" << context.move().getMinCastDistance()
+                << " max_cast_distance=" << context.move().getMaxCastDistance()
+                << " status_target_id=" << context.move().getStatusTargetId()
+                << '\n';
+            return;
+        }
+    }
+}
+
+bool BaseStrategy::apply_action(Context& context, const Target& target) const {
+    const auto actions = get_actions_by_priority_order(context, target);
 
     for (const auto action_type : actions) {
         bool need_apply;
         Action action;
-        std::tie(need_apply, action) = need_apply_action(context, target_, action_type);
+        std::tie(need_apply, action) = need_apply_action(context, target, action_type);
 
         if (need_apply) {
             context.move().setAction(action_type);
@@ -158,9 +235,11 @@ void BaseStrategy::apply_action(Context& context) const {
             context.move().setMinCastDistance(action.min_cast_distance());
             context.move().setMaxCastDistance(action.max_cast_distance());
             context.move().setStatusTargetId(action.status_target_id());
-            break;
+            return true;
         }
     }
+
+    return false;
 }
 
 void BaseStrategy::calculate_movements(const Context& context) {

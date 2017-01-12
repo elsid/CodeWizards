@@ -84,6 +84,7 @@ private:
     void update_movements(const Context& context);
     void apply_move(Context& context) const;
     void apply_action(Context& context) const;
+    bool apply_action(Context& context, const Target& target) const;
     void learn_skills(Context& Context) const;
 
     void use_move_mode();
