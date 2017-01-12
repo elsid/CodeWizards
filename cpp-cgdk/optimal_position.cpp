@@ -43,16 +43,7 @@ double GetUnitIntersectionPenalty::operator ()(const model::Minion& unit, const 
 }
 
 double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Point& position) const {
-    if (position.distance(get_position(unit)) >= 2.0 * safe_distance(unit)) {
-        return increased(unit, position);
-    }
-    const auto to_position = position - get_position(context.self());
-    const auto angle = std::abs(normalize_angle(to_position.absolute_rotation() - context.self().getAngle()));
-    if (angle < M_PI_4) {
-        return base(unit, position);
-    } else {
-        return increased(unit, position);
-    }
+    return increased(unit, position);
 }
 
 double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, const Point& position) const {
