@@ -126,8 +126,7 @@ WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& p
 
 bool is_retreat(const Context& context) {
     const auto mean_life_change = get_units<model::Wizard>(context.cache()).at(context.self().getId()).mean_life_change_speed();
-    const auto ticks_to_death = - context.self().getLife() / mean_life_change;
-    return (mean_life_change < 0 && ticks_to_death <= TICKS_TO_DEATH_FOR_RETREAT)
+    return (mean_life_change < 0 && - context.self().getLife() / mean_life_change <= TICKS_TO_DEATH_FOR_RETREAT)
             || context.self().getLife() <= context.self().getMaxLife() / 2;
 }
 
