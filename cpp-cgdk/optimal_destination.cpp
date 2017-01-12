@@ -151,7 +151,7 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
             && context_.self().getLife() > context_.self().getMaxLife() / 2) {
         return high_life_score(node, node_info);
     } else {
-        return low_life_score(node_info);
+        return low_life_score(node, node_info);
     }
 }
 
@@ -198,14 +198,18 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
             * reduce_factor * mult_factor;
 }
 
-double GetNodeScore::low_life_score(const NodeInfo& node_info) const {
-    const auto path_nodes = std::accumulate(node_info.path_from_me.nodes.begin(), node_info.path_from_me.nodes.end(), 0.0,
-        [&] (auto sum, auto v) { return sum + this->low_life_score_single(nodes_info_.at(v)); });
-    const auto path_nodes_mean = path_nodes / (node_info.path_from_me.nodes.size() ? node_info.path_from_me.nodes.size() : 1);
-    const auto this_node = low_life_score_single(node_info);
-    const auto path_length_penalty = (node_info.path_from_me.nodes.size() + node_info.path_from_friend_base.nodes.size()) * PATH_LENGTH_REDUCE_FACTOR;
+double GetNodeScore::low_life_score(WorldGraph::Node node, const NodeInfo& node_info) const {
+    if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
+        return - 11 * graph_.nodes().size();
+    }
 
-    return path_nodes_mean + this_node - (this_node ? path_length_penalty : 0);
+    const auto this_node = low_life_score_single(node_info);
+
+    if (this_node < 0) {
+        return - 11 * graph_.nodes().size();
+    }
+
+    return - 10 * double(node_info.path_from_me.nodes.size()) - double(node_info.path_from_friend_base.nodes.size());
 }
 
 double GetNodeScore::low_life_score_single(const NodeInfo& node_info) const {
