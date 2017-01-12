@@ -13,7 +13,7 @@
 
 namespace strategy {
 
-Movement get_next_movement(const Point& target, const MovementState& state, const OptPoint& look_target, const Bounds& bounds) {
+Movement get_next_movement(const Point& target, const MovementState& state, const OptPoint& look_target, const WizardBounds& bounds) {
     double speed = 0;
     double strafe_speed = 0;
     double angle_to = 0;
@@ -44,7 +44,7 @@ Point get_shift(const MovementState& state, const Movement& movement) {
     return speed_direction * movement.speed() + strafe_speed_direction * movement.strafe_speed();
 }
 
-std::pair<MovementState, Movement> get_next_state(const Point& target, const MovementState& state, const OptPoint& look_target, const Bounds& bounds) {
+std::pair<MovementState, Movement> get_next_state(const Point& target, const MovementState& state, const OptPoint& look_target, const WizardBounds& bounds) {
     const auto movement = get_next_movement(target, state, look_target, bounds);
     const auto shift = get_shift(state, movement);
     const auto position = state.position() + shift;
@@ -63,7 +63,7 @@ std::pair<MovementsStates, Movements> get_optimal_movement(const Context& contex
     states.reserve(path.size());
     movements.reserve(path.size() - 1);
 
-    const Bounds bounds {context};
+    const auto bounds = make_unit_bounds(context.self(), context.game());
 
     const auto perform_iteration = [&] (const auto next_path_position) {
         const auto next = get_next_state(next_path_position, states.back(), look_target, bounds);

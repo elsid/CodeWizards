@@ -312,7 +312,7 @@ struct GetCastAction {
             return {false, Action()};
         }
 
-        const auto unit_bounds = make_unit_bounds(context, target.value());
+        const auto unit_bounds = make_unit_bounds(target.value(), context.game());
         const auto unit_speed = (unit_bounds.max_speed(0) - unit_bounds.min_speed(0) + 2 * unit_bounds.max_strafe_speed(0)) / 4;
         const auto unit_path_length = ticks * unit_speed;
         const auto range = unit_path_length + distance;
@@ -370,7 +370,7 @@ struct GetCastAction {
     }
 
     double get_min_cast_distance_reduce(const model::Wizard& target) const {
-        return make_unit_bounds(context, target).max_speed(0);
+        return make_unit_bounds(target, context.game()).max_speed(0);
     }
 
     bool is_friendly_fire(model::ProjectileType projectile_type, double cast_angle, double min_cast_distance, const Point& final_position) const {

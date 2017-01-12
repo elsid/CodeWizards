@@ -61,20 +61,21 @@ TEST(get_next_movement, all) {
     FullCache cache;
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
-    EXPECT_EQ(get_next_movement(Point(), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 0, 0));
-    EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(1, 0, 0));
-    EXPECT_EQ(get_next_movement(Point(0, 1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 1, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(0, -1, -0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(-1, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(-1, 0, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(0, -1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, -1, -0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(0, -1), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(-1, -0, -0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(1, 1), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(1.1313708498984762, 0.84852813742385702, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(10, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(4, 0, 0));
-    EXPECT_EQ(get_next_movement(Point(0, 10), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(0, 3, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(10, 0), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(0, -3, -0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(-10, 0), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(-3, 0, 0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(0, -10), MovementState(0, Point(), M_PI / 2), OptPoint(), Bounds(context)), Movement(-3, -0, -0.10471999999999999));
-    EXPECT_EQ(get_next_movement(Point(10, 10), MovementState(0, Point(), 0), OptPoint(), Bounds(context)), Movement(2.8284271247461903, 2.1213203435596424, 0.10471999999999999));
+    const auto bounds = make_unit_bounds(context.self(), context.game());
+    EXPECT_EQ(get_next_movement(Point(), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(0, 0, 0));
+    EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(1, 0, 0));
+    EXPECT_EQ(get_next_movement(Point(0, 1), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(0, 1, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(1, 0), MovementState(0, Point(), M_PI / 2), OptPoint(), bounds), Movement(0, -1, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(-1, 0), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(-1, 0, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(0, -1), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(0, -1, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(0, -1), MovementState(0, Point(), M_PI / 2), OptPoint(), bounds), Movement(-1, -0, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(1, 1), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(1.1313708498984762, 0.84852813742385702, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(10, 0), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(4, 0, 0));
+    EXPECT_EQ(get_next_movement(Point(0, 10), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(0, 3, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(10, 0), MovementState(0, Point(), M_PI / 2), OptPoint(), bounds), Movement(0, -3, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(-10, 0), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(-3, 0, 0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(0, -10), MovementState(0, Point(), M_PI / 2), OptPoint(), bounds), Movement(-3, -0, -0.10471999999999999));
+    EXPECT_EQ(get_next_movement(Point(10, 10), MovementState(0, Point(), 0), OptPoint(), bounds), Movement(2.8284271247461903, 2.1213203435596424, 0.10471999999999999));
 }
 
 TEST(get_optimal_movement, only_for_me) {

@@ -65,7 +65,7 @@ double GetUnitIntersectionPenalty::safe_distance(const model::CircularUnit& unit
 }
 
 double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point& position, double sum_enemy_damage) const {
-    const Bounds my_bounds(context);
+    const auto my_bounds = make_unit_bounds(context.self(), context.game());
     const auto time_to_position = get_position(context.self()).distance(position) / my_bounds.max_speed(0);
     const auto& cached_unit = get_units<model::Minion>(context.cache()).at(unit.getId());
     const auto unit_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;

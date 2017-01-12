@@ -84,8 +84,8 @@ struct GetCurrentDamage {
 
     template <class Unit>
     double get_rotating_unit_turn_factor(const Unit& unit, const Point& position) const {
-        const Bounds my_bounds(context);
-        const auto unit_bounds = make_unit_bounds(context, unit);
+        const auto my_bounds = make_unit_bounds(context.self(), context.game());
+        const auto unit_bounds = make_unit_bounds(unit, context.game());
         const auto my_position = get_position(context.self());
         const auto current_angle = unit.getAngle();
         const auto future_direction = position - get_position(unit);
@@ -112,7 +112,7 @@ struct GetUnitDangerPenalty {
 
     template <class T>
     double get_base(const T& unit, const Point& position, double sum_damage_to_me) const {
-        const Bounds my_bounds(context);
+        const auto my_bounds = make_unit_bounds(context.self(), context.game());
         const auto time_to_position = get_position(context.self()).distance(position) / my_bounds.max_speed(0);
         const auto& cached_unit = get_units<T>(context.cache()).at(unit.getId());
         const auto unit_future_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;
