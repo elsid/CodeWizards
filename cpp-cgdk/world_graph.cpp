@@ -35,9 +35,9 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
 
     for (std::size_t shift = 1; shift < tiles - 1; ++shift) {
         lanes_nodes_[model::LANE_TOP].insert(add_node(0, shift));
-        add_node(shift, 0);
+        lanes_nodes_[model::LANE_TOP].insert(add_node(shift, 0));
         lanes_nodes_[model::LANE_BOTTOM].insert(add_node(shift, tiles - 1));
-        add_node(tiles - 1, shift);
+        lanes_nodes_[model::LANE_BOTTOM].insert(add_node(tiles - 1, shift));
         lanes_nodes_[model::LANE_MIDDLE].insert(add_node(shift, tiles - 1 - shift));
     }
 
