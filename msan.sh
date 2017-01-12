@@ -6,7 +6,7 @@ FLAGS='-O2 -fsanitize=memory -fsanitize-memory-track-origins -pthread -g -fno-om
 
 mkdir -p cpp-cgdk-msan
 cd cpp-cgdk-msan
-cmake cmake \
+cmake \
     -DCMAKE_C_COMPILER=clang \
     -DCMAKE_CXX_COMPILER=clang++ \
     -DCMAKE_C_FLAGS="${FLAGS}" \
