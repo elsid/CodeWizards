@@ -297,7 +297,7 @@ double GetTargetScore::get_base(const model::Minion& unit) const {
             return get_base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
                                       context.game().getMinionEliminationScoreFactor()) + 0.5;
         } else {
-            return 0;
+            return 0.1;
         }
     } else {
         return get_base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
