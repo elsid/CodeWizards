@@ -124,7 +124,7 @@ struct GetUnitDangerPenalty {
                 * sum_damage_to_me / context.self().getLife()
                 * double(context.self().getMaxLife()) / double(context.self().getLife());
         const auto safe_distance = std::max(context.game().getStaffRange() + unit.getRadius() - 1,
-                context.self().getRadius() + distance_factor * get_attack_range(unit, min_distance));
+                2 * context.self().getRadius() + distance_factor * get_attack_range(unit, min_distance));
         return line_factor(min_distance, safe_distance, 0);
     }
 };
