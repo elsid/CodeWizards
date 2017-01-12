@@ -64,6 +64,55 @@ TEST(GetPositionPenalty, get_elimination_score_for_me_and_enemy_wizard) {
     EXPECT_DOUBLE_EQ(get_position_penalty.get_elimination_score(Point(1000, 1000)), 0.32249090143872688);
 }
 
+TEST(GetPositionPenalty, get_surround_penalty_for_borders) {
+    const model::Wizard self(
+        1, // Id
+        500, // X
+        500, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
+    const GetPositionPenalty<model::LivingUnit> get_position_penalty(context, nullptr, 1000);
+    EXPECT_DOUBLE_EQ(get_position_penalty.get_surround_penalty(Point(100, 100)), 1.05);
+}
+
 TEST(GetOptimalPosition, for_me_and_enemy_wizard) {
     const model::Wizard enemy(
         2, // Id

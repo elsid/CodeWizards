@@ -135,6 +135,17 @@ struct GetProjectileTrajectory {
     Line operator ()(const CachedUnit<model::Projectile>& cached_unit) const;
 };
 
+template <class Iterator, class Result, class Accumulate, class BinaryOperation>
+Result cross_product(Iterator lhs_begin, Iterator lhs_end, Iterator rhs_begin, Iterator rhs_end, Result init,
+        const Accumulate& accumulate, const BinaryOperation& operation) {
+    for (; lhs_begin != lhs_end; ++lhs_begin) {
+        for (; rhs_begin != rhs_end; ++rhs_begin) {
+            init = accumulate(init, operation(*lhs_begin, *rhs_begin));
+        }
+    }
+    return init;
+}
+
 template <class T>
 class GetPositionPenalty {
 public:
@@ -149,6 +160,7 @@ public:
     static constexpr double BORDERS_PENALTY_WEIGHT = 2;
     static constexpr double ELIMINATION_SCORE_WEIGHT = 1;
     static constexpr double FRIEND_WIZARDS_DISTANCE_PENALTY_WEIGHT = 0.1;
+    static constexpr double SURROUND_PENALTY_WEIGHT = 0.5;
 
     GetPositionPenalty(const Context& context, const Target* target, double max_distance)
             : context(context),
@@ -188,6 +200,27 @@ public:
         std::copy(friend_wizards.begin(), friend_wizards.end(), std::back_inserter(friend_units));
         std::copy(friend_minions.begin(), friend_minions.end(), std::back_inserter(friend_units));
         std::copy(friend_buildings.begin(), friend_buildings.end(), std::back_inserter(friend_units));
+
+        const auto make_surround_unit = [&] (auto unit) {
+            if (is_friend(*unit, context.self().getFaction())) {
+                return SurroundUnit {get_position(*unit), unit->getRadius() + context.self().getRadius()};
+            } else {
+                return this->make_enemy_surround_unit(*unit);
+            }
+        };
+
+        surround_units.reserve(buildings.size() + minions.size() + wizards.size() + trees.size());
+        std::transform(buildings.begin(), buildings.end(), std::back_inserter(surround_units), make_surround_unit);
+        std::transform(trees.begin(), trees.end(), std::back_inserter(surround_units), make_surround_unit);
+        std::transform(wizards.begin(), wizards.end(), std::back_inserter(surround_units), make_surround_unit);
+
+        for (const auto& unit : get_units<model::Minion>(context.cache())) {
+            if (unit.second.value().getFaction() == model::FACTION_NEUTRAL && unit.second.is_active(context.world().getTickIndex())) {
+                surround_units.push_back(make_enemy_surround_unit(unit.second.value()));
+            } else {
+                surround_units.push_back(make_surround_unit(&unit.second.value()));
+            }
+        }
     }
 
     double operator ()(const Point& position) const {
@@ -201,6 +234,7 @@ public:
         const auto target_penalty = get_target_penalty(position) * TARGET_PENALTY_WEIGHT;
         const auto borders_penalty = get_borders_penalty(position) * BORDERS_PENALTY_WEIGHT;
         const auto friend_wizards_distance_penalty = get_friend_wizards_distance_penalty(position) * FRIEND_WIZARDS_DISTANCE_PENALTY_WEIGHT;
+        const auto surround_penalty = get_surround_penalty(position) * SURROUND_PENALTY_WEIGHT;
 
         const auto max_penalty = std::max({
             units_danger_penalty,
@@ -211,6 +245,7 @@ public:
             target_penalty,
             borders_penalty,
             friend_wizards_distance_penalty,
+            surround_penalty,
         });
 
         const auto elimination_score = get_elimination_score(position) * ELIMINATION_SCORE_WEIGHT;
@@ -308,7 +343,31 @@ public:
         return line_factor(min_distance, 2 * context.game().getWizardRadius(), max_distance);
     }
 
+    double get_surround_penalty(const Point& position) const {
+        const auto borders_penalty = get_surround_penalty_by_borders(position);
+
+        if (surround_units.size() < 2) {
+            return borders_penalty;
+        }
+
+        const auto units_penalty = cross_product(surround_units.begin(), surround_units.end() - 1,
+            surround_units.begin() + 1, surround_units.end(),
+            - std::numeric_limits<double>::max(), [] (auto lhs, auto rhs) { return std::max(lhs, rhs); },
+            [&] (const auto& lhs, const auto& rhs) { return this->get_surround_penalty(lhs, rhs, position); });
+
+        const auto units_and_borders_penalty = std::accumulate(surround_units.begin(), surround_units.end(),
+            - std::numeric_limits<double>::max(),
+            [&] (auto max, const auto& unit) { return std::max(max, this->get_surround_penalty_by_borders(unit, position)); });
+
+        return std::max({borders_penalty, units_penalty, units_and_borders_penalty});
+    }
+
 private:
+    struct SurroundUnit {
+        Point position;
+        double influence_radius;
+    };
+
     const Context& context;
     const Target* const target;
     const double max_distance;
@@ -324,6 +383,7 @@ private:
     std::vector<const model::Wizard*> friend_wizards;
     std::vector<const model::Building*> friend_buildings;
     std::vector<const model::Minion*> friend_minions;
+    std::vector<SurroundUnit> surround_units;
 
     double get_bonus_penalty(const model::Bonus& unit, const Point& position) const {
         const auto distance = position.distance(get_position(unit));
@@ -529,6 +589,64 @@ private:
         } else {
             return context.self().getCastRange() - 1;
         }
+    }
+
+    double get_surround_penalty_by_borders(const SurroundUnit& unit, const Point& position) const {
+        const Point left(0, unit.position.y());
+        const Point right(context.world().getWidth(), unit.position.y());
+        const Point top(unit.position.x(), 0);
+        const Point bottom(unit.position.x(), context.world().getHeight());
+
+        std::vector<SurroundUnit> borders;
+        borders.reserve(4);
+
+        for (const auto& border : {left, right, top, bottom}) {
+            if (border.distance(get_position(context.self())) <= max_distance) {
+                borders.push_back(SurroundUnit {border, context.game().getWizardCastRange() * 0.5});
+            }
+        }
+
+        return std::accumulate(borders.begin(), borders.end(), - std::numeric_limits<double>::max(),
+            [&] (auto max, const auto& border) {
+                return std::max(max, this->get_surround_penalty(border, unit, position));
+            });
+    }
+
+    double get_surround_penalty_by_borders(const Point& position) const {
+        const std::array<SurroundUnit, 4> borders = {{
+               SurroundUnit {Point(0, position.y()), context.game().getWizardCastRange() / 3},
+               SurroundUnit {Point(context.world().getWidth(), position.y()), context.game().getWizardCastRange() / 3},
+               SurroundUnit {Point(position.x(), 0), context.game().getWizardCastRange() / 3},
+               SurroundUnit {Point(position.x(), context.world().getHeight()), context.game().getWizardCastRange() / 3},
+        }};
+
+        return cross_product(borders.begin(), borders.end() - 1, borders.begin() + 1, borders.end(),
+              - std::numeric_limits<double>::max(), [] (auto lhs, auto rhs) { return std::max(lhs, rhs); },
+              [&] (const auto& lhs, const auto& rhs) { return this->get_surround_penalty(lhs, rhs, position); });
+    }
+
+    double get_surround_penalty(const SurroundUnit& lhs, const SurroundUnit& rhs, const Point& position) const {
+        const auto diameter = lhs.position - rhs.position;
+        const auto units_distance = diameter.norm();
+        const auto max_distance = lhs.influence_radius + rhs.influence_radius;
+
+        if (units_distance >= max_distance) {
+            return - std::numeric_limits<double>::max();
+        }
+
+        const auto center = rhs.position + 0.5 * diameter;
+        const auto distance = center.distance(position);
+
+        if (distance < units_distance) {
+            return 1 + 0.1 * line_factor(distance, units_distance, 0);
+        } else {
+            return line_factor(distance, max_distance, units_distance);
+        }
+    }
+
+    template <class Unit>
+    SurroundUnit make_enemy_surround_unit(const Unit& unit) const {
+        return SurroundUnit {get_position(unit), context.game().getStaffRange() + context.self().getRadius()};
     }
 };
 
