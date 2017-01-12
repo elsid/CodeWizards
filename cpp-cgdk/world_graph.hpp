@@ -9,6 +9,7 @@
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
+#include <string>
 
 namespace strategy {
 
@@ -41,5 +42,7 @@ private:
     Node friend_base_;
     Node enemy_base_;
 };
+
+std::string render(const WorldGraph& world_graph, double map_size);
 
 }

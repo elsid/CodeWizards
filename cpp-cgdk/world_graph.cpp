@@ -117,4 +117,54 @@ WorldGraph::Path WorldGraph::get_shortest_path(Node src, Node dst) const {
     return graph_.get_shortest_path(src, dst);
 }
 
+std::string render(const WorldGraph& world_graph, double map_size) {
+    static constexpr std::size_t width = 40;
+    static constexpr std::size_t height = 10;
+    std::array<char, width * height> canvas;
+
+    std::fill(canvas.begin(), canvas.end(), ' ');
+
+    const auto& nodes = world_graph.nodes();
+    const auto min_x = std::min_element(nodes.begin(), nodes.end(),
+        [&] (const auto& lhs, const auto& rhs) { return lhs.second.x() < rhs.second.x(); })->second.x();
+    const auto min_y = std::min_element(nodes.begin(), nodes.end(),
+        [&] (const auto& lhs, const auto& rhs) { return lhs.second.y() < rhs.second.y(); })->second.y();
+
+    for (const auto& v : nodes) {
+        const std::size_t x = std::max(0, int(std::round((v.second.x() - min_x) * width / map_size)));
+        const std::size_t y = std::max(0, int(std::round((v.second.y() - min_y) * height / map_size)));
+        auto label = std::to_string(v.first);
+        const auto& lanes_nodes = world_graph.lanes_nodes();
+        const auto lane = std::find_if(lanes_nodes.begin(), lanes_nodes.end(),
+            [&] (const auto& lane) { return lane.second.count(v.first); });
+
+        if (lane != lanes_nodes.end()) {
+            switch (lane->first) {
+                case model::LANE_TOP:
+                    label.push_back('T');
+                    break;
+                case model::LANE_MIDDLE:
+                    label.push_back('M');
+                    break;
+                case model::LANE_BOTTOM:
+                    label.push_back('B');
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        std::copy(label.begin(), label.end(), canvas.begin() + x + y * width);
+    }
+
+    std::ostringstream result;
+
+    for (std::size_t y = 0; y < height; ++y) {
+        std::copy(canvas.begin() + width * y, canvas.begin() + width * (y + 1), std::ostreambuf_iterator<char>(result));
+        result << '\n';
+    }
+
+    return result.str();
+}
+
 }
