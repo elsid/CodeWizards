@@ -169,7 +169,6 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
                 + node_info.enemy_wizards_weight * ENEMY_WIZARD_REDUCE_FACTOR
                 + node_info.enemy_towers_weight * ENEMY_TOWER_REDUCE_FACTOR
                 + node_info.enemy_base_weight * ENEMY_BASE_REDUCE_FACTOR
-                + node_info.friend_minions_weight * FRIEND_MINION_REDUCE_FACTOR
                 + node_info.friend_wizards_weight * FRIEND_WIZARD_REDUCE_FACTOR
                 + (1 + node_info.path_from_me.length) * PATH_LENGTH_REDUCE_FACTOR
             );
@@ -183,7 +182,8 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
 
     const auto mult_factor = 1.0
             + node_info.friend_towers_weight * FRIEND_TOWER_MULT_FACTOR
-            + node_info.friend_base_weight * FRIEND_BASE_MULT_FACTOR;
+            + node_info.friend_base_weight * FRIEND_BASE_MULT_FACTOR
+            + node_info.friend_minions_weight * FRIEND_MINION_MULT_FACTOR;
 
     const auto enemy_minions_score = node_info.enemy_minions_weight
             * (context_.game().getMinionDamageScoreFactor() + context_.game().getMinionEliminationScoreFactor())
