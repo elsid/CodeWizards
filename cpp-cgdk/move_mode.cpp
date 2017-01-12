@@ -3,6 +3,26 @@
 
 #include <iostream>
 
+namespace model {
+
+inline std::ostream& operator <<(std::ostream& stream, LaneType value) {
+    switch (value) {
+        case _LANE_UNKNOWN_:
+            return stream << "model::_LANE_UNKNOWN_";
+        case LANE_TOP:
+            return stream << "model::LANE_TOP";
+        case LANE_MIDDLE:
+            return stream << "model::LANE_MIDDLE";
+        case LANE_BOTTOM:
+            return stream << "model::LANE_BOTTOM";
+        case _LANE_COUNT_:
+            return stream << "model::_LANE_COUNT_";
+    }
+    return stream;
+}
+
+}
+
 namespace strategy {
 
 MoveMode::MoveMode(const WorldGraph& graph)
@@ -34,10 +54,12 @@ void MoveMode::handle_messages(const Context& context) {
         if (lane != model::_LANE_COUNT_ && lane != target_lane_) {
             target_lane_ = lane;
             destination_.first = false;
+            SLOG(context) << "change_target_lane " << target_lane_ << '\n';
         }
     } else if (context.world().getTickIndex() - last_message_ > MESSAGE_TICKS) {
         target_lane_ = model::_LANE_UNKNOWN_;
         destination_.first = false;
+        SLOG(context) << "change_target_lane " << target_lane_ << '\n';
     }
 }
 
@@ -56,6 +78,7 @@ void MoveMode::update_path(const Context& context) {
         path_.push_back(nearest_node);
     }
     path_node_ = path_.begin();
+    SLOG(context) << "move_to_node " << destination << '\n';
 }
 
 void MoveMode::next_path_node(const Context& context) {
