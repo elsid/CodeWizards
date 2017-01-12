@@ -460,7 +460,7 @@ double get_max_distance_for_tree_candidate(const Context& context) {
 }
 
 double get_max_distance_for_neutral_minion_candidate(const Context& context) {
-    return 0.25 * context.game().getStaffRange() + 0.75 * context.self().getRadius();
+    return context.self().getRadius() + context.game().getMinionRadius() + 1;
 }
 
 double get_max_distance_for_unit_candidate(const Context& context) {
