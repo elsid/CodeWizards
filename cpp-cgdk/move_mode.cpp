@@ -46,7 +46,7 @@ void MoveMode::update_path(const Context& context) {
         return;
     }
     const auto destination = get_optimal_destination(context, graph_, target_lane_, context.self());
-    if (destination_.first && destination_.second == destination && path_node_ != path_.end()) {
+    if (destination_.first && destination_.second == destination) {
         return;
     }
     destination_ = {true, destination};
