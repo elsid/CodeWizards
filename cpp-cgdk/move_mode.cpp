@@ -36,7 +36,7 @@ std::ostream& operator <<(std::ostream& stream, const std::vector<WorldGraph::No
 MoveMode::MoveMode(const WorldGraph& graph)
         : graph_(graph),
           destination_(false, WorldGraph::Node()),
-          path_node_(path_.end())  {
+          move_to_node_({})  {
 }
 
 MoveMode::Result MoveMode::apply(const Context& context) {
@@ -46,13 +46,12 @@ MoveMode::Result MoveMode::apply(const Context& context) {
     update_path(context);
     next_path_node(context);
 
-    return path_node_ == path_.end() ? Result() : Result(Target(), path_node_->position);
+    return move_to_node_.at_end() ? Result() : Result(Target(), move_to_node_.path_node()->position);
 }
 
 void MoveMode::reset() {
     destination_.first = false;
-    path_.clear();
-    path_node_ = path_.end();
+    move_to_node_ = MoveToNode({});
 }
 
 void MoveMode::handle_messages(const Context& context) {
@@ -72,7 +71,7 @@ void MoveMode::handle_messages(const Context& context) {
 }
 
 void MoveMode::update_path(const Context& context) {
-    if (destination_.first && path_node_ != path_.end()) {
+    if (destination_.first && !move_to_node_.at_end()) {
         return;
     }
     const auto destination = get_optimal_destination(context, graph_, target_lane_, context.self());
@@ -81,34 +80,21 @@ void MoveMode::update_path(const Context& context) {
     }
     destination_ = {true, destination};
     const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(context.self()));
-    path_ = graph_.get_shortest_path(nearest_node.id, destination.id).nodes;
-    if (path_.empty()) {
-        path_.push_back(nearest_node);
+    auto path = graph_.get_shortest_path(nearest_node.id, destination.id).nodes;
+    if (path.empty()) {
+        path.push_back(nearest_node);
     }
-    path_node_ = path_.begin();
-    SLOG(context) << "move_to_node source=" << nearest_node.id << ", destination=" << destination.id << ", path=" << path_ << '\n';
+    move_to_node_ = MoveToNode(std::move(path));
+
+    SLOG(context) << "move_to_node"
+        << " source=" << nearest_node.id
+        << ", destination=" << destination.id
+        << ", path=" << move_to_node_.path()
+        << '\n';
 }
 
 void MoveMode::next_path_node(const Context& context) {
-    if (path_node_ == path_.end()) {
-        return;
-    }
-
-    const auto to_next = path_node_->position.distance(get_position(context.self()));
-
-    if (to_next > 0.5 * context.self().getVisionRange()) {
-        return;
-    }
-
-    if (path_node_ - path_.begin() > 0) {
-        const auto prev = path_node_ - 1;
-        const auto to_prev = prev->position.distance(get_position(context.self()));
-        if (to_prev > to_next) {
-            ++path_node_;
-        }
-    } else {
-        ++path_node_;
-    }
+    move_to_node_.next(context);
 }
 
 }

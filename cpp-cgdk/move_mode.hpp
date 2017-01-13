@@ -1,7 +1,7 @@
 #pragma once
 
 #include "mode.hpp"
-#include "world_graph.hpp"
+#include "move_to_node.hpp"
 
 namespace strategy {
 
@@ -10,11 +10,11 @@ public:
     MoveMode(const WorldGraph& graph);
 
     const std::vector<WorldGraph::Node>& path() const {
-        return path_;
+        return move_to_node_.path();
     }
 
-    const std::vector<WorldGraph::Node>::const_iterator& path_node() const {
-        return path_node_;
+    std::vector<WorldGraph::Node>::const_iterator path_node() const {
+        return move_to_node_.path_node();
     }
 
     const std::pair<bool, WorldGraph::Node>& destination() const {
@@ -37,8 +37,7 @@ private:
     std::pair<bool, WorldGraph::Node> destination_;
     model::LaneType target_lane_ = model::_LANE_UNKNOWN_;
     Tick last_message_ = 0;
-    std::vector<WorldGraph::Node> path_;
-    std::vector<WorldGraph::Node>::const_iterator path_node_;
+    MoveToNode move_to_node_;
 
     void handle_messages(const Context& context);
     void update_path(const Context& context);

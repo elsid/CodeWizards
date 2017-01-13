@@ -69,6 +69,7 @@ set(SOURCES
     skills.cpp
     master_strategy.cpp
     stats.cpp
+    move_to_node.cpp
 )
 
 add_executable(cpp-cgdk
