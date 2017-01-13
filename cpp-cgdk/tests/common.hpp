@@ -39,11 +39,11 @@ static const model::Game GAME(
     7018926670356416392, // RandomSeed
     20000, // TickCount
     4000, // MapSize
-    0, // SkillsEnabled
-    0, // RawMessagesEnabled
-    0.25, // FriendlyFireDamageFactor
-    0.25, // BuildingDamageScoreFactor
-    0.25, // BuildingEliminationScoreFactor
+    false, // SkillsEnabled
+    false, // RawMessagesEnabled
+    0.5, // FriendlyFireDamageFactor
+    0.5, // BuildingDamageScoreFactor
+    0.5, // BuildingEliminationScoreFactor
     0, // MinionDamageScoreFactor
     0.25, // MinionEliminationScoreFactor
     0.25, // WizardDamageScoreFactor
@@ -85,7 +85,7 @@ static const model::Game GAME(
     12, // StaffDamage
     0.523599, // StaffSector
     70, // StaffRange
-    {}, // LevelUpXpValues
+    {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200, 1250}, // LevelUpXpValues
     25, // MinionRadius
     400, // MinionVisionRange
     3, // MinionSpeed
@@ -101,7 +101,7 @@ static const model::Game GAME(
     0.523599, // FetishBlowdartAttackSector
     20, // BonusRadius
     2500, // BonusAppearanceIntervalTicks
-    200, // BonusScoreAmount
+    150, // BonusScoreAmount
     5, // DartRadius
     50, // DartSpeed
     6, // DartDirectDamage
@@ -132,15 +132,15 @@ static const model::Game GAME(
     240, // BurningDurationTicks
     24, // BurningSummaryDamage
     2400, // EmpoweredDurationTicks
-    2, // EmpoweredDamageFactor
+    1.5, // EmpoweredDamageFactor
     60, // FrozenDurationTicks
-    600, // HastenedDurationTicks
-    4, // HastenedBonusDurationFactor
+    1200, // HastenedDurationTicks
+    2, // HastenedBonusDurationFactor
     0.3, // HastenedMovementBonusFactor
     0.5, // HastenedRotationBonusFactor
-    600, // ShieldedDurationTicks
-    4, // ShieldedBonusDurationFactor
-    0.25, // ShieldedDirectDamageAbsorptionFactor
+    1200, // ShieldedDurationTicks
+    2, // ShieldedBonusDurationFactor
+    0.333, // ShieldedDirectDamageAbsorptionFactor
     500, // AuraSkillRange
     25, // RangeBonusPerSkillLevel
     1, // MagicalDamageBonusPerSkillLevel
