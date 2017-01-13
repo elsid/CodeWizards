@@ -16,13 +16,11 @@ namespace strategy {
 Movement get_next_movement(const Point& target, const MovementState& state, const OptPoint& look_target, const WizardBounds& bounds) {
     double speed = 0;
     double strafe_speed = 0;
-    double angle_to = 0;
-
     const auto direction = target - state.position();
+    const auto angle_to = normalize_angle(direction.absolute_rotation() - state.angle());
     const auto norm = direction.norm();
 
     if (norm != 0) {
-        angle_to = normalize_angle(direction.absolute_rotation() - state.angle());
         speed = math::cos(angle_to) * (std::abs(angle_to) <= M_PI_2 ? bounds.max_speed(state.tick()) : -bounds.min_speed(state.tick()));
         strafe_speed = bounds.max_strafe_speed(state.tick()) * math::sin(angle_to);
         const auto speed_factor = std::min(1.0, norm / math::hypot(speed, strafe_speed));
