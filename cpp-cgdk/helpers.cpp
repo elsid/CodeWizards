@@ -39,16 +39,6 @@ int get_magical_damage_absorption_level(const model::Wizard& unit) {
     return get_skill_bonus_level(unit, SKILLS_MAGICAL_DAMAGE_ABSORPTION_LEVELS);
 }
 
-double normalize_angle(double value) {
-    if (value > M_PI) {
-        return value - std::round(value * 0.5 * M_1_PI) * 2.0 * M_PI;
-    }
-    if (value < -M_PI) {
-        return value + std::round(std::abs(value) * 0.5 * M_1_PI) * 2.0 * M_PI;
-    }
-    return value;
-}
-
 bool is_friend(const model::Unit& unit, model::Faction my_faction) {
     return unit.getFaction() == my_faction;
 }

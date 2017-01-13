@@ -88,13 +88,14 @@ add_executable(cpp-cgdk-tests
     ${SOURCES}
 
     tests/action.cpp
+    tests/main.cpp
+    tests/math.cpp
+    tests/my_strategy.cpp
+    tests/optimal_destination.cpp
+    tests/optimal_movement.cpp
+    tests/optimal_path.cpp
     tests/optimal_position.cpp
     tests/optimal_target.cpp
-    tests/optimal_destination.cpp
-    tests/optimal_path.cpp
-    tests/optimal_movement.cpp
-    tests/my_strategy.cpp
-    tests/main.cpp
 )
 
 target_link_libraries(cpp-cgdk-tests

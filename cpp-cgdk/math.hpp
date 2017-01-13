@@ -5,6 +5,17 @@
 #include <cmath>
 
 namespace strategy {
+
+inline constexpr double normalize_angle(double value) {
+    if (value > M_PI) {
+        return value - std::round(value * 0.5 * M_1_PI) * 2.0 * M_PI;
+    }
+    if (value < -M_PI) {
+        return value + std::round(std::abs(value) * 0.5 * M_1_PI) * 2.0 * M_PI;
+    }
+    return value;
+}
+
 namespace math {
 
 inline constexpr double square(double value) {
@@ -12,6 +23,7 @@ inline constexpr double square(double value) {
 }
 
 inline double cos(double angle) {
+    angle = normalize_angle(angle);
     if (angle <= -M_PI + M_PI_4) {
         return std::cos(angle);
     } else if (angle <= -M_PI_2) {
@@ -30,6 +42,7 @@ inline double cos(double angle) {
 }
 
 inline double sin(double angle) {
+    angle = normalize_angle(angle);
     if (angle <= -M_PI_2) {
         return -std::sqrt(1.0 - square(std::cos(angle)));
     } else if (angle <= M_PI_2) {

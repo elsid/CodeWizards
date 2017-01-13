@@ -33,15 +33,6 @@ TEST(get_shift, all) {
     EXPECT_EQ(get_shift(MovementState(0, Point(), M_PI / 2), Movement(0, -1, 0)), Point(1, 0));
 }
 
-TEST(normalize_angle, all) {
-    EXPECT_DOUBLE_EQ(normalize_angle(0.3 * M_PI), 0.3 * M_PI);
-    EXPECT_DOUBLE_EQ(normalize_angle(M_PI), M_PI);
-    EXPECT_DOUBLE_EQ(normalize_angle(-M_PI), -M_PI);
-    EXPECT_DOUBLE_EQ(normalize_angle(2 * M_PI), 0);
-    EXPECT_DOUBLE_EQ(normalize_angle(3 * M_PI), -M_PI);
-    EXPECT_DOUBLE_EQ(normalize_angle(-3 * M_PI), M_PI);
-}
-
 TEST(get_next_movement, all) {
     const model::World world(
         0, // TickIndex

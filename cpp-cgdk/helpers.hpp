@@ -116,8 +116,6 @@ int get_staff_damage_bonus_level(const model::Wizard& unit);
 int get_magical_damage_bonus_level(const model::Wizard& unit);
 int get_magical_damage_absorption_level(const model::Wizard& unit);
 
-double normalize_angle(double value);
-
 bool is_enemy(const model::Unit& unit, model::Faction my_faction);
 
 bool is_friend(const model::Unit& unit, model::Faction my_faction);
