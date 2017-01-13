@@ -72,6 +72,7 @@ set(SOURCES
     move_to_node.cpp
     move_to_position.cpp
     simulation/simulation_strategy.cpp
+    simulation/scripts/two_wizards_fight_near_bonus.cpp
 )
 
 add_executable(cpp-cgdk
