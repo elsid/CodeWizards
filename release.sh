@@ -19,6 +19,7 @@ cp helpers.cpp ${DIR}
 cp master_strategy.cpp ${DIR}
 cp move_mode.cpp ${DIR}
 cp move_to_node.cpp ${DIR}
+cp move_to_position.cpp ${DIR}
 cp MyStrategy.cpp ${DIR}
 cp optimal_destination.cpp ${DIR}
 cp optimal_movement.cpp ${DIR}
@@ -48,6 +49,7 @@ cp minimize.hpp ${DIR}
 cp mode.hpp ${DIR}
 cp move_mode.hpp ${DIR}
 cp move_to_node.hpp ${DIR}
+cp move_to_position.hpp ${DIR}
 cp MyStrategy.h ${DIR}
 cp optimal_destination.hpp ${DIR}
 cp optimal_movement.hpp ${DIR}

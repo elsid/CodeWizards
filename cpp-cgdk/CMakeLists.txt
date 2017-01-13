@@ -70,6 +70,7 @@ set(SOURCES
     master_strategy.cpp
     stats.cpp
     move_to_node.cpp
+    move_to_position.cpp
 )
 
 add_executable(cpp-cgdk

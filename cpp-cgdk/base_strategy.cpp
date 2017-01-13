@@ -44,8 +44,7 @@ BaseStrategy::BaseStrategy(const Context& context)
           move_mode_(std::make_shared<MoveMode>(graph_)),
           retreat_mode_(std::make_shared<RetreatMode>(battle_mode_, move_mode_)),
           destination_(get_position(context.self())),
-          state_(states_.end()),
-          movement_(movements_.end()),
+          move_to_position_(context, get_position(context.self()), Target()),
           stats_(*this) {
 }
 
@@ -149,28 +148,20 @@ void BaseStrategy::apply_mode(const Context& context) {
         target_ = result.target();
         if (result.destination() != destination_) {
             destination_ = result.destination();
-            calculate_movements(context);
+            move_to_position_ = MoveToPosition(context, destination_, target_);
         }
     }
 }
 
 void BaseStrategy::update_movements(const Context& context) {
-    if (movement_ != movements_.end() && state_ != states_.end()) {
-        const auto error = state_->position().distance(get_position(context.self())) - context.game().getWizardForwardSpeed();
-        if (error <= 0) {
-            ++movement_;
-            ++state_;
-            return;
-        }
-    }
-    calculate_movements(context);
+    move_to_position_.next(context);
 }
 
 void BaseStrategy::apply_move(Context& context) const {
-    if (movement_ != movements_.end()) {
-        context.move().setSpeed(movement_->speed());
-        context.move().setStrafeSpeed(movement_->strafe_speed());
-        context.move().setTurn(movement_->turn());
+    if (!move_to_position_.at_end()) {
+        context.move().setSpeed(move_to_position_.movement()->speed());
+        context.move().setStrafeSpeed(move_to_position_.movement()->strafe_speed());
+        context.move().setTurn(move_to_position_.movement()->turn());
     }
 }
 
@@ -246,27 +237,6 @@ bool BaseStrategy::apply_action(Context& context, const Target& target) const {
     }
 
     return false;
-}
-
-void BaseStrategy::calculate_movements(const Context& context) {
-    ticks_states_.clear();
-    steps_states_.clear();
-    path_ = GetOptimalPath()
-            .step_size(OPTIMAL_PATH_STEP_SIZE)
-            .max_ticks(OPTIMAL_PATH_MAX_TICKS)
-            .max_iterations(OPTIMAL_PATH_MAX_ITERATIONS)
-#ifdef ELSID_STRATEGY_DEBUG
-            .ticks_states(&ticks_states_)
-            .steps_states(&steps_states_)
-#endif
-            (context, destination_);
-    if (const auto unit = target_.circular_unit(context.cache())) {
-        std::tie(states_, movements_) = get_optimal_movement(context, path_, {true, get_optimal_target_position(*unit)});
-    } else {
-        std::tie(states_, movements_) = get_optimal_movement(context, path_, {false, Point()});
-    }
-    state_ = states_.begin();
-    movement_ = movements_.begin();
 }
 
 void BaseStrategy::use_move_mode() {

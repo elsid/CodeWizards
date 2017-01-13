@@ -4,6 +4,7 @@
 #include "world_graph.hpp"
 #include "optimal_movement.hpp"
 #include "stats.hpp"
+#include "move_to_position.hpp"
 
 #include <memory>
 
@@ -24,11 +25,11 @@ public:
     }
 
     const Path& path() const {
-        return path_;
+        return move_to_position_.path();
     }
 
     const MovementsStates& states() const {
-        return states_;
+        return move_to_position_.states();
     }
 
     const Point& destination() const {
@@ -52,11 +53,11 @@ public:
     }
 
     const std::map<double, TickState>& ticks_states() const {
-        return ticks_states_;
+        return move_to_position_.ticks_states();
     }
 
     const std::vector<StepState>& steps_states() const {
-        return steps_states_;
+        return move_to_position_.steps_states();
     }
 
     void apply(Context& context) override final;
@@ -69,11 +70,7 @@ private:
     std::shared_ptr<Mode> mode_;
     Target target_;
     Point destination_;
-    Path path_;
-    MovementsStates states_;
-    Movements movements_;
-    MovementsStates::const_iterator state_;
-    Movements::const_iterator movement_;
+    MoveToPosition move_to_position_;
     model::SkillType skill_from_message_ = model::_SKILL_UNKNOWN_;
     Tick mode_ticks_ = 0;
     std::map<double, TickState> ticks_states_;
@@ -93,8 +90,6 @@ private:
     void use_battle_mode();
     void use_retreat_mode();
     void use_mode(const std::shared_ptr<Mode>& mode);
-
-    void calculate_movements(const Context& context);
 };
 
 }
