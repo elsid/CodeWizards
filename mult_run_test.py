@@ -4,11 +4,17 @@ from time import time, sleep
 from shutil import copy
 from os import mkdir, chmod, environ
 from os.path import join, exists
-from sys import argv
 from collections import Counter
+from argparse import ArgumentParser
+
 from auto_kill_process import AutoKillProcess
 from mult_run_test_stats import print_stats
 
+parser = ArgumentParser()
+parser.add_argument('--binary', default='cpp-cgdk-release/bin/cpp-cgdk')
+parser.add_argument('--properties', default='local-runner.mult_run_test.properties')
+parser.add_argument('number', nargs='?', default=1, type=int)
+args = parser.parse_args()
 runner = ['java', '-Xms512m', '-Xmx2G', '-server', '-jar', 'local-runner-ru/local-runner.jar']
 test_id = int(time())
 test_path = join('tests', str(test_id))
@@ -16,13 +22,10 @@ if not exists('tests'):
     mkdir('tests')
 mkdir(test_path)
 binary = join(test_path, 'cpp-cgdk')
-if len(argv) > 2:
-    copy(argv[2], binary)
-else:
-    copy('cpp-cgdk-release/bin/cpp-cgdk', binary)
+copy(args.binary, binary)
 positions = Counter()
 scores = list()
-for run in range(int(argv[1])):
+for run in range(args.number):
     print('run %s ...' % run)
     run_path = join(test_path, str(run))
     command = join(run_path, 'run.sh')
@@ -35,9 +38,9 @@ for run in range(int(argv[1])):
     result_path = join(run_path, 'result.txt')
     log_path = join(run_path, 'game.log')
     port = 32001 + (test_id + run) % 1000
-    with open('local-runner.mult_run_test.properties') as src:
+    with open(args.properties) as src:
         with open(config_path, 'w') as dst:
-            dst.write(src.read().format(run=run, port=port, result=result_path, log=log_path))
+            dst.write(src.read().format(run=run, port=port, result=result_path, log=log_path, binary=binary))
     start = time()
     with AutoKillProcess(runner + [config_path]) as p:
         sleep(3)
