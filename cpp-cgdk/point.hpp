@@ -31,8 +31,8 @@ public:
     }
 
     BasicPoint rotated(double angle) const {
-        double cos = math::cos(angle);
-        double sin = math::sin(angle);
+        const auto cos = math::cos(angle);
+        const auto sin = math::sin(angle);
         return BasicPoint(x() * cos - y() * sin, y() * cos + x() * sin);
     }
 
