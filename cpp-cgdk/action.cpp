@@ -284,7 +284,7 @@ struct GetCastAction {
         }
 
         const auto distance_to_intersection = my_position.distance(intersection);
-        const auto min_cast_distance = distance_to_intersection - get_min_cast_distance_reduce(target);
+        const auto min_cast_distance = distance_to_intersection - target.getRadius() + projectile_radius;
 
         if (min_cast_distance > context.self().getCastRange() - 1) {
             return {false, Action()};
@@ -349,15 +349,16 @@ struct GetCastAction {
         }
 
         const auto distance_to_collision = my_position.distance(projectile_on_collision);
+        const auto min_cast_distance = distance_to_collision - target.getRadius() + projectile_radius;
 
-        if (is_friendly_fire(projectile_type, cast_angle, distance_to_collision, projectile_on_collision)) {
+        if (is_friendly_fire(projectile_type, cast_angle, min_cast_distance, projectile_on_collision)) {
             return {false, Action()};
         }
 
         const auto max_cast_distance = projectile_type == model::PROJECTILE_FIREBALL
                 ? distance_to_collision : std::numeric_limits<double>::max();
 
-        return {true, Action(cast_angle, distance_to_collision, max_cast_distance)};
+        return {true, Action(cast_angle, min_cast_distance, max_cast_distance)};
     }
 
     double get_cast_angle_for_static(const model::Unit& unit) const {
@@ -370,14 +371,6 @@ struct GetCastAction {
         const auto direction = target - get_position(context.self());
         const auto angle = direction.absolute_rotation() - context.self().getAngle();
         return limit_cast_angle(normalize_angle(angle));
-    }
-
-    double get_min_cast_distance_reduce(const model::CircularUnit& target) const {
-        return target.getRadius();
-    }
-
-    double get_min_cast_distance_reduce(const model::Wizard& target) const {
-        return make_unit_bounds(target, context.game()).max_speed(0);
     }
 
     bool is_friendly_fire(model::ProjectileType projectile_type, double cast_angle, double min_cast_distance, const Point& final_position) const {

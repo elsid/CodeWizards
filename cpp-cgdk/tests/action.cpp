@@ -156,7 +156,7 @@ TEST(need_apply_action, magic_missile_for_me_and_not_tree_in_a_half_of_cast_rang
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 305, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 295, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_close_tree) {
@@ -222,7 +222,7 @@ TEST(need_apply_action, magic_missile_for_me_and_close_tree) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 55, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 45, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, staff_for_me_and_close_tree) {
@@ -366,7 +366,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_proper_range) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0.014998875151850596, 399.95500759232635, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0.014998875151850596, 374.95500759232635, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_not_proper_range) {
@@ -514,7 +514,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_minion_moving_in_front) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0.011803218035748051, 375.02786480846083, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0.011803218035748051, 385.02786480846083, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_enemy_minion_moving_at_back) {
