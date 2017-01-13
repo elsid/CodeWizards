@@ -69,9 +69,7 @@ std::pair<MovementsStates, Movements> get_optimal_movement(const Context& contex
         movements.push_back(next.second);
     };
 
-    Point prev_path_position = path.front();
     for (const auto& path_position : path) {
-        prev_path_position = path_position;
         while (path_position.distance(states.back().position()) > bounds.max_speed(std::floor(states.back().tick()))) {
             perform_iteration(path_position);
         }

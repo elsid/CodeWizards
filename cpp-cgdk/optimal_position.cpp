@@ -14,22 +14,6 @@ double get_distance_penalty(double value, double safe) {
     return std::min(1.0, std::max(0.0, (safe - value) / safe));
 }
 
-double GetVisionRange::operator ()(const model::Unit&) const {
-    return 0.0;
-}
-
-double GetVisionRange::operator ()(const model::Building& unit) const {
-    return unit.getVisionRange();
-}
-
-double GetVisionRange::operator ()(const model::Minion& unit) const {
-    return unit.getVisionRange();
-}
-
-double GetVisionRange::operator ()(const model::Wizard& unit) const {
-    return unit.getVisionRange();
-}
-
 double GetUnitIntersectionPenalty::operator ()(const model::CircularUnit& unit, const Point& position) const {
     return base(unit, position);
 }

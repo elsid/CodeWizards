@@ -19,15 +19,6 @@ double get_distance_penalty(double value, double safe);
 Point get_optimal_position(const Context& context, const Target& target, double max_distance,
                            long max_function_calls = std::numeric_limits<long>::max());
 
-struct GetVisionRange {
-    const Context& context;
-
-    double operator ()(const model::Unit&) const;
-    double operator ()(const model::Building& unit) const;
-    double operator ()(const model::Minion& unit) const;
-    double operator ()(const model::Wizard& unit) const;
-};
-
 struct GetUnitIntersectionPenalty {
     const Context& context;
 

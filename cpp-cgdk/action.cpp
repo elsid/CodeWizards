@@ -360,11 +360,6 @@ struct GetCastAction {
         return std::min(M_PI / 12, std::max(- M_PI / 12, angle));
     }
 
-    double get_min_cast_distance_for_static(const model::Unit& target) const {
-        const auto angle = context.self().getAngleTo(target);
-        return std::min(M_PI / 12, std::max(- M_PI / 12, angle));
-    }
-
     double get_min_cast_distance_reduce(const model::CircularUnit& target) const {
         return target.getRadius();
     }
