@@ -15,11 +15,21 @@ namespace strategy {
 
 class WorldGraph {
 public:
-    using Node = Graph::Node;
-    using Nodes = std::map<Node, Point>;
-    using LanesNodes = std::unordered_map<model::LaneType, std::unordered_set<Node>>;
-    using Path = Graph::Path;
-    using Pair = std::pair<Node, Point>;
+    using NodeId = Graph::Node;
+
+    struct Node {
+        NodeId id;
+        Point position;
+        model::LaneType lane;
+    };
+
+    using Nodes = std::map<NodeId, Node>;
+    using LanesNodes = std::unordered_map<model::LaneType, std::unordered_set<NodeId>>;
+
+    struct Path {
+        double length;
+        std::vector<Node> nodes;
+    };
 
     WorldGraph(const model::Game& game);
 
@@ -27,20 +37,20 @@ public:
     const Matrix& arcs() const { return graph_.arcs(); }
     const LanesNodes& lanes_nodes() const { return lanes_nodes_; }
     double zone_size() const { return zone_size_; }
-    Node center() const { return center_; }
-    Node friend_base() const { return friend_base_; }
-    Node enemy_base() const { return enemy_base_; }
+    NodeId center() const { return center_; }
+    NodeId friend_base() const { return friend_base_; }
+    NodeId enemy_base() const { return enemy_base_; }
 
-    Path get_shortest_path(Node src, Node dst) const;
+    Path get_shortest_path(NodeId src, NodeId dst) const;
 
 private:
     Graph graph_;
     Nodes nodes_;
     LanesNodes lanes_nodes_;
     double zone_size_;
-    Node center_;
-    Node friend_base_;
-    Node enemy_base_;
+    NodeId center_;
+    NodeId friend_base_;
+    NodeId enemy_base_;
 };
 
 std::string render(const WorldGraph& world_graph, double map_size);

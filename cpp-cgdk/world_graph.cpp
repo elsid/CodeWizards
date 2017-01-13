@@ -19,54 +19,61 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
     const auto resolution = map_size / 10;
     const auto half = resolution / 2;
     const std::size_t tiles = map_size / resolution;
-    std::vector<Node> nodes(tiles * tiles, std::numeric_limits<Node>::max());
+    std::vector<NodeId> nodes(tiles * tiles, std::numeric_limits<NodeId>::max());
 
     const auto get_tile_point = [&] (std::size_t x, std::size_t y) {
         return Point(half + resolution * x, half + resolution * y);
     };
 
-    const auto add_node = [&] (std::size_t x, std::size_t y) {
-        const Node node = nodes_.size();
-        if (node == 36) {
-            ;
+    const auto add_node = [&] (std::size_t x, std::size_t y, model::LaneType lane) {
+        const NodeId id = nodes_.size();
+        nodes[x + tiles * y] = id;
+
+        if (lane != model::_LANE_UNKNOWN_ && lane != model::_LANE_COUNT_) {
+            lanes_nodes_[lane].insert(id);
         }
-        nodes[x + tiles * y] = node;
-        return nodes_.emplace(node, get_tile_point(x, y)).first->first;
+
+        nodes_.emplace(id, Node {id, get_tile_point(x, y), lane});
     };
 
-    const auto get_node = [&] (std::size_t x, std::size_t y) {
+    const auto get_node_id = [&] (std::size_t x, std::size_t y) {
         return nodes[x + tiles * y];
     };
 
+    const auto add_node_to_lane = [&] (NodeId id, model::LaneType lane) {
+        lanes_nodes_[lane].insert(id);
+        nodes_[id].lane = lane;
+    };
+
     for (std::size_t shift = 1; shift < tiles - 1; ++shift) {
-        lanes_nodes_[model::LANE_TOP].insert(add_node(0, shift));
-        lanes_nodes_[model::LANE_TOP].insert(add_node(shift, 0));
-        lanes_nodes_[model::LANE_BOTTOM].insert(add_node(shift, tiles - 1));
-        lanes_nodes_[model::LANE_BOTTOM].insert(add_node(tiles - 1, shift));
-        lanes_nodes_[model::LANE_MIDDLE].insert(add_node(shift, tiles - 1 - shift));
+        add_node(0, shift, model::LANE_TOP);
+        add_node(shift, 0, model::LANE_TOP);
+        add_node(shift, tiles - 1, model::LANE_BOTTOM);
+        add_node(tiles - 1, shift, model::LANE_BOTTOM);
+        add_node(shift, tiles - 1 - shift, model::LANE_MIDDLE);
     }
 
     for (std::size_t shift = 2; shift < tiles - 2; ++shift) {
-        lanes_nodes_[model::LANE_TOP].insert(get_node(shift, 0));
-        lanes_nodes_[model::LANE_BOTTOM].insert(get_node(tiles - 1, shift));
+        add_node_to_lane(get_node_id(shift, 0), model::LANE_TOP);
+        add_node_to_lane(get_node_id(tiles - 1, shift), model::LANE_BOTTOM);
     }
 
-    add_node(0, tiles - 1);
-    add_node(tiles - 1, 0);
+    add_node(0, tiles - 1, model::_LANE_UNKNOWN_);
+    add_node(tiles - 1, 0, model::_LANE_UNKNOWN_);
 
     for (std::size_t shift = 0; shift < tiles; ++shift) {
-        add_node(shift, shift);
+        add_node(shift, shift, model::_LANE_UNKNOWN_);
     }
 
-    lanes_nodes_[model::LANE_TOP].insert(get_node(0, 0));
-    lanes_nodes_[model::LANE_TOP].insert(get_node(1, 1));
-    lanes_nodes_[model::LANE_BOTTOM].insert(get_node(tiles - 1, tiles - 1));
-    lanes_nodes_[model::LANE_BOTTOM].insert(get_node(tiles - 2, tiles - 2));
-    lanes_nodes_[model::LANE_MIDDLE].insert(get_node(tiles / 2, tiles / 2));
-    lanes_nodes_[model::LANE_MIDDLE].insert(get_node(tiles / 2 - 1, tiles / 2 - 1));
+    add_node_to_lane(get_node_id(0, 0), model::LANE_TOP);
+    add_node_to_lane(get_node_id(1, 1), model::LANE_TOP);
+    add_node_to_lane(get_node_id(tiles - 1, tiles - 1), model::LANE_BOTTOM);
+    add_node_to_lane(get_node_id(tiles - 2, tiles - 2), model::LANE_BOTTOM);
+    add_node_to_lane(get_node_id(tiles / 2, tiles / 2), model::LANE_MIDDLE);
+    add_node_to_lane(get_node_id(tiles / 2 - 1, tiles / 2 - 1), model::LANE_MIDDLE);
 
     const auto add_arc = [&] (std::size_t src_x, std::size_t src_y, std::size_t dst_x, std::size_t dst_y) {
-        graph_.arc(get_node(src_x, src_y), get_node(dst_x, dst_y),
+        graph_.arc(get_node_id(src_x, src_y), get_node_id(dst_x, dst_y),
                    get_tile_point(src_x, src_y).distance(get_tile_point(dst_x, dst_y)));
     };
 
@@ -112,14 +119,18 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
     add_edge(tiles / 2, tiles / 2, tiles / 2 - 1, tiles / 2);
     add_edge(tiles / 2 - 1, tiles / 2, tiles / 2 - 1, tiles / 2 - 1);
 
-    center_ = get_node(tiles / 2 - 1, tiles / 2);
-    friend_base_ = get_node(0, tiles - 1);
-    enemy_base_ = get_node(tiles - 1, 0);
+    center_ = get_node_id(tiles / 2 - 1, tiles / 2);
+    friend_base_ = get_node_id(0, tiles - 1);
+    enemy_base_ = get_node_id(tiles - 1, 0);
     zone_size_ = 1.5 * resolution;
 }
 
-WorldGraph::Path WorldGraph::get_shortest_path(Node src, Node dst) const {
-    return graph_.get_shortest_path(src, dst);
+WorldGraph::Path WorldGraph::get_shortest_path(NodeId src, NodeId dst) const {
+    const auto path = graph_.get_shortest_path(src, dst);
+    WorldGraph::Path result {path.length, {}};
+    result.nodes.reserve(path.nodes.size());
+    std::transform(path.nodes.begin(), path.nodes.end(), std::back_inserter(result.nodes), [&] (auto id) { return this->nodes().at(id); });
+    return result;
 }
 
 std::string render(const WorldGraph& world_graph, double map_size) {
@@ -131,32 +142,28 @@ std::string render(const WorldGraph& world_graph, double map_size) {
 
     const auto& nodes = world_graph.nodes();
     const auto min_x = std::min_element(nodes.begin(), nodes.end(),
-        [&] (const auto& lhs, const auto& rhs) { return lhs.second.x() < rhs.second.x(); })->second.x();
+        [&] (const auto& lhs, const auto& rhs) { return lhs.second.position.x() < rhs.second.position.x(); })->second.position.x();
     const auto min_y = std::min_element(nodes.begin(), nodes.end(),
-        [&] (const auto& lhs, const auto& rhs) { return lhs.second.y() < rhs.second.y(); })->second.y();
+        [&] (const auto& lhs, const auto& rhs) { return lhs.second.position.y() < rhs.second.position.y(); })->second.position.y();
 
     for (const auto& v : nodes) {
-        const std::size_t x = std::max(0, int(std::round((v.second.x() - min_x) * width / map_size)));
-        const std::size_t y = std::max(0, int(std::round((v.second.y() - min_y) * height / map_size)));
+        const auto& node = v.second;
+        const std::size_t x = std::max(0, int(std::round((node.position.x() - min_x) * width / map_size)));
+        const std::size_t y = std::max(0, int(std::round((node.position.y() - min_y) * height / map_size)));
         auto label = std::to_string(v.first);
-        const auto& lanes_nodes = world_graph.lanes_nodes();
-        const auto lane = std::find_if(lanes_nodes.begin(), lanes_nodes.end(),
-            [&] (const auto& lane) { return lane.second.count(v.first); });
 
-        if (lane != lanes_nodes.end()) {
-            switch (lane->first) {
-                case model::LANE_TOP:
-                    label.push_back('T');
-                    break;
-                case model::LANE_MIDDLE:
-                    label.push_back('M');
-                    break;
-                case model::LANE_BOTTOM:
-                    label.push_back('B');
-                    break;
-                default:
-                    break;
-            }
+        switch (node.lane) {
+            case model::LANE_TOP:
+                label.push_back('T');
+                break;
+            case model::LANE_MIDDLE:
+                label.push_back('M');
+                break;
+            case model::LANE_BOTTOM:
+                label.push_back('B');
+                break;
+            default:
+                break;
         }
 
         std::copy(label.begin(), label.end(), canvas.begin() + x + y * width);

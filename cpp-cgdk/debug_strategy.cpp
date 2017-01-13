@@ -117,7 +117,7 @@ void DebugStrategy::visualize_graph(const Context& context) {
         for (const auto& dst : nodes) {
             if (arcs.get(src.first, dst.first) != std::numeric_limits<double>::max()
                     && !visualized_arcs.get(src.first, dst.first)) {
-                debug_.line(src.second.x(), src.second.y(), dst.second.x(), dst.second.y(), 0xAAAAAA);
+                debug_.line(src.second.position.x(), src.second.position.y(), dst.second.position.x(), dst.second.position.y(), 0xAAAAAA);
                 visualized_arcs.set(src.first, dst.first, 1);
                 visualized_arcs.set(dst.first, src.first, 1);
             }
@@ -126,39 +126,38 @@ void DebugStrategy::visualize_graph(const Context& context) {
     std::vector<double> scores;
     scores.reserve(nodes.size());
     std::transform(nodes.begin(), nodes.end(), std::back_inserter(scores),
-        [&] (const auto& v) { return get_node_score(v.first); });
+        [&] (const auto& v) { return get_node_score(v.second); });
     const auto minmax_score = std::minmax_element(scores.begin(), scores.end());
     const auto interval = *minmax_score.second - *minmax_score.first;
     for (const auto& node : nodes) {
         const auto score = scores[node.first];
         const auto color = get_color((score - *minmax_score.first) / (interval ? interval : 1));
-        debug_.fillCircle(node.second.x(), node.second.y(), 10, color);
-        debug_.text(node.second.x() + 30, node.second.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
-        debug_.text(node.second.x() + 30, node.second.y() - 30, std::to_string(score).c_str(), color);
+        debug_.fillCircle(node.second.position.x(), node.second.position.y(), 10, color);
+        debug_.text(node.second.position.x() + 30, node.second.position.y() + 30, std::to_string(node.first).c_str(), 0xAAAAAA);
+        debug_.text(node.second.position.x() + 30, node.second.position.y() - 30, std::to_string(score).c_str(), color);
         const auto lane_type = std::find_if(LANES_COLORS.begin(), LANES_COLORS.end(),
             [&] (auto lane) { return base_.graph().lanes_nodes().at(lane.first).count(node.first); });
         if (lane_type != LANES_COLORS.end()) {
-            debug_.circle(node.second.x(), node.second.y(), 15, lane_type->second);
+            debug_.circle(node.second.position.x(), node.second.position.y(), 15, lane_type->second);
         }
     }
     const auto friend_base = nodes.at(base_.graph().friend_base());
-    debug_.circle(friend_base.x(), friend_base.y(), 40, 0x00AA00);
+    debug_.circle(friend_base.position.x(), friend_base.position.y(), 40, 0x00AA00);
     const auto enemy_base = nodes.at(base_.graph().enemy_base());
-    debug_.circle(enemy_base.x(), enemy_base.y(), 40, 0xAA0000);
+    debug_.circle(enemy_base.position.x(), enemy_base.position.y(), 40, 0xAA0000);
 }
 
 void DebugStrategy::visualize_graph_path(const Context& context) {
     Point prev = get_position(context.self());
-    const auto& nodes = base_.graph().nodes();
     for (auto node = base_.move_mode().path_node(); node != base_.move_mode().path().end(); ++node) {
-        const auto position = nodes.at(*node);
+        const auto position = node->position;
         debug_.line(prev.x(), prev.y(), position.x(), position.y(), 0x222222);
         debug_.circle(position.x(), position.y(), 20, 0x222222);
         prev = position;
     }
     const auto& destination = base_.move_mode().destination();
     if (destination.first) {
-        const auto& position = nodes.at(destination.second);
+        const auto& position = destination.second.position;
         debug_.circle(position.x(), position.y(), 30, 0x222222);
     }
 }

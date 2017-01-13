@@ -100,8 +100,8 @@ bool is_immortal(const Context& context, const model::Building& unit) {
 }
 
 template <class Predicate>
-std::vector<WorldGraph::Pair> filter_nodes(const WorldGraph::Nodes& nodes, const Predicate& predicate) {
-    std::vector<WorldGraph::Pair> result;
+std::vector<WorldGraph::Node> filter_nodes(const WorldGraph::Nodes& nodes, const Predicate& predicate) {
+    std::vector<WorldGraph::Node> result;
     result.reserve(nodes.size());
     std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(result), predicate);
     return result;
@@ -119,9 +119,9 @@ bool has_near_units(const Point& position, const std::vector<const T*>& units, d
         [&] (auto unit) { return position.distance(get_position(*unit)) < distance; });
 }
 
-WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position) {
-    return *std::min_element(nodes.begin(), nodes.end(),
-        [&] (const auto& lhs, const auto& rhs) { return position.distance(lhs.second) < position.distance(rhs.second); });
+WorldGraph::Node get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position) {
+    return std::min_element(nodes.begin(), nodes.end(),
+        [&] (const auto& lhs, const auto& rhs) { return position.distance(lhs.second.position) < position.distance(rhs.second.position); })->second;
 }
 
 bool is_retreat(const Context& context) {
@@ -136,7 +136,7 @@ GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, mode
           target_lane_(target_lane),
           wizard_(wizard),
           nodes_info_(graph.nodes().size()),
-          wizard_nearest_node_(get_nearest_node(graph.nodes(), get_position(wizard)).first) {
+          wizard_nearest_node_(get_nearest_node(graph.nodes(), get_position(wizard))) {
     fill_nodes_info<model::Bonus>(get_units<model::Bonus>(context_.cache()));
     fill_nodes_info<model::Building>(get_units<model::Building>(context_.cache()));
     fill_nodes_info<model::Minion>(get_units<model::Minion>(context_.cache()));
@@ -144,13 +144,13 @@ GetNodeScore::GetNodeScore(const Context &context, const WorldGraph &graph, mode
 
     for (const auto& node : graph.nodes()) {
         auto& node_info = nodes_info_[node.first];
-        node_info.path_from_me = graph.get_shortest_path(wizard_nearest_node_, node.first);
+        node_info.path_from_me = graph.get_shortest_path(wizard_nearest_node_.id, node.first);
         node_info.path_from_friend_base = graph.get_shortest_path(graph.friend_base(), node.first);
     }
 }
 
-double GetNodeScore::operator ()(WorldGraph::Node node) const {
-    const auto& node_info = nodes_info_.at(node);
+double GetNodeScore::operator ()(const WorldGraph::Node& node) const {
+    const auto& node_info = nodes_info_.at(node.id);
 
     if (is_retreat(context_)) {
         return low_life_score(node, node_info);
@@ -159,8 +159,8 @@ double GetNodeScore::operator ()(WorldGraph::Node node) const {
     }
 }
 
-double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node_info) const {
-    if (wizard_nearest_node_ == node) {
+double GetNodeScore::high_life_score(const WorldGraph::Node& node, const NodeInfo& node_info) const {
+    if (wizard_nearest_node_.id == node.id) {
         return 0;
     }
 
@@ -176,7 +176,7 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
     const auto bonus_score = node_info.bonus_weight
             * context_.game().getBonusScoreAmount();
 
-    if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
+    if (target_lane_ != model::_LANE_UNKNOWN_ && node.lane != target_lane_) {
         return bonus_score * reduce_factor;
     }
 
@@ -205,8 +205,8 @@ double GetNodeScore::high_life_score(WorldGraph::Node node, const NodeInfo& node
             * reduce_factor * mult_factor;
 }
 
-double GetNodeScore::low_life_score(WorldGraph::Node node, const NodeInfo& node_info) const {
-    if (target_lane_ != model::_LANE_UNKNOWN_ && !graph_.lanes_nodes().at(target_lane_).count(node)) {
+double GetNodeScore::low_life_score(const WorldGraph::Node& node, const NodeInfo& node_info) const {
+    if (target_lane_ != model::_LANE_UNKNOWN_ && node.lane != target_lane_) {
         return - 11 * double(graph_.nodes().size());
     }
 
@@ -283,8 +283,8 @@ WorldGraph::Node get_optimal_destination(const Context& context, const WorldGrap
     std::vector<double> scores;
     scores.reserve(graph.nodes().size());
     std::transform(graph.nodes().begin(), graph.nodes().end(), std::back_inserter(scores),
-        [&] (const auto& v) { return get_node_score(v.first); });
-    return WorldGraph::Node(std::max_element(scores.begin(), scores.end()) - scores.begin());
+        [&] (const auto& v) { return get_node_score(v.second); });
+    return graph.nodes().at(WorldGraph::NodeId(std::max_element(scores.begin(), scores.end()) - scores.begin()));
 }
 
 }

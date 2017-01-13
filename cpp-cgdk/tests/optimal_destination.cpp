@@ -31,7 +31,7 @@ TEST(get_optimal_destination, for_all_default) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     WorldGraph graph(GAME);
-    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, SELF), 46u);
+    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, SELF).id, 46u);
 }
 
 const model::Building FIRST_MIDDLE_ENEMY_TOWER(
@@ -140,7 +140,7 @@ TEST(get_optimal_destination, for_me_with_low_life_at_middle_lane) {
     update_cache(cache, world);
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     WorldGraph graph(GAME);
-    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, self), 19u);
+    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, self).id, 19u);
 }
 
 TEST(get_optimal_destination, for_me_with_low_life_with_middle_target_lane_at_middle_lane) {
@@ -189,7 +189,7 @@ TEST(get_optimal_destination, for_me_with_low_life_with_middle_target_lane_at_mi
     update_cache(cache, world);
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     WorldGraph graph(GAME);
-    EXPECT_EQ(get_optimal_destination(context, graph, model::LANE_MIDDLE, self), 19u);
+    EXPECT_EQ(get_optimal_destination(context, graph, model::LANE_MIDDLE, self).id, 19u);
 }
 
 TEST(get_optimal_destination, for_me_with_low_life_at_top_lane) {
@@ -238,7 +238,7 @@ TEST(get_optimal_destination, for_me_with_low_life_at_top_lane) {
     update_cache(cache, world);
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     WorldGraph graph(GAME);
-    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, self), 0u);
+    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, self).id, 0u);
 }
 
 TEST(get_optimal_destination, for_me_with_low_life_at_bottom_lane) {
@@ -287,7 +287,7 @@ TEST(get_optimal_destination, for_me_with_low_life_at_bottom_lane) {
     update_cache(cache, world);
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     WorldGraph graph(GAME);
-    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, self), 37u);
+    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, self).id, 37u);
 }
 
 }

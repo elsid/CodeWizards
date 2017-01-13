@@ -28,7 +28,8 @@ namespace strategy {
 
 std::ostream& operator <<(std::ostream& stream, const std::vector<WorldGraph::Node>& value) {
     stream << '{';
-    std::copy(value.begin(), value.end(), std::ostream_iterator<WorldGraph::Node>(stream, ", "));
+    std::transform(value.begin(), value.end(), std::ostream_iterator<WorldGraph::NodeId>(stream, ", "),
+        [&] (const auto& node) { return node.id; });
     return stream << '}';
 }
 
@@ -45,7 +46,7 @@ MoveMode::Result MoveMode::apply(const Context& context) {
     update_path(context);
     next_path_node(context);
 
-    return path_node_ == path_.end() ? Result() : Result(Target(), graph_.nodes().at(*path_node_));
+    return path_node_ == path_.end() ? Result() : Result(Target(), path_node_->position);
 }
 
 void MoveMode::reset() {
@@ -75,17 +76,17 @@ void MoveMode::update_path(const Context& context) {
         return;
     }
     const auto destination = get_optimal_destination(context, graph_, target_lane_, context.self());
-    if (destination_.first && destination_.second == destination) {
+    if (destination_.first && destination_.second.id == destination.id) {
         return;
     }
     destination_ = {true, destination};
-    const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(context.self())).first;
-    path_ = graph_.get_shortest_path(nearest_node, destination).nodes;
+    const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(context.self()));
+    path_ = graph_.get_shortest_path(nearest_node.id, destination.id).nodes;
     if (path_.empty()) {
         path_.push_back(nearest_node);
     }
     path_node_ = path_.begin();
-    SLOG(context) << "move_to_node source=" << nearest_node << ", destination=" << destination << ", path=" << path_ << '\n';
+    SLOG(context) << "move_to_node source=" << nearest_node.id << ", destination=" << destination.id << ", path=" << path_ << '\n';
 }
 
 void MoveMode::next_path_node(const Context& context) {
@@ -93,7 +94,7 @@ void MoveMode::next_path_node(const Context& context) {
         return;
     }
 
-    const auto to_next = graph_.nodes().at(*path_node_).distance(get_position(context.self()));
+    const auto to_next = path_node_->position.distance(get_position(context.self()));
 
     if (to_next > 0.5 * context.self().getVisionRange()) {
         return;
@@ -101,7 +102,7 @@ void MoveMode::next_path_node(const Context& context) {
 
     if (path_node_ - path_.begin() > 0) {
         const auto prev = path_node_ - 1;
-        const auto to_prev = graph_.nodes().at(*prev).distance(get_position(context.self()));
+        const auto to_prev = prev->position.distance(get_position(context.self()));
         if (to_prev > to_next) {
             ++path_node_;
         }

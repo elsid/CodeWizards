@@ -113,7 +113,7 @@ public:
 
     GetNodeScore(const Context& context, const WorldGraph& graph, model::LaneType target_lane, const model::Wizard& wizard);
 
-    double operator ()(WorldGraph::Node node) const;
+    double operator ()(const WorldGraph::Node& node) const;
 
     const std::vector<NodeInfo>& nodes_info() const {
         return nodes_info_;
@@ -134,9 +134,9 @@ private:
         for (const auto& v : units) {
             const auto& unit = v.second.value();
             const auto nearest_node = get_nearest_node(graph_.nodes(), get_position(unit));
-            const auto distance_to_nearest = get_position(unit).distance(nearest_node.second);
+            const auto distance_to_nearest = get_position(unit).distance(nearest_node.position);
             for (const auto& node : graph_.nodes()) {
-                const auto distance = get_position(unit).distance(node.second);
+                const auto distance = get_position(unit).distance(node.second.position);
                 if (distance < 2 * wizard_.getVisionRange()) {
                     const auto distance_weight = distance_to_nearest / (distance ? distance : 1.0);
                     auto& node_info = nodes_info_[node.first];
@@ -154,8 +154,8 @@ private:
         }
     }
 
-    double high_life_score(WorldGraph::Node node, const NodeInfo& node_info) const;
-    double low_life_score(WorldGraph::Node node, const NodeInfo& node_info) const;
+    double high_life_score(const WorldGraph::Node& node, const NodeInfo& node_info) const;
+    double low_life_score(const WorldGraph::Node& node, const NodeInfo& node_info) const;
     double low_life_score_single(const NodeInfo& node_info) const;
 };
 
@@ -168,7 +168,7 @@ struct GetLaneScore {
     double get_lane_length(model::LaneType lane) const;
 };
 
-WorldGraph::Pair get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position);
+WorldGraph::Node get_nearest_node(const WorldGraph::Nodes& nodes, const Point& position);
 std::array<double, model::_LANE_COUNT_> get_lanes_scores(const Context& context, const WorldGraph& graph, const model::Wizard& wizard);
 WorldGraph::Node get_optimal_destination(const Context& context, const WorldGraph& graph, model::LaneType target_lane, const model::Wizard& wizard);
 
