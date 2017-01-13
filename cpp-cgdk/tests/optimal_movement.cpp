@@ -4,7 +4,6 @@
 #include <optimal_movement.hpp>
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 namespace strategy {
 
