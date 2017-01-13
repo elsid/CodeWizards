@@ -261,7 +261,7 @@ void BaseStrategy::calculate_movements(const Context& context) {
 #endif
             (context, destination_);
     if (const auto unit = target_.circular_unit(context.cache())) {
-        std::tie(states_, movements_) = get_optimal_movement(context, path_, {true, get_position(*unit) + get_speed(*unit)});
+        std::tie(states_, movements_) = get_optimal_movement(context, path_, {true, get_optimal_target_position(*unit)});
     } else {
         std::tie(states_, movements_) = get_optimal_movement(context, path_, {false, Point()});
     }

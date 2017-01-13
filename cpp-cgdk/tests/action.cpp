@@ -324,7 +324,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_proper_range) {
         1000, // Y
         0, // SpeedX
         0, // SpeedY
-        0, // Angle
+        M_PI / 2, // Angle
         model::FACTION_RENEGADES, // Faction
         35, // Radius
         100, // Life
@@ -366,7 +366,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_proper_range) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 400, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0.014998875151850596, 399.95500759232635, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_not_proper_range) {

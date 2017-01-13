@@ -221,6 +221,10 @@ private:
     double unit_radius_;
 };
 
+constexpr double limit_cast_angle(double value) {
+    return std::min(M_PI / 12, std::max(- M_PI / 12, value));
+}
+
 struct GetCastAction {
     const Context& context;
 
@@ -298,17 +302,17 @@ struct GetCastAction {
 
     std::pair<bool, Action> operator ()(const CachedUnit<model::Wizard>& target, model::ProjectileType projectile_type) const {
         const auto my_position = get_position(context.self());
-        const auto unit_position = get_position(target.value());
-        const auto distance = my_position.distance(unit_position);
+        const auto optimal_target = get_optimal_target_position(target.value());
+        const auto distance = my_position.distance(optimal_target);
         const auto ticks = std::ceil(distance / get_projectile_speed(projectile_type, context.game()));
         const auto cast_angle = get_cast_angle_for_static(target.value());
         const auto direction = Point(1, 0).rotated(normalize_angle(context.self().getAngle() + cast_angle));
         const auto limit = my_position + direction * context.self().getCastRange();
         const Line trajectory(my_position, limit);
-        const auto nearest = trajectory.nearest(unit_position);
+        const auto nearest = trajectory.nearest(optimal_target);
         const auto has_point = trajectory.has_point(nearest);
 
-        if (!has_point || nearest.distance(unit_position) > 1e-3) {
+        if (!has_point || nearest.distance(optimal_target) > 1e-3) {
             return {false, Action()};
         }
 
@@ -325,7 +329,8 @@ struct GetCastAction {
         return (*this)(target.value(), projectile_type);
     }
 
-    std::pair<bool, Action> operator ()(const model::CircularUnit& target, model::ProjectileType projectile_type) const {
+    template <class Unit>
+    std::pair<bool, Action> operator ()(const Unit& target, model::ProjectileType projectile_type) const {
         const auto cast_angle = get_cast_angle_for_static(target);
         const auto my_position = get_position(context.self());
         const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
@@ -355,9 +360,16 @@ struct GetCastAction {
         return {true, Action(cast_angle, distance_to_collision, max_cast_distance)};
     }
 
-    double get_cast_angle_for_static(const model::Unit& target) const {
-        const auto angle = context.self().getAngleTo(target);
-        return std::min(M_PI / 12, std::max(- M_PI / 12, angle));
+    double get_cast_angle_for_static(const model::Unit& unit) const {
+        const auto angle = context.self().getAngleTo(unit);
+        return limit_cast_angle(angle);
+    }
+
+    double get_cast_angle_for_static(const model::Wizard& unit) const {
+        const auto target = get_optimal_target_position(unit);
+        const auto direction = target - get_position(context.self());
+        const auto angle = direction.absolute_rotation() - context.self().getAngle();
+        return limit_cast_angle(normalize_angle(angle));
     }
 
     double get_min_cast_distance_reduce(const model::CircularUnit& target) const {
@@ -436,6 +448,14 @@ std::pair<bool, Action> need_apply_action(const Context& context, const Target& 
         default:
             return {false, Action()};
     }
+}
+
+Point get_optimal_target_position(const model::Unit& unit) {
+    return get_position(unit) + get_speed(unit);
+}
+
+Point get_optimal_target_position(const model::Wizard& unit) {
+    return get_position(unit) + Point(6, 0).rotated(unit.getAngle());
 }
 
 }
