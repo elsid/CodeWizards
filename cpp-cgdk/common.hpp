@@ -1,5 +1,15 @@
 #pragma once
 
+#if defined(ELSID_STRATEGY_DEBUG) || defined(ELSID_STRATEGY_DEBUG_LOG)
+
+#include <iostream>
+
+#else
+
+#include <ostream>
+
+#endif
+
 namespace strategy {
 
 using UnitId = long long;
@@ -36,14 +46,19 @@ const Tick INACTIVE_TIMEOUT = 100;
 
 #else
 
-struct DevNull {};
+struct DevNull : public std::ostream {
+    static DevNull& instance() {
+        static DevNull value;
+        return value;
+    }
+};
 
 template <class T>
-DevNull operator <<(DevNull, const T&) {
-    return DevNull();
+DevNull& operator <<(DevNull& stream, const T&) {
+    return stream;
 }
 
-#define SLOG(context) (void) context, DevNull()
+#define SLOG(context) ((void) context, DevNull::instance())
 
 #endif
 

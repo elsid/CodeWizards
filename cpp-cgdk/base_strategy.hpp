@@ -3,6 +3,7 @@
 #include "retreat_mode.hpp"
 #include "world_graph.hpp"
 #include "optimal_movement.hpp"
+#include "stats.hpp"
 
 #include <memory>
 
@@ -77,6 +78,7 @@ private:
     Tick mode_ticks_ = 0;
     std::map<double, TickState> ticks_states_;
     std::vector<StepState> steps_states_;
+    Stats stats_;
 
     void handle_messages(const Context& context);
     void select_mode(const Context& context);

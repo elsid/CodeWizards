@@ -37,23 +37,8 @@ private:
     const BaseStrategy& base_;
     Debug debug_;
 
-    std::size_t casts_count_ = 0;
-    std::size_t hits_count_ = 0;
-    std::size_t units_hits_count_ = 0;
-
-    UnitsStats buildings_;
-    UnitsStats minions_;
-    UnitsStats trees_;
-    UnitsStats wizards_;
-
-    int prev_my_life_ = -1;
-    int sum_damage_to_me_ = 0;
-    std::size_t deaths_count_ = 0;
-    int prev_tick_ = 0;
     double max_target_score = 0;
     double min_target_score = 0;
-
-    void count_stats(const Context& context);
 
     void visualize(const Context& context);
     void visualize_graph(const Context& context);

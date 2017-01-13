@@ -45,10 +45,12 @@ BaseStrategy::BaseStrategy(const Context& context)
           retreat_mode_(std::make_shared<RetreatMode>(battle_mode_, move_mode_)),
           destination_(get_position(context.self())),
           state_(states_.end()),
-          movement_(movements_.end()) {
+          movement_(movements_.end()),
+          stats_(*this) {
 }
 
 void BaseStrategy::apply(Context &context) {
+    stats_.calculate(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     if (!context.self().isMaster()) {
         handle_messages(context);
