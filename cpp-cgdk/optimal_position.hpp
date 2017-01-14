@@ -14,8 +14,6 @@
 
 namespace strategy {
 
-double get_distance_penalty(double value, double safe);
-
 Point get_optimal_position(const Context& context, const Target& target, double max_distance,
                            long max_function_calls = std::numeric_limits<long>::max());
 
@@ -44,8 +42,8 @@ struct GetRangedDamage {
         const auto attack_range = get_attack_range(unit, distance) + context.self().getRadius();
         const auto factor = attack_range >= current_distance || attack_range >= future_distance
                 ? 1.0
-                : get_distance_penalty(std::min(current_distance, future_distance) - attack_range,
-                                       2 * context.self().getRadius());
+                : bounded_line_factor(std::min(current_distance, future_distance) - attack_range,
+                                      2 * context.self().getRadius(), 0);
         const auto damage = get_damage(unit, distance);
         return factor * damage;
     }

@@ -10,10 +10,6 @@
 
 namespace strategy {
 
-double get_distance_penalty(double value, double safe) {
-    return std::min(1.0, std::max(0.0, (safe - value) / safe));
-}
-
 double GetUnitIntersectionPenalty::operator ()(const model::CircularUnit& unit, const Point& position) const {
     return base(unit, position);
 }
@@ -34,7 +30,7 @@ double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, co
     const auto distance = position.distance(get_position(unit));
     const auto safe_distance = this->safe_distance(unit);
     if (distance < safe_distance * 0.5) {
-        return get_distance_penalty(distance, safe_distance);
+        return line_factor(distance, safe_distance, 0);
     } else {
         return 0.5 * line_factor(distance, 2.0 * safe_distance, 0);
     }
