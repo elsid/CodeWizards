@@ -130,6 +130,11 @@ void BaseStrategy::select_mode(const Context& context) {
                 << "\n";
         }
         use_battle_mode();
+    } else if (battle_mode().is_under_fire(context)) {
+        if (mode_ != battle_mode_) {
+            SLOG(context) << "use_battle_mode reason: under_fire\n";
+        }
+        use_battle_mode();
     } else {
         if (mode_ != move_mode_) {
             SLOG(context) << "use_move_mode"

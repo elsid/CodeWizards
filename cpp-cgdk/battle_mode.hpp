@@ -17,13 +17,14 @@ public:
         return "battle";
     }
 
+    bool is_under_fire(const Context& context) const;
+
 private:
     Target target_;
     std::pair<bool, Point> destination_;
     std::vector<std::pair<Point, double>> points_;
 
     void update_target(const Context& context);
-    bool is_under_fire(const Context& context) const;
     bool will_cast_later(const Context& context) const;
     double target_distance(const Context& context) const;
 
