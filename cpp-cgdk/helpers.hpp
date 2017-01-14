@@ -2,6 +2,7 @@
 
 #include "point.hpp"
 #include "cache.hpp"
+#include "damage.hpp"
 
 #include "model/World.h"
 #include "model/ActionType.h"
@@ -305,5 +306,18 @@ constexpr model::ProjectileType get_projectile_type_by_action(model::ActionType 
 double get_projectile_radius(model::ProjectileType type, const model::Game& game);
 double get_projectile_speed(model::ProjectileType type, const model::Game& game);
 double get_projectile_explosion_radius(model::ProjectileType type, const model::Game& game);
+
+bool is_owner(const model::Wizard& unit, const model::Projectile& projectile);
+bool is_owner(const model::Minion& unit, const model::Projectile& projectile);
+bool is_owner(const model::Unit& unit, const model::Projectile& projectile);
+
+double get_attack_range(const model::Minion& unit, const model::Game& game);
+
+int get_action_cooldown(model::ActionType action, const model::Wizard& unit, const model::Game& game);
+
+Damage get_action_damage(model::ActionType action, const model::Wizard& unit, const model::Game& game);
+Damage get_base_action_damage(model::ActionType action, const model::Game& game);
+double get_status_factor(const model::LivingUnit& unit, const model::Game& game);
+double get_action_factor(model::ActionType action, const model::Wizard& unit, const model::Game& game);
 
 }

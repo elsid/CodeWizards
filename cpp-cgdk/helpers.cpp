@@ -1,5 +1,7 @@
 #include "helpers.hpp"
 
+#include <sstream>
+
 namespace strategy {
 
 bool has_skill(const model::Wizard& unit, model::SkillType skill) {
@@ -120,6 +122,91 @@ double get_projectile_explosion_radius(model::ProjectileType type, const model::
     switch (type) {
         case model::PROJECTILE_FIREBALL:
             return game.getFireballExplosionMinDamageRange();
+        default:
+            return 0;
+    }
+}
+
+bool is_owner(const model::Wizard& unit, const model::Projectile& projectile) {
+    return projectile.getType() != model::PROJECTILE_DART && unit.getId() == projectile.getOwnerUnitId();
+}
+
+bool is_owner(const model::Minion& unit, const model::Projectile& projectile) {
+    return unit.getType() == model::MINION_FETISH_BLOWDART && projectile.getType() == model::PROJECTILE_DART
+            && unit.getId() == projectile.getOwnerUnitId();
+}
+
+bool is_owner(const model::Unit&, const model::Projectile&) {
+    return false;
+}
+
+double get_attack_range(const model::Minion& unit, const model::Game& game) {
+    switch (unit.getType()) {
+        case model::_MINION_UNKNOWN_:
+            break;
+        case model::MINION_ORC_WOODCUTTER:
+            return game.getOrcWoodcutterAttackRange();
+        case model::MINION_FETISH_BLOWDART:
+            return game.getFetishBlowdartAttackRange() + game.getDartRadius();
+        case model::_MINION_COUNT_:
+            break;
+    }
+    std::ostringstream error;
+    error << "Invalid minion type: " << int(unit.getType())
+          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
+    throw std::logic_error(error.str());
+}
+
+int get_action_cooldown(model::ActionType action, const model::Wizard& unit, const model::Game& game) {
+    switch (action) {
+        case model::ACTION_STAFF:
+            return game.getStaffCooldownTicks();
+        case model::ACTION_MAGIC_MISSILE:
+            return has_skill(unit, model::SKILL_ADVANCED_MAGIC_MISSILE) ? 0 : game.getMagicMissileCooldownTicks();
+        case model::ACTION_FROST_BOLT:
+            return game.getFrostBoltCooldownTicks();
+        case model::ACTION_FIREBALL:
+            return game.getFireballCooldownTicks();
+        case model::ACTION_SHIELD:
+            return game.getShieldCooldownTicks();
+        case model::ACTION_HASTE:
+            return game.getHasteCooldownTicks();
+        default:
+            return 0;
+    }
+}
+
+Damage get_action_damage(model::ActionType action, const model::Wizard& unit, const model::Game& game) {
+    return (1.0 + get_status_factor(unit, game) + get_action_factor(action, unit, game)) * get_base_action_damage(action, game);
+}
+
+Damage get_base_action_damage(model::ActionType action, const model::Game& game) {
+    switch (action) {
+        case model::ACTION_STAFF:
+            return Damage::Physic {double(game.getStaffDamage())};
+        case model::ACTION_MAGIC_MISSILE:
+            return Damage::Magic {double(game.getMagicMissileDirectDamage())};
+        case model::ACTION_FROST_BOLT:
+            return Damage::Magic {double(game.getFrostBoltDirectDamage())};
+        case model::ACTION_FIREBALL:
+            return Damage::Magic {double(game.getFireballExplosionMaxDamage() + game.getBurningSummaryDamage())};
+        default:
+            return Damage();
+    }
+}
+
+double get_status_factor(const model::LivingUnit& unit, const model::Game& game) {
+    return is_empowered(unit) * game.getEmpoweredDamageFactor();
+}
+
+double get_action_factor(model::ActionType action, const model::Wizard& unit, const model::Game& game) {
+    switch (action) {
+        case model::ACTION_STAFF:
+            return get_staff_damage_bonus_level(unit) * game.getStaffDamageBonusPerSkillLevel();
+        case model::ACTION_MAGIC_MISSILE:
+        case model::ACTION_FROST_BOLT:
+        case model::ACTION_FIREBALL:
+            return get_magical_damage_bonus_level(unit) * game.getMagicalDamageBonusPerSkillLevel();
         default:
             return 0;
     }

@@ -30,20 +30,7 @@ double GetAttackRange::operator ()(const model::Building& unit, double) const {
 }
 
 double GetAttackRange::operator ()(const model::Minion& unit, double) const {
-    switch (unit.getType()) {
-        case model::_MINION_UNKNOWN_:
-            break;
-        case model::MINION_ORC_WOODCUTTER:
-            return context.game().getOrcWoodcutterAttackRange();
-        case model::MINION_FETISH_BLOWDART:
-            return context.game().getFetishBlowdartAttackRange() + context.game().getDartRadius();
-        case model::_MINION_COUNT_:
-            break;
-    }
-    std::ostringstream error;
-    error << "Invalid minion type: " << int(unit.getType())
-          << " in " << __PRETTY_FUNCTION__ << " at " << __FILE__ << ":" << __LINE__;
-    throw std::logic_error(error.str());
+    return get_attack_range(unit, context.game());
 }
 
 double GetAttackRange::operator ()(const model::Wizard& unit, double distance) const {
@@ -160,18 +147,7 @@ std::pair<model::ActionType, Tick> GetMaxDamage::next_attack_action(const model:
 }
 
 Tick GetMaxDamage::action_cooldown(model::ActionType attack_action, const model::Wizard& unit) const {
-    switch (attack_action) {
-        case model::ACTION_STAFF:
-            return context.game().getStaffCooldownTicks();
-        case model::ACTION_MAGIC_MISSILE:
-            return has_skill(unit, model::SKILL_ADVANCED_MAGIC_MISSILE) ? 0 : context.game().getMagicMissileCooldownTicks();
-        case model::ACTION_FROST_BOLT:
-            return context.game().getFrostBoltCooldownTicks();
-        case model::ACTION_FIREBALL:
-            return context.game().getFireballCooldownTicks();
-        default:
-            return 0;
-    }
+    return get_action_cooldown(attack_action, unit, context.game());
 }
 
 Damage ReduceDamage::operator ()(const model::LivingUnit& unit, const Damage& damage) const {

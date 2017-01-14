@@ -2,7 +2,7 @@
 
 set -ex
 
-FLAGS='-O2 -fsanitize=memory -fsanitize-memory-track-origins -pthread -g -fno-omit-frame-pointer -fsanitize-memory-use-after-dtor -L/home/elsid/dev/libcxx_msan/lib -I/home/elsid/dev/libcxx_msan/include -I/home/elsid/dev/libcxx_msan/include/c++/v1 -stdlib=libc++ -lc++abi'
+FLAGS='-O2 -fsanitize=memory -fsanitize-memory-track-origins -pthread -g -fno-omit-frame-pointer -fsanitize-memory-use-after-dtor -L/home/elsid/dev/libcxx_msan/lib -I/home/elsid/dev/libcxx_msan/include -I/home/elsid/dev/libcxx_msan/include/c++/v1 -stdlib=libc++ -lc++abi -DELSID_INCREASED_TIMEOUT'
 
 mkdir -p cpp-cgdk-msan
 cd cpp-cgdk-msan

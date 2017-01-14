@@ -2,6 +2,8 @@
 
 #include "cache.hpp"
 
+#include <sstream>
+
 namespace strategy {
 
 template <class T>

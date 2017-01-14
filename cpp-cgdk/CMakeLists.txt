@@ -73,6 +73,8 @@ set(SOURCES
     move_to_position.cpp
     simulation/simulation_strategy.cpp
     simulation/scripts/two_wizards_fight_near_bonus.cpp
+    simulation/simulator.cpp
+    simulation/minion_strategy.cpp
 )
 
 add_executable(cpp-cgdk
@@ -101,6 +103,7 @@ add_executable(cpp-cgdk-tests
     tests/optimal_path.cpp
     tests/optimal_position.cpp
     tests/optimal_target.cpp
+    tests/simulation.cpp
 )
 
 target_link_libraries(cpp-cgdk-tests
