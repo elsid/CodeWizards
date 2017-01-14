@@ -402,7 +402,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_crossing_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 13u);
+    ASSERT_EQ(result.size(), 11u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }

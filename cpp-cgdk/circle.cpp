@@ -62,8 +62,12 @@ bool Circle::has_intersection(const Point& this_final_position, const Circle& ot
         return has_intersection(other, other_final_position, max_error);
     } else if (other_has_point) {
         return other.has_intersection(*this, this_final_position, max_error);
+    } else {
+        return has_intersection(other)
+                || has_intersection(Circle(other_final_position, other.radius()))
+                || Circle(this_final_position, radius()).has_intersection(other)
+                || Circle(this_final_position, radius()).has_intersection(Circle(other_final_position, other.radius()));
     }
-    return false;
 }
 
 std::pair<bool, Point> Circle::intersection(const Circle& other, const Point& final_position, double max_error) const {
