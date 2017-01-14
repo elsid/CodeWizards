@@ -1,19 +1,19 @@
 #pragma once
 
-#include "base_strategy.hpp"
+#include "abstract_strategy.hpp"
 
 #include <memory>
 
 namespace strategy {
 
-class TimeLimitedStrategy : public Strategy {
+class TimeLimitedStrategy : public AbstractStrategy {
 public:
-    TimeLimitedStrategy(std::unique_ptr<Strategy> base) : base_(std::move(base)), sum_time_(0) {}
+    TimeLimitedStrategy(std::unique_ptr<AbstractStrategy> base) : base_(std::move(base)), sum_time_(0) {}
 
     void apply(Context& context) override final;
 
 private:
-    std::unique_ptr<Strategy> base_;
+    std::unique_ptr<AbstractStrategy> base_;
     Duration sum_time_;
 
     Duration get_iteration_time_limit(const Context& context) const;

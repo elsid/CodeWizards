@@ -5,18 +5,11 @@
 #include "optimal_movement.hpp"
 #include "stats.hpp"
 #include "move_to_position.hpp"
-
-#include <memory>
+#include "abstract_strategy.hpp"
 
 namespace strategy {
 
-class Strategy {
-public:
-    virtual ~Strategy() = default;
-    virtual void apply(Context& context) = 0;
-};
-
-class BaseStrategy : public Strategy {
+class BaseStrategy : public AbstractStrategy {
 public:
     BaseStrategy(const Context& context);
 

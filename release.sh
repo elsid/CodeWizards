@@ -32,6 +32,7 @@ cp stats.cpp ${DIR}
 cp time_limited_strategy.cpp ${DIR}
 cp world_graph.cpp ${DIR}
 
+cp abstract_strategy.hpp ${DIR}
 cp action.hpp ${DIR}
 cp base_strategy.hpp ${DIR}
 cp battle_mode.hpp ${DIR}

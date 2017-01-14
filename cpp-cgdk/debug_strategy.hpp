@@ -18,9 +18,9 @@ namespace strategy {
 std::int32_t get_color(double red, double green, double blue);
 std::int32_t get_color(double heat);
 
-class DebugStrategy : public Strategy {
+class DebugStrategy : public AbstractStrategy {
 public:
-    DebugStrategy(std::unique_ptr<Strategy> component, const BaseStrategy& base)
+    DebugStrategy(std::unique_ptr<AbstractStrategy> component, const BaseStrategy& base)
         : component_(std::move(component)), base_(base) {}
 
     void apply(Context& context) override final;
@@ -33,7 +33,7 @@ private:
         std::size_t target_ticks_count = 0;
     };
 
-    const std::unique_ptr<Strategy> component_;
+    const std::unique_ptr<AbstractStrategy> component_;
     const BaseStrategy& base_;
     Debug debug_;
 

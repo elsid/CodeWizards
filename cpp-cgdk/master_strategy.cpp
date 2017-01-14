@@ -37,7 +37,7 @@ std::vector<model::Message> make_messages(const std::map<UnitId, MessageFactory>
     return result;
 }
 
-MasterStrategy::MasterStrategy(std::unique_ptr<Strategy> component, const Context &context)
+MasterStrategy::MasterStrategy(std::unique_ptr<AbstractStrategy> component, const Context &context)
         : component_(std::move(component)),
           specializations_(distribute_specializations(context)) {
 }

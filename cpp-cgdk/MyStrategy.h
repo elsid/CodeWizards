@@ -10,7 +10,7 @@ public:
 private:
     strategy::FullCache cache_;
     strategy::FullCache history_cache_;
-    std::unique_ptr<strategy::Strategy> strategy_;
+    std::unique_ptr<strategy::AbstractStrategy> strategy_;
 
     void update_cache(const model::Wizard& self, const model::World& world);
     void add_fake_bonuses(const model::World& world);
