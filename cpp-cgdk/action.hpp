@@ -9,11 +9,21 @@ class Action {
 public:
     Action() = default;
 
-    Action(double cast_angle, double min_cast_distance, double max_cast_distance)
-            : cast_angle_(cast_angle), min_cast_distance_(min_cast_distance), max_cast_distance_(max_cast_distance) {}
+    Action(model::ActionType type, double cast_angle, double min_cast_distance, double max_cast_distance)
+            : type_(type),
+              cast_angle_(cast_angle),
+              min_cast_distance_(min_cast_distance),
+              max_cast_distance_(max_cast_distance) {
+    }
 
-    Action(UnitId status_target_id)
-            : status_target_id_(status_target_id) {}
+    Action(model::ActionType type, UnitId status_target_id)
+            : type_(type),
+              status_target_id_(status_target_id) {
+    }
+
+    model::ActionType type() const {
+        return type_;
+    }
 
     double cast_angle() const {
         return cast_angle_;
@@ -32,6 +42,7 @@ public:
     }
 
 private:
+    model::ActionType type_ = model::_ACTION_UNKNOWN_;
     double cast_angle_ = 0;
     double min_cast_distance_ = 0;
     double max_cast_distance_ = std::numeric_limits<double>::max();

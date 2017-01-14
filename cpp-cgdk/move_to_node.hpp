@@ -9,7 +9,7 @@ class MoveToNode {
 public:
     MoveToNode(std::vector<WorldGraph::Node> path);
 
-    void next(const Context& context);
+    bool next(const Context& context);
 
     bool at_end() const {
         return path_node_ == path_.end();

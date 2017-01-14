@@ -8,15 +8,15 @@ MoveToNode::MoveToNode(std::vector<WorldGraph::Node> path)
           path_node_(path_.begin()) {
 }
 
-void MoveToNode::next(const Context& context) {
+bool MoveToNode::next(const Context& context) {
     if (path_node_ == path_.end()) {
-        return;
+        return false;
     }
 
     const auto to_next = path_node_->position.distance(get_position(context.self()));
 
     if (to_next > 0.5 * context.self().getVisionRange()) {
-        return;
+        return false;
     }
 
     if (path_node_ - path_.begin() > 0) {
@@ -24,10 +24,14 @@ void MoveToNode::next(const Context& context) {
         const auto to_prev = prev->position.distance(get_position(context.self()));
         if (to_prev > to_next) {
             ++path_node_;
+            return !at_end();
         }
     } else {
         ++path_node_;
+        return !at_end();
     }
+
+    return false;
 }
 
 } // namespace strategy

@@ -8,7 +8,8 @@
 namespace strategy {
 
 bool operator ==(const Action& lhs, const Action& rhs) {
-    return lhs.cast_angle() == rhs.cast_angle()
+    return lhs.type() == rhs.type()
+            && lhs.cast_angle() == rhs.cast_angle()
             && lhs.min_cast_distance() == rhs.min_cast_distance()
             && lhs.max_cast_distance() == rhs.max_cast_distance()
             && lhs.status_target_id() == rhs.status_target_id();
@@ -156,7 +157,7 @@ TEST(need_apply_action, magic_missile_for_me_and_not_tree_in_a_half_of_cast_rang
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 295, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(model::ACTION_MAGIC_MISSILE, 0, 295, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_close_tree) {
@@ -222,7 +223,7 @@ TEST(need_apply_action, magic_missile_for_me_and_close_tree) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0, 45, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(model::ACTION_MAGIC_MISSILE, 0, 45, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, staff_for_me_and_close_tree) {
@@ -366,7 +367,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_proper_range) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0.014998875151850596, 374.95500759232635, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(model::ACTION_MAGIC_MISSILE, 0.014998875151850596, 374.95500759232635, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_enemy_wizard_in_not_proper_range) {
@@ -514,7 +515,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_minion_moving_in_front) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(0.011803218035748051, 385.02786480846083, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(model::ACTION_MAGIC_MISSILE, 0.011803218035748051, 385.02786480846083, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_enemy_minion_moving_at_back) {

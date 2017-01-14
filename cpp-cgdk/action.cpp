@@ -83,7 +83,7 @@ std::vector<model::ActionType> get_actions_by_priority_order(const Context& cont
     return result;
 }
 
-std::pair<bool, Action> need_apply_status(const Context& context, model::StatusType status) {
+std::pair<bool, Action> need_apply_status(const Context& context, model::StatusType status, model::ActionType action_type) {
     const auto my_position = get_position(context.self());
     const model::Wizard* target = nullptr;
 
@@ -97,15 +97,15 @@ std::pair<bool, Action> need_apply_status(const Context& context, model::StatusT
         }
     }
 
-    return {true, (target ? Action(target->getId()) : Action())};
+    return {true, (target ? Action(action_type, target->getId()) : Action())};
 }
 
 std::pair<bool, Action> need_apply_haste(const Context& context) {
-    return need_apply_status(context, model::STATUS_HASTENED);
+    return need_apply_status(context, model::STATUS_HASTENED, model::ACTION_HASTE);
 }
 
 std::pair<bool, Action> need_apply_shield(const Context& context) {
-    return need_apply_status(context, model::STATUS_SHIELDED);
+    return need_apply_status(context, model::STATUS_SHIELDED, model::ACTION_SHIELD);
 }
 
 std::pair<bool, Action> need_apply_staff(const Context& context, const Target& target) {
@@ -229,15 +229,15 @@ struct GetCastAction {
     const Context& context;
 
     template <class Unit>
-    std::pair<bool, Action> operator ()(const CachedUnit<Unit>& target, model::ProjectileType projectile_type) const {
+    std::pair<bool, Action> operator ()(const CachedUnit<Unit>& target, model::ProjectileType projectile_type, model::ActionType action_type) const {
         const GetTimeDelta get_time_delta(context, target, projectile_type);
-        return (*this)(target.value(), projectile_type, get_time_delta);
+        return (*this)(target.value(), projectile_type, get_time_delta, action_type);
     }
 
     template <class Unit>
-    std::pair<bool, Action> operator ()(const Unit& target, model::ProjectileType projectile_type, const GetTimeDelta& get_time_delta) const {
+    std::pair<bool, Action> operator ()(const Unit& target, model::ProjectileType projectile_type, const GetTimeDelta& get_time_delta, model::ActionType action_type) const {
         if (!target.getSpeedX() && !target.getSpeedY()) {
-            return (*this)(target, projectile_type);
+            return (*this)(target, projectile_type, action_type);
         }
 
         const auto my_position = get_position(context.self());
@@ -297,10 +297,10 @@ struct GetCastAction {
         const auto max_cast_distance = projectile_type == model::PROJECTILE_FIREBALL
                 ? distance_to_intersection : std::numeric_limits<double>::max();
 
-        return {true, Action(cast_angle, min_cast_distance, max_cast_distance)};
+        return {true, Action(action_type, cast_angle, min_cast_distance, max_cast_distance)};
     }
 
-    std::pair<bool, Action> operator ()(const CachedUnit<model::Wizard>& target, model::ProjectileType projectile_type) const {
+    std::pair<bool, Action> operator ()(const CachedUnit<model::Wizard>& target, model::ProjectileType projectile_type, model::ActionType action_type) const {
         const auto my_position = get_position(context.self());
         const auto optimal_target = get_optimal_target_position(target.value());
         const auto distance = my_position.distance(optimal_target);
@@ -326,11 +326,11 @@ struct GetCastAction {
             return {false, Action()};
         }
 
-        return (*this)(target.value(), projectile_type);
+        return (*this)(target.value(), projectile_type, action_type);
     }
 
     template <class Unit>
-    std::pair<bool, Action> operator ()(const Unit& target, model::ProjectileType projectile_type) const {
+    std::pair<bool, Action> operator ()(const Unit& target, model::ProjectileType projectile_type, model::ActionType action_type) const {
         const auto cast_angle = get_cast_angle_for_static(target);
         const auto my_position = get_position(context.self());
         const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
@@ -358,7 +358,7 @@ struct GetCastAction {
         const auto max_cast_distance = projectile_type == model::PROJECTILE_FIREBALL
                 ? distance_to_collision : std::numeric_limits<double>::max();
 
-        return {true, Action(cast_angle, min_cast_distance, max_cast_distance)};
+        return {true, Action(action_type, cast_angle, min_cast_distance, max_cast_distance)};
     }
 
     double get_cast_angle_for_static(const model::Unit& unit) const {
@@ -398,7 +398,7 @@ struct GetCastAction {
     }
 };
 
-std::pair<bool, Action> need_apply_cast(const Context& context, const Target& target, model::ProjectileType projectile_type) {
+std::pair<bool, Action> need_apply_cast(const Context& context, const Target& target, model::ProjectileType projectile_type, model::ActionType action_type) {
     if (target.is<model::Bonus>() || !target.circular_unit(context.cache())) {
         return {false, Action()};
     }
@@ -406,22 +406,22 @@ std::pair<bool, Action> need_apply_cast(const Context& context, const Target& ta
     const GetCastAction get_cast_action {context};
 
     return target.apply_cached(context.cache(),
-        [&] (const auto& v) { return get_cast_action(*v, projectile_type); });
+        [&] (const auto& v) { return get_cast_action(*v, projectile_type, action_type); });
 }
 
 std::pair<bool, Action> need_apply_magic_missile(const Context& context, const Target& target) {
-    return need_apply_cast(context, target, model::PROJECTILE_MAGIC_MISSILE);
+    return need_apply_cast(context, target, model::PROJECTILE_MAGIC_MISSILE, model::ACTION_MAGIC_MISSILE);
 }
 
 std::pair<bool, Action> need_apply_fireball(const Context& context, const Target& target) {
-    return need_apply_cast(context, target, model::PROJECTILE_FIREBALL);
+    return need_apply_cast(context, target, model::PROJECTILE_FIREBALL, model::ACTION_FIREBALL);
 }
 
 std::pair<bool, Action> need_apply_frostbolt(const Context& context, const Target& target) {
     if (target.is<model::Building>() || target.is<model::Tree>()) {
         return {false, Action()};
     }
-    return need_apply_cast(context, target, model::PROJECTILE_FROST_BOLT);
+    return need_apply_cast(context, target, model::PROJECTILE_FROST_BOLT, model::ACTION_FROST_BOLT);
 }
 
 std::pair<bool, Action> need_apply_action(const Context& context, const Target& target, model::ActionType type) {
