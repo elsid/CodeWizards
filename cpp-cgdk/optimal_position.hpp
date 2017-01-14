@@ -586,18 +586,15 @@ private:
         const Point top(unit.position.x(), 0);
         const Point bottom(unit.position.x(), context.world().getHeight());
 
-        std::vector<SurroundUnit> borders;
-        borders.reserve(4);
-
-        for (const auto& border : {left, right, top, bottom}) {
-            if (border.distance(get_position(context.self())) <= max_distance) {
-                borders.push_back(SurroundUnit {border, context.game().getWizardCastRange() * 0.5});
-            }
-        }
+        const auto borders = {left, right, top, bottom};
 
         return std::accumulate(borders.begin(), borders.end(), - std::numeric_limits<double>::max(),
             [&] (auto max, const auto& border) {
-                return std::max(max, this->get_surround_penalty(border, unit, position));
+                if (border.distance(get_position(context.self())) <= max_distance) {
+                    return std::max(max, this->get_surround_penalty(SurroundUnit {border, context.game().getWizardCastRange() * 0.5}, unit, position));
+                } else {
+                    return max;
+                }
             });
     }
 
