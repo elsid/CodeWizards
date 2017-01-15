@@ -37,9 +37,7 @@ Movement get_next_movement(const Point& target, const MovementState& state, cons
 }
 
 Point get_shift(const MovementState& state, const Movement& movement) {
-    const auto speed_direction = Point(1, 0).rotated(state.angle());
-    const auto strafe_speed_direction = speed_direction.left_orthogonal();
-    return speed_direction * movement.speed() + strafe_speed_direction * movement.strafe_speed();
+    return Point(movement.speed(), movement.strafe_speed()).rotated(state.angle());
 }
 
 std::pair<MovementState, Movement> get_next_state(const Point& target, const MovementState& state, const OptPoint& look_target, const WizardBounds& bounds) {
