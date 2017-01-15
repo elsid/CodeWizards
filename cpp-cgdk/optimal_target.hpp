@@ -92,9 +92,7 @@ struct GetTargetScore {
         const auto distance_probability = get_distance_probability(unit);
         const auto angle_probability = get_angle_probability(unit);
         const auto hit_probability = get_hit_probability(unit);
-        const auto response_probability = get_response_probability(unit);
-        const auto no_response_probability = std::max(1 - response_probability, 0.5);
-        return base * distance_probability * angle_probability * hit_probability * no_response_probability;
+        return base * distance_probability * angle_probability * hit_probability;
     }
 
     double get_distance_probability(const model::Unit& unit) const;
@@ -107,12 +105,6 @@ struct GetTargetScore {
     double get_hit_probability(const model::Wizard& unit) const;
 
     double get_hit_probability_by_status(const model::LivingUnit& unit, double get_base) const;
-
-    template <class Unit>
-    double get_response_probability(const Unit& unit) const {
-        const GetUnitAttackAbility get_unit_attack_ability {context};
-        return get_unit_attack_ability(unit);
-    }
 
     double get_base(const model::Bonus&) const;
     double get_base(const model::Tree&) const;
