@@ -10,9 +10,15 @@
 
 #include "debug/output.hpp"
 
-#else
+#elif !defined(ELSID_STRATEGY_BASE)
 
 #include "time_limited_strategy.hpp"
+
+#endif
+
+#ifdef ELSID_STRATEGY_SIMULATION
+
+#include "simulation/scripts/two_wizards_fight_near_bonus.hpp"
 
 #endif
 
@@ -32,29 +38,36 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
         update_cache(self, world);
         strategy::Context context(self, world, game, move, cache_, history_cache_, profiler, strategy::Duration::max());
         if (!strategy_) {
+#ifdef ELSID_STRATEGY_DEBUG
             auto base = std::make_unique<strategy::BaseStrategy>(context);
+            const auto& base_cref = *base;
             if (self.isMaster()) {
-#ifdef ELSID_STRATEGY_DEBUG
-                const auto& base_cref = *base;
-#endif
                 strategy_ = std::make_unique<strategy::MasterStrategy>(std::move(base), context);
-#ifdef ELSID_STRATEGY_DEBUG
-                strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(strategy_), base_cref);
-#elif defined(ELSID_STRATEGY_BASE)
-                strategy_ = std::move(master);
-#else
-                strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(strategy_));
-#endif
             } else {
-#ifdef ELSID_STRATEGY_DEBUG
-                const auto& base_cref = *base;
-                strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(base), base_cref);
-#elif defined(ELSID_STRATEGY_BASE)
                 strategy_ = std::move(base);
-#else
-                strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(base));
-#endif
             }
+            strategy_ = std::make_unique<strategy::DebugStrategy>(std::move(strategy_), base_cref);
+#else
+#ifdef ELSID_STRATEGY_SIMULATION
+            std::unique_ptr<strategy::AbstractStrategy> base;
+            const std::string simulation(std::getenv("SIMULATION"));
+            if (simulation == "TwoWizardsFightNearBonus") {
+                base = std::make_unique<strategy::TwoWizardsFightNearBonus>(context);
+            } else {
+                base = std::make_unique<strategy::BaseStrategy>(context);
+            }
+#else
+            auto base = std::make_unique<strategy::BaseStrategy>(context);
+#endif
+            if (self.isMaster()) {
+                strategy_ = std::make_unique<strategy::MasterStrategy>(std::move(base), context);
+            } else {
+                strategy_ = std::move(base);
+            }
+#ifndef ELSID_STRATEGY_BASE
+            strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(strategy_));
+#endif
+#endif
         }
         strategy_->apply(context);
 #ifndef ELSID_STRATEGY_DEBUG
