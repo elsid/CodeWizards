@@ -4,7 +4,8 @@
 
 namespace strategy {
 
-const auto INVERTED_PHI = 2.0 / (1.0 + std::sqrt(5.0));
+const double PHI = (1 + std::sqrt(5.0)) / 2;
+const double INVERTED_PHI = 1 / PHI;
 
 template <class Function>
 double golden_section(const Function& f, double a, double b, std::size_t iterations) {

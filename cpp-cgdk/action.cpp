@@ -221,6 +221,37 @@ private:
     double unit_radius_;
 };
 
+class GetDistance {
+public:
+    GetDistance(const Context& context, model::ProjectileType projectile_type, const Point& unit_position,
+            const Point& unit_speed, double cast_angle)
+        : context_(context),
+          projectile_type_(projectile_type),
+          unit_position_(unit_position),
+          unit_speed_(unit_speed),
+          cast_angle_(cast_angle) {
+    }
+
+    double operator ()(double time) const {
+        const auto my_position = get_position(context_.self());
+        const auto projectile_speed_norm = get_projectile_speed(projectile_type_, context_.game());
+        const auto angle = normalize_angle(context_.self().getAngle() + cast_angle_);
+        const auto projectile_direction = Point(1, 0).rotated(angle);
+        const auto projectile_path_length = std::min(time * projectile_speed_norm, context_.self().getCastRange());
+        const auto projectile_target = my_position + projectile_direction * projectile_path_length;
+        const auto unit_target = unit_position_ + unit_speed_ * time;
+
+        return projectile_target.distance(unit_target);
+    }
+
+private:
+    const Context& context_;
+    const model::ProjectileType projectile_type_;
+    const Point unit_position_;
+    const Point unit_speed_;
+    const double cast_angle_;
+};
+
 constexpr double limit_cast_angle(double value) {
     return std::min(M_PI / 12, std::max(- M_PI / 12, value));
 }
@@ -275,13 +306,6 @@ struct GetCastAction {
         }
 
         const auto cast_angle = golden_section(get_time_delta, min_cast_angle, max_cast_angle, iterations);
-        const auto time_delta = get_time_delta(cast_angle);
-        const auto radius_sum = target.getRadius() + projectile_radius;
-        const auto unit_radius_time = radius_sum / get_time_delta.unit_speed_norm();
-
-        if (time_delta > unit_radius_time) {
-            return {false, Action()};
-        }
 
         bool has_intersection;
         Point intersection;
@@ -291,7 +315,37 @@ struct GetCastAction {
             return {false, Action()};
         }
 
-        const auto distance_to_intersection = my_position.distance(intersection);
+        const auto time_delta = get_time_delta(cast_angle);
+        const auto radius_sum = projectile_radius + target.getRadius();
+        const auto unit_radius_time = radius_sum / get_time_delta.unit_speed_norm();
+        double distance_to_intersection = my_position.distance(intersection);
+
+        if (time_delta > unit_radius_time) {
+            const auto angle = normalize_angle(context.self().getAngle() + cast_angle);
+
+            if (std::abs(M_PI_2 - angle) < 1e-3) {
+                return {false, Action()};
+            }
+
+            const GetDistance get_distance(context, projectile_type, unit_position, get_time_delta.unit_speed(), cast_angle);
+
+            const auto projectile_speed_norm = get_projectile_speed(projectile_type, context.game());
+            const auto projectile_time = distance_to_intersection / projectile_speed_norm;
+            const auto precision = std::max(time_delta, PHI);
+            const std::size_t iterations = std::ceil(std::log(precision) / std::log(PHI));
+            const auto min_distance_time = golden_section(get_distance, std::max(0.0, projectile_time - time_delta), projectile_time + time_delta, iterations);
+            const auto min_distance = get_distance(min_distance_time);
+
+            if (min_distance > radius_sum) {
+                return {false, Action()};
+            }
+
+            const auto direction = Point(projectile_speed_norm, 0).rotated(angle);
+
+            intersection = my_position + direction * min_distance_time;
+            distance_to_intersection = my_position.distance(intersection);
+        }
+
         const auto min_cast_distance = distance_to_intersection - target.getRadius() + projectile_radius;
 
         if (min_cast_distance > context.self().getCastRange() - 1) {
