@@ -243,7 +243,15 @@ struct GetCastAction {
         const auto my_position = get_position(context.self());
         const auto unit_position = get_position(target);
         const auto distance = my_position.distance(unit_position);
+        const auto projectile_speed_norm = get_projectile_speed(projectile_type, context.game());
+        const auto projectile_time = distance / projectile_speed_norm;
+        const auto unit_path_length = get_time_delta.unit_speed_norm() * projectile_time;
         const auto projectile_radius = get_projectile_radius(projectile_type, context.game());
+
+        if (unit_path_length < projectile_radius) {
+            return (*this)(target, projectile_type, action_type);
+        }
+
         const auto precision = std::min(projectile_radius / distance * M_1_PI, INVERTED_PHI);
         const std::size_t iterations = std::ceil(std::log(precision) / std::log(INVERTED_PHI));
         const auto current_angle = normalize_angle((unit_position - my_position).absolute_rotation() - context.self().getAngle());
