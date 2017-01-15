@@ -630,7 +630,7 @@ TEST(GetOptimalPosition, for_me_with_low_life_and_minion_in_staff_range) {
         2, // Id
         1000 + self.getRadius() + GAME.getOrcWoodcutterAttackRange(), // X
         1000, // Y
-        -3, // SpeedX
+        0, // SpeedX
         0, // SpeedY
         M_PI, // Angle
         model::FACTION_RENEGADES, // Faction
@@ -664,8 +664,8 @@ TEST(GetOptimalPosition, for_me_with_low_life_and_minion_in_staff_range) {
     const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     const auto& target = world.getMinions()[0];
     const auto result = GetOptimalPosition<model::Minion>().target(&target).max_distance(1000)(context);
-    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 499.00020977775711);
-    EXPECT_EQ(result, Point(721.65768316332355, 657.97138986043603));
+    EXPECT_DOUBLE_EQ(result.distance(get_position(target)), 499.00141728047578);
+    EXPECT_EQ(result, Point(974.73597132503687, 1486.6664755541422));
 }
 
 TEST(GetOptimalPosition, for_me_with_full_life_and_enemy_building_with_inactive_cooldown) {
