@@ -63,7 +63,7 @@ public:
           last_idle_(get_remaining_action_cooldown_ticks(value) ? 0 : tick),
           last_action_(get_remaining_action_cooldown_ticks(value) ? tick : -1),
           last_move_(value.getSpeedX() || value.getSpeedY() ? tick : -1) {
-        speeds_.front() = Point(value.getSpeedX(), value.getSpeedY());
+        std::fill(speeds_.begin(), speeds_.end(), Point(value.getSpeedX(), value.getSpeedY()));
     }
 
     const Value& value() const {

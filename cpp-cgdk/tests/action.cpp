@@ -514,7 +514,7 @@ TEST(need_apply_action, magic_missile_for_me_and_enemy_minion_moving_in_front) {
 
     const auto result = need_apply_action(context, target, model::ACTION_MAGIC_MISSILE);
 
-    EXPECT_EQ(result, std::make_pair(true, strategy::Action(model::ACTION_MAGIC_MISSILE, 0.011803218035748051, 385.02786480846083, 1.7976931348623157e+308)));
+    EXPECT_EQ(result, std::make_pair(true, strategy::Action(model::ACTION_MAGIC_MISSILE, 0.07492121161816781, 386.12526925389329, 1.7976931348623157e+308)));
 }
 
 TEST(need_apply_action, magic_missile_for_me_and_enemy_minion_moving_at_back) {
