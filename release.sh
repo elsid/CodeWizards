@@ -40,6 +40,7 @@ cp cache.hpp ${DIR}
 cp circle.hpp ${DIR}
 cp common.hpp ${DIR}
 cp context.hpp ${DIR}
+cp damage.hpp ${DIR}
 cp golden_section.hpp ${DIR}
 cp graph.hpp ${DIR}
 cp helpers.hpp ${DIR}
