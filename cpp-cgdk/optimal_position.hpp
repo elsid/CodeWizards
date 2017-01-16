@@ -36,14 +36,11 @@ struct GetRangedDamage {
     Damage operator ()(const Unit& unit, const Point& position) const {
         const GetAttackRange get_attack_range {context};
         const GetMaxDamage get_damage {context};
-        const auto current_distance = position.distance(get_position(unit));
-        const auto future_distance = position.distance(get_position(unit) + get_speed(unit));
-        const auto distance = std::min(current_distance, future_distance);
+        const auto distance = position.distance(get_position(unit));
         const auto attack_range = get_attack_range(unit, distance) + context.self().getRadius();
-        const auto factor = attack_range >= current_distance || attack_range >= future_distance
+        const auto factor = distance <= attack_range
                 ? 1.0
-                : bounded_line_factor(std::min(current_distance, future_distance) - attack_range,
-                                      2 * context.self().getRadius(), 0);
+                : bounded_line_factor(distance - attack_range, 2 * context.self().getRadius(), 0);
         const auto damage = get_damage(unit, distance);
         return factor * damage;
     }
