@@ -237,10 +237,10 @@ public:
     }
 
     double get_borders_penalty(const Point& position) const {
-        const auto left = get_borders_factor(position.x());
-        const auto right = get_borders_factor(context.game().getMapSize() - position.x());
-        const auto top = get_borders_factor(position.y());
-        const auto bottom = get_borders_factor(context.game().getMapSize() - position.y());
+        const auto left = get_borders_factor(position.x() + context.self().getRadius() + 1);
+        const auto right = get_borders_factor(context.game().getMapSize() - position.x() - context.self().getRadius() - 1);
+        const auto top = get_borders_factor(position.y() + context.self().getRadius() + 1);
+        const auto bottom = get_borders_factor(context.game().getMapSize() - position.y() - context.self().getRadius() - 1);
         return std::max({left, right, top, bottom});
     }
 
@@ -686,8 +686,8 @@ private:
         return Minimize()
                 .initial_trust_region_radius(precision_)
                 .max_function_calls_count(max_function_calls_)
-                .lower_bound(Point(0, 0))
-                .upper_bound(Point(context.world().getWidth(), context.world().getHeight()))
+                .lower_bound(Point(context.self().getRadius() + 1, context.self().getRadius() + 1))
+                .upper_bound(Point(context.world().getWidth() - context.self().getRadius() - 1, context.world().getHeight() - context.self().getRadius() - 1))
                 (get_position(context.self()), function).second;
     }
 };
