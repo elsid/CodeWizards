@@ -98,20 +98,15 @@ struct GetUnitDangerPenalty {
 
     template <class T>
     double get_base(const T& unit, const Point& position, double sum_damage_to_me) const {
-        const auto my_bounds = make_unit_bounds(context.self(), context.game());
-        const auto time_to_position = get_position(context.self()).distance(position) / my_bounds.max_speed(0);
-        const auto& cached_unit = get_units<T>(context.cache()).at(unit.getId());
-        const auto unit_future_position = get_position(unit) + cached_unit.mean_speed() * time_to_position;
         const GetAttackRange get_attack_range {context};
-        const auto current_distance = position.distance(get_position(unit));
-        const auto future_distance = position.distance(unit_future_position);
-        const auto min_distance = std::min(current_distance, future_distance);
+        const auto unit_position = get_position(unit);
+        const auto distance = position.distance(unit_position);
         const auto distance_factor = double(context.self().getMaxLife()) / double(context.game().getGuardianTowerDamage())
                 * sum_damage_to_me / context.self().getLife()
                 * double(context.self().getMaxLife()) / double(context.self().getLife());
         const auto safe_distance = std::max(context.game().getStaffRange() + unit.getRadius() - 1,
-                2 * context.self().getRadius() + distance_factor * get_attack_range(unit, min_distance));
-        return line_factor(min_distance, safe_distance, 0);
+                2 * context.self().getRadius() + distance_factor * get_attack_range(unit, distance));
+        return line_factor(distance, safe_distance, 0);
     }
 };
 
