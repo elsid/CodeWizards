@@ -102,7 +102,7 @@ struct GetUnitDangerPenalty {
         const GetMaxDamage get_max_damage {context};
         const auto unit_position = get_position(unit);
         const auto distance = position.distance(unit_position);
-        const auto permissible_damage = std::max(1.0, get_max_damage(unit, distance).sum() - 1);
+        const auto permissible_damage = std::max(1.0, get_max_damage(unit, distance).sum());
         const auto distance_factor = double(context.self().getMaxLife()) / permissible_damage
                 * sum_damage_to_me / context.self().getLife()
                 * double(context.self().getMaxLife()) / double(context.self().getLife());

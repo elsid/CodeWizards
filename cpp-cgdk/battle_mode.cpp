@@ -22,7 +22,7 @@ void BattleMode::update_target(const Context& context) {
     }
 
     const auto max_distances = {
-        get_max_distance_for_tree_candidate(context),
+        context.game().getStaffRange(),
         get_max_distance_for_unit_candidate(context),
     };
 

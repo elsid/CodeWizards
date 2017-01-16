@@ -456,11 +456,11 @@ struct GetOptimalTarget {
 };
 
 double get_max_distance_for_tree_candidate(const Context& context) {
-    return 0.5 * (context.game().getStaffRange() + context.self().getRadius());
+    return 0.75 * context.game().getStaffRange();
 }
 
 double get_max_distance_for_neutral_minion_candidate(const Context& context) {
-    return context.self().getRadius() + context.game().getMinionRadius() + 1;
+    return 0.5 * context.game().getStaffRange();
 }
 
 double get_max_distance_for_unit_candidate(const Context& context) {
