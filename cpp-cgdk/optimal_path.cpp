@@ -25,7 +25,7 @@ bool operator <(const StepState& lhs, const StepState& rhs) {
 }
 
 bool has_intersection_with_borders(const Circle& circle, double map_size) {
-    const double delta = circle.radius() * 0.1;
+    const double delta = 1e-3;
     return circle.position().x() - circle.radius() <= delta
             || circle.position().y() - circle.radius() <= delta
             || circle.position().x() + circle.radius() - map_size >= delta
