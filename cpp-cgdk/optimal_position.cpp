@@ -28,7 +28,7 @@ double GetUnitIntersectionPenalty::operator ()(const model::Tree& unit, const Po
 
 double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, const Point& position) const {
     const auto distance = position.distance(get_position(unit));
-    const auto safe_distance = this->safe_distance(unit);
+    const auto safe_distance = get_safe_distance(unit);
     if (distance < safe_distance * 0.5) {
         return line_factor(distance, safe_distance, 0);
     } else {
@@ -37,10 +37,10 @@ double GetUnitIntersectionPenalty::increased(const model::CircularUnit& unit, co
 }
 
 double GetUnitIntersectionPenalty::base(const model::CircularUnit& unit, const Point& position) const {
-    return line_factor(position.distance(get_position(unit)), safe_distance(unit), 0);
+    return line_factor(position.distance(get_position(unit)), get_safe_distance(unit), 0);
 }
 
-double GetUnitIntersectionPenalty::safe_distance(const model::CircularUnit& unit) const {
+double GetUnitIntersectionPenalty::get_safe_distance(const model::CircularUnit& unit) const {
     return context.game().getStaffRange() + unit.getRadius();
 }
 
