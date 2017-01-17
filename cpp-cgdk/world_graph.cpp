@@ -124,7 +124,6 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(0) {
     center_ = get_node_id(tiles / 2 - 1, tiles / 2);
     friend_base_ = get_node_id(0, tiles - 1);
     enemy_base_ = get_node_id(tiles - 1, 0);
-    zone_size_ = 1.5 * resolution;
 }
 
 WorldGraph::Path WorldGraph::get_shortest_path(NodeId src, NodeId dst) const {

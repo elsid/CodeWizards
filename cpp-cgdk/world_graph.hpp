@@ -36,7 +36,6 @@ public:
     const Nodes& nodes() const { return nodes_; }
     const Matrix& arcs() const { return graph_.arcs(); }
     const LanesNodes& lanes_nodes() const { return lanes_nodes_; }
-    double zone_size() const { return zone_size_; }
     NodeId center() const { return center_; }
     NodeId friend_base() const { return friend_base_; }
     NodeId enemy_base() const { return enemy_base_; }
@@ -47,7 +46,6 @@ private:
     Graph graph_;
     Nodes nodes_;
     LanesNodes lanes_nodes_;
-    double zone_size_;
     NodeId center_;
     NodeId friend_base_;
     NodeId enemy_base_;
