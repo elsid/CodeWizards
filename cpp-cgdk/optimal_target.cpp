@@ -117,7 +117,7 @@ std::pair<model::ActionType, Tick> GetMaxDamage::next_attack_action(const model:
     Tick min_ticks = std::numeric_limits<int>::max();
     double max_damage = 0;
     for (const auto action : ATTACK_ACTIONS) {
-        const auto skill = ACTIONS_SKILLS.at(model::ActionType(action));
+        const auto skill = ACTIONS_SKILLS.at(action);
         if (skill == model::_SKILL_UNKNOWN_ || has_skill(unit, skill)) {
             const auto ticks = std::max(unit.getRemainingCooldownTicksByAction()[action], unit.getRemainingActionCooldownTicks());
             const auto damage = action_damage(action, unit).sum();

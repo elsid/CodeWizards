@@ -282,13 +282,12 @@ void DebugStrategy::visualize_unit(const Context& context, const model::Wizard& 
     visualize_unit_mean_life_change_speed(context, unit);
 
     for (int action = model::ACTION_STAFF, shift = 0; action < model::_ACTION_COUNT_; ++action) {
-        const auto a = model::ActionType(action);
-        const auto skill = ACTIONS_SKILLS.at(a);
+        const auto skill = ACTIONS_SKILLS.at(action);
         if (skill != model::_SKILL_UNKNOWN_ && !has_skill(unit, skill)) {
             continue;
         }
         debug_.text(unit.getX() + unit.getRadius() + 35 * (1 + shift), unit.getY() + unit.getRadius(),
-                    std::to_string(unit.getRemainingCooldownTicksByAction()[a]).c_str(), ACTIONS_COLORS.at(a));
+                    std::to_string(unit.getRemainingCooldownTicksByAction()[action]).c_str(), ACTIONS_COLORS.at(model::ActionType(action)));
         ++shift;
     }
 
