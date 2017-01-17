@@ -64,7 +64,6 @@ set(SOURCES
     move_mode.cpp
     battle_mode.cpp
     circle.cpp
-    helpers.cpp
     retreat_mode.cpp
     skills.cpp
     master_strategy.cpp

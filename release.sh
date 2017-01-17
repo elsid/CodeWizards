@@ -15,7 +15,6 @@ cp base_strategy.cpp ${DIR}
 cp battle_mode.cpp ${DIR}
 cp circle.cpp ${DIR}
 cp graph.cpp ${DIR}
-cp helpers.cpp ${DIR}
 cp master_strategy.cpp ${DIR}
 cp move_mode.cpp ${DIR}
 cp move_to_node.cpp ${DIR}
