@@ -14,7 +14,7 @@
 
 namespace strategy {
 
-WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
+WorldGraph::WorldGraph(const model::Game& game) : graph_(0) {
     const auto map_size = game.getMapSize();
     const auto resolution = map_size / 10;
     const auto half = resolution / 2;
@@ -71,6 +71,8 @@ WorldGraph::WorldGraph(const model::Game& game) : graph_(52) {
     add_node_to_lane(get_node_id(tiles - 2, tiles - 2), model::LANE_BOTTOM);
     add_node_to_lane(get_node_id(tiles / 2, tiles / 2), model::LANE_MIDDLE);
     add_node_to_lane(get_node_id(tiles / 2 - 1, tiles / 2 - 1), model::LANE_MIDDLE);
+
+    graph_ = Graph(nodes_.size());
 
     const auto add_arc = [&] (std::size_t src_x, std::size_t src_y, std::size_t dst_x, std::size_t dst_y) {
         graph_.arc(get_node_id(src_x, src_y), get_node_id(dst_x, dst_y),
