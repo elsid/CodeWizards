@@ -48,10 +48,6 @@ public:
         return std::atan2(y(), x());
     }
 
-    BasicPoint left_orthogonal() const {
-        return BasicPoint(-y(), x());
-    }
-
     BasicPoint<int> to_int() const {
         return BasicPoint<int>(int(std::round(x())), int(std::round(y())));
     }
