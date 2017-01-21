@@ -116,7 +116,8 @@ void Stats::fill(UnitsStats& stats) const {
     stats.target_casts_per_target_ticks_ = double(stats.target_casts_count) / double(stats.target_ticks_count ? stats.target_ticks_count : 1);
 }
 
-std::ostream& Stats::log(std::ostream& stream) const {
+template <class Stream>
+Stream& Stats::log(Stream& stream) const {
     log_hits_per_casts(stream);
     log_target_casts_per_target_ticks(stream);
     log_target_casts_per_ticks(stream);
@@ -140,7 +141,8 @@ std::ostream& operator <<(std::ostream& stream, const HitsPerCasts& value) {
         << value.stats.hits_per_casts_;
 }
 
-std::ostream& Stats::log_hits_per_casts(std::ostream& stream) const {
+template <class Stream>
+Stream& Stats::log_hits_per_casts(Stream& stream) const {
     return stream << "hits_per_casts"
         << " all: " << hits_count_ << "/" << casts_count_ << "=" << hits_per_casts_ << "; "
         << "buildings:" << HitsPerCasts {buildings_} << "; "
@@ -162,7 +164,8 @@ std::ostream& operator <<(std::ostream& stream, const TargetCastsPerTargetTicks&
         << value.stats.target_casts_per_target_ticks_ * 60;
 }
 
-std::ostream& Stats::log_target_casts_per_target_ticks(std::ostream& stream) const {
+template <class Stream>
+Stream& Stats::log_target_casts_per_target_ticks(Stream& stream) const {
     return stream << "target_casts_per_target_ticks"
         << " all: "
         << casts_count_ << "/"
@@ -176,7 +179,8 @@ std::ostream& Stats::log_target_casts_per_target_ticks(std::ostream& stream) con
         << '\n';
 }
 
-std::ostream& Stats::log_target_casts_per_ticks(std::ostream& stream) const {
+template <class Stream>
+Stream& Stats::log_target_casts_per_ticks(Stream& stream) const {
     return stream << "target_ticks_per_ticks"
         << " all: "
         << target_ticks_count_ << "/"
@@ -185,7 +189,8 @@ std::ostream& Stats::log_target_casts_per_ticks(std::ostream& stream) const {
         << '\n';
 }
 
-std::ostream& Stats::log_damage_to_me(std::ostream& stream) const {
+template <class Stream>
+Stream& Stats::log_damage_to_me(Stream& stream) const {
     return stream << "damage_to_me"
         << " value: " << last_damage_
         << " life: " << last_life_
@@ -193,7 +198,8 @@ std::ostream& Stats::log_damage_to_me(std::ostream& stream) const {
         << '\n';
 }
 
-std::ostream& Stats::log_deaths_count(std::ostream& stream) const {
+template <class Stream>
+Stream& Stats::log_deaths_count(Stream& stream) const {
     return stream << "death count: " << deaths_count_ << " tick: " << prev_tick_ + 1 << '\n';
 }
 

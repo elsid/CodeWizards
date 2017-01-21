@@ -4,10 +4,6 @@
 
 #include <iostream>
 
-#else
-
-#include <ostream>
-
 #endif
 
 namespace strategy {
@@ -46,7 +42,7 @@ constexpr Tick INACTIVE_TIMEOUT = 100;
 
 #else
 
-struct DevNull : public std::ostream {
+struct DevNull {
     static DevNull& instance() {
         static DevNull value;
         return value;

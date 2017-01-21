@@ -26,7 +26,6 @@ public:
 #endif
 
     void calculate(const Context& context);
-    std::ostream& log(std::ostream& stream) const;
 
 private:
     const BaseStrategy& base_strategy_;
@@ -53,11 +52,23 @@ private:
     int prev_tick_ = 0;
     int last_damage_ = 0;
 
-    std::ostream& log_hits_per_casts(std::ostream& stream) const;
-    std::ostream& log_target_casts_per_target_ticks(std::ostream& stream) const;
-    std::ostream& log_target_casts_per_ticks(std::ostream& stream) const;
-    std::ostream& log_damage_to_me(std::ostream& stream) const;
-    std::ostream& log_deaths_count(std::ostream& stream) const;
+    template <class Stream>
+    Stream& log(Stream& stream) const;
+
+    template <class Stream>
+    Stream& log_hits_per_casts(Stream& stream) const;
+
+    template <class Stream>
+    Stream& log_target_casts_per_target_ticks(Stream& stream) const;
+
+    template <class Stream>
+    Stream& log_target_casts_per_ticks(Stream& stream) const;
+
+    template <class Stream>
+    Stream& log_damage_to_me(Stream& stream) const;
+
+    template <class Stream>
+    Stream& log_deaths_count(Stream& stream) const;
 
     void fill(UnitsStats& stats) const;
 };
