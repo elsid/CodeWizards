@@ -34,17 +34,17 @@ TEST(has_intersection_with_borders, all) {
     EXPECT_TRUE(has_intersection_with_borders(Circle(Point(50, 90), 10), 100));
     EXPECT_TRUE(has_intersection_with_borders(Circle(Point(90, 90), 10), 100));
 
-    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 0.002, 10 + 0.002), 10), 100));
-    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(50, 10 + 0.002), 10), 100));
-    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 0.002, 10 + 0.002), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 2e-8, 10 + 2e-8), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(50, 10 + 2e-8), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 2e-8, 10 + 2e-8), 10), 100));
 
-    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 0.002, 50), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 2e-8, 50), 10), 100));
     EXPECT_FALSE(has_intersection_with_borders(Circle(Point(50, 50), 10), 100));
-    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 0.002, 50), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 2e-8, 50), 10), 100));
 
-    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 0.002, 90 - 0.002), 10), 100));
-    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(50, 90 - 0.002), 10), 100));
-    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 0.002, 90 - 0.002), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 2e-8, 90 - 2e-8), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(50, 90 - 2e-8), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 2e-8, 90 - 2e-8), 10), 100));
 }
 
 TEST(GetOptimalPath, with_only_me) {
