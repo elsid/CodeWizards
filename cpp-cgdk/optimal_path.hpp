@@ -87,6 +87,7 @@ private:
     std::vector<StepState>* steps_states_ = nullptr;
 };
 
+bool has_intersection_with_borders(const Circle& circle, double map_size);
 bool has_intersection_with_barriers(const Circle& barrier, const std::vector<Circle>& barriers);
 bool has_intersection_with_barriers(const Circle& barrier, const Point& final_position,
                                     const std::vector<Circle>& barriers);

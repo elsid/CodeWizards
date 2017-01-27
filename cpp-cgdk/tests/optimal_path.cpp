@@ -11,6 +11,42 @@ namespace tests {
 
 using namespace testing;
 
+TEST(has_intersection_with_borders, all) {
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(0, 0), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(50, 0), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(100, 0), 10), 100));
+
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(0, 50), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(100, 50), 10), 100));
+
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(0, 100), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(50, 100), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(100, 100), 10), 100));
+
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(10, 10), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(50, 10), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(90, 10), 10), 100));
+
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(10, 50), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(90, 50), 10), 100));
+
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(10, 90), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(50, 90), 10), 100));
+    EXPECT_TRUE(has_intersection_with_borders(Circle(Point(90, 90), 10), 100));
+
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 0.002, 10 + 0.002), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(50, 10 + 0.002), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 0.002, 10 + 0.002), 10), 100));
+
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 0.002, 50), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(50, 50), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 0.002, 50), 10), 100));
+
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(10 + 0.002, 90 - 0.002), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(50, 90 - 0.002), 10), 100));
+    EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 0.002, 90 - 0.002), 10), 100));
+}
+
 TEST(GetOptimalPath, with_only_me) {
     const model::World world(
         0, // TickIndex

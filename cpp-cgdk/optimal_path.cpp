@@ -26,10 +26,11 @@ bool operator <(const StepState& lhs, const StepState& rhs) {
 
 bool has_intersection_with_borders(const Circle& circle, double map_size) {
     const double delta = 1e-3;
-    return circle.position().x() - circle.radius() <= delta
-            || circle.position().y() - circle.radius() <= delta
-            || circle.position().x() + circle.radius() - map_size >= delta
-            || circle.position().y() + circle.radius() - map_size >= delta;
+    const auto left = circle.position().x() - circle.radius();
+    const auto top = circle.position().y() - circle.radius();
+    const auto right = map_size - circle.radius() - circle.position().x();
+    const auto bottom = map_size - circle.radius() - circle.position().y();
+    return left <= delta || top <= delta || right <= delta || bottom <= delta;
 }
 
 bool has_intersection_with_barriers(const Circle& barrier, const std::vector<Circle>& barriers) {
