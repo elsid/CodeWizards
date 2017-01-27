@@ -87,7 +87,7 @@ private:
     const Tick max_ticks;
     const std::size_t max_iterations;
     const Point initial_position = get_position(context.self());
-    const Point global_shift = initial_position.to_int().to_double() - initial_position;
+    const Point global_shift = initial_position - initial_position.to_int().to_double();
     const PointInt initial_position_int = (initial_position - global_shift).to_int();
     const double max_range = target.distance(initial_position) + step_size;
     const double speed = (context.game().getWizardForwardSpeed() + context.game().getWizardBackwardSpeed()
@@ -319,8 +319,9 @@ Path GetOptimalPathImpl::operator ()() {
 
         const StepState step_state = queue.top();
         const TickState& tick_state = ticks_states.at(step_state.tick());
+        const auto distance_to_target = step_state.position().distance(target_int);
 
-        if (shifted(step_state.position()).distance(target) <= tick_state.max_distance_error()) {
+        if (step_state.position() == target_int || distance_to_target <= tick_state.max_distance_error()) {
             final_state = step_state;
             break;
         }

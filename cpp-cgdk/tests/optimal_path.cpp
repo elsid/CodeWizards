@@ -85,6 +85,56 @@ TEST(GetOptimalPath, with_only_me_with_shift) {
     EXPECT_EQ(result, Path({get_position(self), target}));
 }
 
+TEST(GetOptimalPath, with_only_me_from_position_near_border) {
+    const model::Wizard self(
+        1, // Id
+        35.01, // X
+        35.01, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(self, world, GAME,move, cache, cache, profiler, Duration::max());
+    const Point target(1000, 1000);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
+    EXPECT_EQ(result, Path({get_position(self), target}));
+}
+
 TEST(GetOptimalPath, with_only_me_to_my_position) {
     const model::World world(
         0, // TickIndex
