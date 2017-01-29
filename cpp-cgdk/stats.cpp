@@ -101,7 +101,7 @@ void Stats::calculate(const Context& context) {
         log_damage_to_me(SLOG(context));
     }
 
-    if (prev_tick_ && prev_tick_ != last_tick_ - 1) {
+    if (prev_tick_ && last_tick_ - prev_tick_ >= context.game().getWizardMinResurrectionDelayTicks()) {
         ++deaths_count_;
         log_deaths_count(SLOG(context));
     }
