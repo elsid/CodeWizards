@@ -30,8 +30,9 @@ void MoveToPosition::calculate_movements(const Context& context) {
     ticks_states_.clear();
     steps_states_.clear();
 #endif
+    const auto bounds = make_unit_bounds(context.self(), context.game());
     path_ = GetOptimalPath()
-            .step_size(OPTIMAL_PATH_STEP_SIZE)
+            .step_size(bounds.max_speed(0) + 1)
             .max_ticks(OPTIMAL_PATH_MAX_TICKS)
             .max_iterations(OPTIMAL_PATH_MAX_ITERATIONS)
 #ifdef ELSID_STRATEGY_DEBUG

@@ -47,6 +47,23 @@ TEST(has_intersection_with_borders, all) {
     EXPECT_FALSE(has_intersection_with_borders(Circle(Point(90 - 2e-8, 90 - 2e-8), 10), 100));
 }
 
+TEST(get_tangent_points, all) {
+    EXPECT_EQ(get_tangent_points(Circle(Point(10, 1), 1), Point(0, 0)),
+              std::make_pair(Point(9.8019801980198018, 1.9801980198019802), Point(10, 0)));
+
+    EXPECT_EQ(get_tangent_points(Circle(Point(10, -1), 1), Point(0, 0)),
+              std::make_pair(Point(10, 0), Point(9.8019801980198018, -1.9801980198019802)));
+
+    EXPECT_EQ(get_tangent_points(Circle(Point(1, 10), 1), Point(0, 0)),
+              std::make_pair(Point(0, 10), Point(1.9801980198019802, 9.8019801980198018)));
+
+    EXPECT_EQ(get_tangent_points(Circle(Point(-1, 10), 1), Point(0, 0)),
+              std::make_pair(Point(-1.9801980198019802, 9.8019801980198018), Point(0, 10)));
+
+    EXPECT_EQ(get_tangent_points(Circle(Point(110, 101), 1), Point(100, 100)),
+              std::make_pair(Point(109.8019801980198018, 101.9801980198019802), Point(110, 100)));
+}
+
 TEST(GetOptimalPath, with_only_me) {
     const model::World world(
         0, // TickIndex
@@ -254,7 +271,7 @@ TEST(GetOptimalPath, with_static_barrier) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 29u);
+    ASSERT_EQ(result.size(), 8u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -332,7 +349,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 33u);
+    ASSERT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -410,7 +427,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_opposite_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 4u);
+    ASSERT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -488,7 +505,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_crossing_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 11u);
+    ASSERT_EQ(result.size(), 3u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -553,9 +570,9 @@ TEST(GetOptimalPath, with_static_occupier) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 61u);
+    ASSERT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
-    EXPECT_EQ(result.back(), target - Point(20, 35));
+    EXPECT_EQ(result.back(), Point(1169.7105516901372, 1226.4491837508108));
 }
 
 TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
@@ -618,9 +635,9 @@ TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3).max_iterations(50)(context, target);
-    ASSERT_EQ(result.size(), 50u);
+    ASSERT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
-    EXPECT_EQ(result.back(), target - Point(53, 56));
+    EXPECT_EQ(result.back(), Point(1169.7105516901372, 1226.4491837508108));
 }
 
 }

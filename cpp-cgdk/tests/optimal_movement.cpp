@@ -286,12 +286,12 @@ TEST(get_optimal_movement, with_static_barriers) {
     MovementsStates states;
     Movements movements;
     std::tie(states, movements) = get_optimal_movement(context, path, look_target);
-    ASSERT_EQ(states.size(), 80u);
+    ASSERT_EQ(states.size(), 78u);
     EXPECT_EQ(states.front(), MovementState(0, get_position(self), self.getAngle()));
-    EXPECT_EQ(states.back(), MovementState(79, target, 0.97911486513429558));
-    ASSERT_EQ(movements.size(), 79u);
-    EXPECT_EQ(movements.front(), Movement(3.5777087639996634, 1.3416407864998738, 0.10471999999999999));
-    EXPECT_EQ(movements.back(), Movement(0.76249861542367225, -6.1649531777595502e-14, -1.078026556911027e-13));
+    EXPECT_EQ(states.back(), MovementState(77, target, 0.59149612654734007));
+    ASSERT_EQ(movements.size(), 77u);
+    EXPECT_EQ(movements.front(), Movement(0.72563173055313335, 2.9502237979148527, 0.10471999999999999));
+    EXPECT_EQ(movements.back(), Movement(2.2459064096482266, 4.6191291057355197e-14, 2.7422508708241367e-14));
 }
 
 }

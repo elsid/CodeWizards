@@ -16,7 +16,9 @@
 namespace strategy {
 
 bool Circle::has_intersection(const Circle& circle, double max_error) const {
-    return position_.distance(circle.position_) <= radius_ + circle.radius_ + max_error;
+    const auto distance = position_.distance(circle.position_);
+    const auto min_distance = radius_ + circle.radius_ + max_error;
+    return distance < min_distance;
 }
 
 bool Circle::has_intersection(const Line& line, double max_error) const {

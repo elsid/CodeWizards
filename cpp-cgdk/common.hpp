@@ -27,8 +27,7 @@ private:
 };
 
 constexpr Tick MESSAGE_TICKS = 20000;
-constexpr int OPTIMAL_PATH_STEP_SIZE = 5;
-constexpr Tick OPTIMAL_PATH_MAX_TICKS = 50;
+constexpr Tick OPTIMAL_PATH_MAX_TICKS = 100;
 constexpr Tick OPTIMAL_PATH_MAX_ITERATIONS = 1000;
 constexpr double OPTIMAL_POSITION_PRECISION = 1e-3;
 constexpr long OPTIMAL_POSITION_MINIMIZE_MAX_FUNCTION_CALLS = 1000;

@@ -141,7 +141,7 @@ TEST(simulation, wizard_try_evade_projectile_and_fail) {
     const auto updated_projectile = std::find_if(world.getProjectiles().begin(), world.getProjectiles().end(),
         [&] (const auto& v) { return v.getId() == projectile.getId(); });
 
-    EXPECT_EQ(get_position(self), Point(1003.2034343955615, 2039.151695824846));
+    EXPECT_EQ(get_position(self), Point(1007.1735815460353, 2039.5746567240087));
     EXPECT_EQ(self.getLife(), 99);
     EXPECT_EQ(updated_projectile, world.getProjectiles().end());
 }
@@ -300,7 +300,7 @@ TEST(simulation, wizard_apply_cast_action_to_other_and_hit) {
     MyStrategy active_wizard_strategy;
     MyStrategy passive_wizard_strategy;
 
-    for (int i = 0; i < 13; ++i) {
+    for (int i = 0; i < 14; ++i) {
         model::Move active_wizard_move;
 
         active_wizard = *std::find_if(world.getWizards().begin(), world.getWizards().end(),
@@ -320,8 +320,8 @@ TEST(simulation, wizard_apply_cast_action_to_other_and_hit) {
         simulator.next_tick();
     }
 
-    EXPECT_EQ(get_position(active_wizard), Point(1046.7676806458851, 2000.4635963779242));
-    EXPECT_EQ(get_position(passive_wizard), Point(1509.3487790879963, 2033.9070204725247));
+    EXPECT_EQ(get_position(active_wizard), Point(1045.2462041546494, 1999.5521338364892));
+    EXPECT_EQ(get_position(passive_wizard), Point(1514.1268177486875, 2038.6877523657579));
     EXPECT_EQ(passive_wizard.getLife(), 88);
 }
 
@@ -390,7 +390,7 @@ TEST(simulation, wizard_and_minion) {
     MyStrategy wizard_strategy;
     MinionStrategy minion_strategy;
 
-    for (int i = 0; i < 494; ++i) {
+    for (int i = 0; i < 481; ++i) {
         model::Move wizard_move;
 
         wizard = *std::find_if(world.getWizards().begin(), world.getWizards().end(),
@@ -416,7 +416,7 @@ TEST(simulation, wizard_and_minion) {
         simulator.next_tick();
     }
 
-    EXPECT_EQ(get_position(wizard), Point(41.56835930601526, 1809.4691376239236));
+    EXPECT_EQ(get_position(wizard), Point(41.146940732030792, 1676.2096030634159));
 
     const auto minion_it = std::find_if(world.getMinions().begin(), world.getMinions().end(),
             [&] (const auto& v) { return v.getId() == minion.getId(); });

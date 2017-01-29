@@ -64,6 +64,10 @@ public:
         return to_double() / norm();
     }
 
+    BasicPoint left_orhtogonal() const {
+        return BasicPoint(-y(), x());
+    }
+
 private:
     Value x_;
     Value y_;

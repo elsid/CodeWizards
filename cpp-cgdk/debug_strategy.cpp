@@ -419,13 +419,18 @@ void DebugStrategy::visualize_ticks_states(const Context&) {
     const auto norm = last_tick - first_tick;
 
     for (const auto& step_state : steps_states) {
-        const auto& ticks_state = ticks_states.at(step_state.tick());
+        const auto ticks_state = ticks_states.find(std::round(step_state.tick()));
+
+        if (ticks_state == ticks_states.end()) {
+            continue;
+        }
+
         const auto heat = (step_state.tick() - first_tick) / (norm ? norm : 1);
         const auto color = get_color(heat);
 
-        for (const auto dynamic_barrier : ticks_state.dynamic_barriers()) {
-            const auto& circle = dynamic_barrier.first;
-            const auto& next_position = dynamic_barrier.second;
+        for (const auto dynamic_barrier : ticks_state->second.dynamic_barriers()) {
+            const auto& circle = dynamic_barrier.circle;
+            const auto& next_position = dynamic_barrier.target;
             debug_.circle(next_position.x(), next_position.y(), circle.radius(), color);
             debug_.line(circle.position().x(), circle.position().y(), next_position.x(), next_position.y(), color);
         }

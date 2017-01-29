@@ -28,7 +28,7 @@ public:
         return movement_;
     }
 
-    const std::map<double, TickState>& ticks_states() const {
+    const std::map<int, TickState>& ticks_states() const {
         return ticks_states_;
     }
 
@@ -44,7 +44,7 @@ private:
     Movements movements_;
     MovementsStates::const_iterator state_;
     Movements::const_iterator movement_;
-    std::map<double, TickState> ticks_states_;
+    std::map<int, TickState> ticks_states_;
     std::vector<StepState> steps_states_;
 
     void calculate_movements(const Context& context);

@@ -45,7 +45,7 @@ public:
         return *mode_;
     }
 
-    const std::map<double, TickState>& ticks_states() const {
+    const std::map<int, TickState>& ticks_states() const {
         return move_to_position_.ticks_states();
     }
 
