@@ -20,6 +20,9 @@ def print_stats(test_path):
             continue
         with open(result_path) as f:
             lines = [v for v in f]
+            if len(lines) < 3:
+                print('%s contains less than 3 lines: %s' % (result_path, len(lines)))
+                continue
             my_position, my_score, my_result = lines[2].strip().split()
             results[my_result] += 1
             positions[int(my_position)] += 1
