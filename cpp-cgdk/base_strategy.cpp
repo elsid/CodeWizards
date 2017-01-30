@@ -147,13 +147,11 @@ void BaseStrategy::select_mode(const Context& context) {
 void BaseStrategy::apply_mode(const Context& context) {
     const auto result = mode_->apply(context);
 
-    if (result.active()) {
+    if (result.active() && (result.destination() != destination_ || result.target() != target_)) {
         target_ = result.target();
-        if (result.destination() != destination_) {
-            destination_ = result.destination();
-            move_to_position_ = MoveToPosition(context, destination_, target_);
-            return;
-        }
+        destination_ = result.destination();
+        move_to_position_ = MoveToPosition(context, destination_, target_);
+        return;
     }
 
     move_to_position_.next(context);

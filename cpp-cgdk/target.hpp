@@ -23,6 +23,8 @@ Id<T> get_id(const T& unit) {
 }
 
 class Target {
+    friend bool operator !=(const Target& lhs, const Target& rhs);
+
 public:
     template <class T>
     using Pair = std::pair<bool, Id<T>>;
@@ -123,5 +125,9 @@ private:
         std::pair<bool, Id<model::Tree>>
     > ids_;
 };
+
+inline bool operator !=(const Target& lhs, const Target& rhs) {
+    return lhs.ids_ != rhs.ids_;
+}
 
 }

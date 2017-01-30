@@ -103,6 +103,7 @@ add_executable(cpp-cgdk-tests
     tests/optimal_position.cpp
     tests/optimal_target.cpp
     tests/simulation.cpp
+    tests/target.cpp
 )
 
 target_link_libraries(cpp-cgdk-tests

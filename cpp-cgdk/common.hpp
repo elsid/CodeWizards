@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #if defined(ELSID_STRATEGY_DEBUG) || defined(ELSID_STRATEGY_DEBUG_LOG)
 
 #include <iostream>
@@ -25,6 +27,16 @@ public:
 private:
     UnitId value_;
 };
+
+template <class Lhs, class Rhs>
+inline typename std::enable_if<!std::is_same<Lhs, Rhs>::value, bool>::type operator ==(Id<Lhs>, Id<Rhs>) {
+    return false;
+}
+
+template <class Lhs, class Rhs>
+inline typename std::enable_if<std::is_same<Lhs, Rhs>::value, bool>::type operator ==(Id<Lhs> lhs, Id<Rhs> rhs) {
+    return lhs.value() == rhs.value();
+}
 
 constexpr Tick MESSAGE_TICKS = 20000;
 constexpr Tick OPTIMAL_PATH_MAX_TICKS = 100;
