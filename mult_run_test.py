@@ -52,12 +52,12 @@ for run in range(args.number):
     finish = time()
     with open(result_path) as f:
         lines = [v for v in f]
-        if len(lines) < 3:
-            print('%s contains less than 3 lines: %s' % (result_path, len(lines)))
+        if len(lines) < 5:
+            print('%s contains less than 5 lines: %s' % (result_path, len(lines)))
         else:
             result = lines[0].strip()
             seed = lines[1].strip()
-            my_position, my_score, my_result = lines[2].strip().split()
+            my_position, my_score, my_result = lines[4].strip().split()
             print('finished %s in %s seconds' % (' '.join((result, seed, my_position, my_score, my_result)), finish - start))
     print_stats(test_path)
 print_stats(test_path)
