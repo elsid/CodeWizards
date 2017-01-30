@@ -64,8 +64,6 @@ void BaseStrategy::apply(Context &context) {
     apply_action(context);
     context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
     learn_skills(context);
-    context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
-    update_movements(context);
 }
 
 void BaseStrategy::handle_messages(const Context& context) {
@@ -154,11 +152,10 @@ void BaseStrategy::apply_mode(const Context& context) {
         if (result.destination() != destination_) {
             destination_ = result.destination();
             move_to_position_ = MoveToPosition(context, destination_, target_);
+            return;
         }
     }
-}
 
-void BaseStrategy::update_movements(const Context& context) {
     move_to_position_.next(context);
 }
 

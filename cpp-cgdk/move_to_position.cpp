@@ -9,19 +9,17 @@ MoveToPosition::MoveToPosition(const Context& context, const Point& destination,
 }
 
 void MoveToPosition::next(const Context& context) {
-    bool is_error = true;
-
-    if (movement_ != movements_.end() && state_ != states_.end()) {
-        const auto error = state_->position().distance(get_position(context.self())) - context.game().getWizardForwardSpeed();
-        if (error <= 0) {
-            ++movement_;
-            ++state_;
-            is_error = false;
-        }
+    if (movement_ == movements_.end() || state_ == states_.end() || ++state_ == states_.end() || ++movement_ == movements_.end()) {
+        calculate_movements(context);
+        return;
     }
 
-    if (is_error || movement_ == movements_.end() || state_ == states_.end()) {
+    const auto error = state_->position().distance(get_position(context.self()));
+
+    if (error > 1e-3) {
+        SLOG(context) << "calculate_movements reason: error > 0, where error=" << error << '\n';
         calculate_movements(context);
+        return;
     }
 }
 

@@ -73,7 +73,6 @@ private:
     void handle_messages(const Context& context);
     void select_mode(const Context& context);
     void apply_mode(const Context& context);
-    void update_movements(const Context& context);
     void apply_move(Context& context) const;
     void apply_action(Context& context) const;
     bool apply_action(Context& context, const Target& target) const;
