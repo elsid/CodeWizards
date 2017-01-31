@@ -66,6 +66,7 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
             strategy_ = std::make_unique<strategy::TimeLimitedStrategy>(std::move(strategy_));
 #endif
 #endif
+            SLOG(context) << "id=" << self.getId() << " is_master=" << std::boolalpha << self.isMaster() << '\n';
         }
         strategy_->apply(context);
         if (move.getSkillToLearn() != model::_SKILL_UNKNOWN_) {
