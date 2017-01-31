@@ -67,7 +67,7 @@ DevNull& operator <<(DevNull& stream, const T&) {
     return stream;
 }
 
-#define SLOG(context) ((void) context, DevNull::instance())
+#define SLOG(context) ((void) context, strategy::DevNull::instance())
 
 #endif
 
