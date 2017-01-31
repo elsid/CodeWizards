@@ -91,6 +91,8 @@ std::pair<bool, Action> need_apply_status(const Context& context, model::StatusT
         if (unit.getFaction() == context.self().getFaction()
                 && !unit.isMe()
                 && get_position(unit).distance(my_position) <= context.self().getCastRange()
+                && std::abs(normalize_angle((get_position(unit) - get_position(context.self())).absolute_rotation())
+                            - normalize_angle(context.self().getAngle())) <= M_PI / 12
                 && !is_with_status(unit, status)
                 && (!target || unit.getLife() < target->getLife())) {
             target = &unit;
