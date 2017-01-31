@@ -171,6 +171,8 @@ const std::array<int, model::_SKILL_COUNT_> HASTE_SKILLS_PRIORITIES = {{
     1, // SKILL_SHIELD
 }};
 
+const std::array<int, model::_SKILL_COUNT_>& DEFAULT_SKILLS_PRIORITIES = FIRE_SKILLS_PRIORITIES;
+
 std::array<const std::array<int, model::_SKILL_COUNT_>, model::_SKILL_COUNT_> SPECIALIZATIONS = {{
     FROST_SKILLS_PRIORITIES,
     RANGE_SKILLS_PRIORITIES,
@@ -218,7 +220,7 @@ model::SkillType get_next_skill_to_learn(const model::Wizard& unit, model::Skill
 }
 
 model::SkillType get_skill_to_learn(const Context& context, model::SkillType skill_from_message) {
-    auto skills_priorities = FROST_SKILLS_PRIORITIES;
+    auto skills_priorities = DEFAULT_SKILLS_PRIORITIES;
 
     for (const auto skill : context.self().getSkills()) {
         skills_priorities[skill] = 0;
