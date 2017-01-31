@@ -4,26 +4,6 @@
 #include <iostream>
 #include <iterator>
 
-namespace model {
-
-inline std::ostream& operator <<(std::ostream& stream, LaneType value) {
-    switch (value) {
-        case _LANE_UNKNOWN_:
-            return stream << "model::_LANE_UNKNOWN_";
-        case LANE_TOP:
-            return stream << "model::LANE_TOP";
-        case LANE_MIDDLE:
-            return stream << "model::LANE_MIDDLE";
-        case LANE_BOTTOM:
-            return stream << "model::LANE_BOTTOM";
-        case _LANE_COUNT_:
-            return stream << "model::_LANE_COUNT_";
-    }
-    return stream;
-}
-
-}
-
 namespace strategy {
 
 std::ostream& operator <<(std::ostream& stream, const std::vector<WorldGraph::Node>& value) {

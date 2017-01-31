@@ -1,5 +1,6 @@
 #pragma once
 
+#include "model/ActionType.h"
 #include "model/World.h"
 #include "model/Game.h"
 
@@ -12,6 +13,46 @@ namespace strategy {
 
 template <class T>
 std::ostream& operator <<(std::ostream& stream, const std::vector<T>& values);
+
+inline std::ostream& operator <<(std::ostream& stream, model::LaneType value) {
+    switch (value) {
+        case model::_LANE_UNKNOWN_:
+            return stream << "model::_LANE_UNKNOWN_";
+        case model::LANE_TOP:
+            return stream << "model::LANE_TOP";
+        case model::LANE_MIDDLE:
+            return stream << "model::LANE_MIDDLE";
+        case model::LANE_BOTTOM:
+            return stream << "model::LANE_BOTTOM";
+        case model::_LANE_COUNT_:
+            return stream << "model::_LANE_COUNT_";
+    }
+    return stream;
+}
+
+inline std::ostream& operator <<(std::ostream& stream, model::ActionType value) {
+    switch (value) {
+        case model::_ACTION_UNKNOWN_:
+            return stream << "model::_ACTION_UNKNOWN_";
+        case model::ACTION_NONE:
+            return stream << "model::ACTION_NONE";
+        case model::ACTION_STAFF:
+            return stream << "model::ACTION_STAFF";
+        case model::ACTION_MAGIC_MISSILE:
+            return stream << "model::ACTION_MAGIC_MISSILE";
+        case model::ACTION_FROST_BOLT:
+            return stream << "model::ACTION_FROST_BOLT";
+        case model::ACTION_FIREBALL:
+            return stream << "model::ACTION_FIREBALL";
+        case model::ACTION_HASTE:
+            return stream << "model::ACTION_HASTE";
+        case model::ACTION_SHIELD:
+            return stream << "model::ACTION_SHIELD";
+        case model::_ACTION_COUNT_:
+            return stream << "model::_ACTION_COUNT_";
+    }
+    return stream;
+}
 
 inline std::ostream& operator <<(std::ostream& stream, const model::Bonus& value) {
     stream << "model::Bonus(\n";

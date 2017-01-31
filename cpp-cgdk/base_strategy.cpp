@@ -14,30 +14,6 @@
 
 namespace strategy {
 
-std::ostream& operator <<(std::ostream& stream, model::ActionType value) {
-    switch (value) {
-        case model::_ACTION_UNKNOWN_:
-            return stream << "model::_ACTION_UNKNOWN_";
-        case model::ACTION_NONE:
-            return stream << "model::ACTION_NONE";
-        case model::ACTION_STAFF:
-            return stream << "model::ACTION_STAFF";
-        case model::ACTION_MAGIC_MISSILE:
-            return stream << "model::ACTION_MAGIC_MISSILE";
-        case model::ACTION_FROST_BOLT:
-            return stream << "model::ACTION_FROST_BOLT";
-        case model::ACTION_FIREBALL:
-            return stream << "model::ACTION_FIREBALL";
-        case model::ACTION_HASTE:
-            return stream << "model::ACTION_HASTE";
-        case model::ACTION_SHIELD:
-            return stream << "model::ACTION_SHIELD";
-        case model::_ACTION_COUNT_:
-            return stream << "model::_ACTION_COUNT_";
-    }
-    return stream;
-}
-
 BaseStrategy::BaseStrategy(const Context& context)
         : graph_(context.game()),
           battle_mode_(std::make_shared<BattleMode>()),

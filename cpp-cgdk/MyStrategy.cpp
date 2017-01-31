@@ -8,8 +8,6 @@
 
 #include "debug_strategy.hpp"
 
-#include "debug/output.hpp"
-
 #elif !defined(ELSID_STRATEGY_BASE)
 
 #include "time_limited_strategy.hpp"

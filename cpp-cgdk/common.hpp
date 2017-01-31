@@ -4,6 +4,8 @@
 
 #if defined(ELSID_STRATEGY_DEBUG) || defined(ELSID_STRATEGY_DEBUG_LOG)
 
+#include "debug/output.hpp"
+
 #include <iostream>
 
 #endif
