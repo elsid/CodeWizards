@@ -68,6 +68,9 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
 #endif
         }
         strategy_->apply(context);
+        if (move.getSkillToLearn() != model::_SKILL_UNKNOWN_) {
+            SLOG(context) << "skill_to_learn " << move.getSkillToLearn() << '\n';
+        }
 #ifndef ELSID_STRATEGY_DEBUG
     } catch (const std::exception& exception) {
 #ifdef ELSID_STRATEGY_LOCAL
