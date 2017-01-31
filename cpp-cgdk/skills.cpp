@@ -257,18 +257,18 @@ model::SkillType get_skill_to_recommend(const model::Wizard& wizard, Specializat
 }
 
 const std::array<Specialization, 5> FIRE_FROST_SHIELD_SPECIALIZATIONS_DISTRIBUTION = {{
+    Specialization::SHIELD, // master
     Specialization::FIRE,
     Specialization::FROST,
-    Specialization::SHIELD,
-    Specialization::FROST,
+    Specialization::FIRE,
     Specialization::FIRE,
 }};
 
 const std::array<Specialization, 5> FIRE_FROST_SPECIALIZATIONS_DISTRIBUTION = {{
+    Specialization::FIRE, // master
     Specialization::FIRE,
     Specialization::FROST,
     Specialization::FIRE,
-    Specialization::FROST,
     Specialization::FIRE,
 }};
 
