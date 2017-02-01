@@ -140,7 +140,7 @@ public:
     static constexpr double PROJECTILE_PENALTY_WEIGHT = 1.3;
     static constexpr double FRIENDLY_FIRE_PENALTY_WEIGHT = 0.1;
     static constexpr double TARGET_PENALTY_WEIGHT = 0.05;
-    static constexpr double BORDERS_PENALTY_WEIGHT = 2;
+    static constexpr double BORDERS_PENALTY_WEIGHT = 1.4;
     static constexpr double ELIMINATION_SCORE_WEIGHT = 1;
     static constexpr double FRIEND_WIZARDS_DISTANCE_PENALTY_WEIGHT = 0.1;
     static constexpr double SURROUND_PENALTY_WEIGHT = 0.75;
@@ -237,10 +237,10 @@ public:
     }
 
     double get_borders_penalty(const Point& position) const {
-        const auto left = get_borders_factor(position.x() + context.self().getRadius() + 1);
-        const auto right = get_borders_factor(context.game().getMapSize() - position.x() - context.self().getRadius() - 1);
-        const auto top = get_borders_factor(position.y() + context.self().getRadius() + 1);
-        const auto bottom = get_borders_factor(context.game().getMapSize() - position.y() - context.self().getRadius() - 1);
+        const auto left = get_borders_factor(position.x());
+        const auto right = get_borders_factor(context.game().getMapSize() - position.x());
+        const auto top = get_borders_factor(position.y());
+        const auto bottom = get_borders_factor(context.game().getMapSize() - position.y());
         return std::max({left, right, top, bottom});
     }
 
@@ -484,7 +484,7 @@ private:
     }
 
     double get_borders_factor(double distance) const {
-        return line_factor(distance, 2 * context.self().getRadius(), 0);
+        return line_factor(distance, 2 * context.self().getRadius() + 1, context.self().getRadius() + 1);
     }
 
     template <class Unit>

@@ -141,7 +141,7 @@ TEST(simulation, wizard_try_evade_projectile_and_fail) {
     const auto updated_projectile = std::find_if(world.getProjectiles().begin(), world.getProjectiles().end(),
         [&] (const auto& v) { return v.getId() == projectile.getId(); });
 
-    EXPECT_EQ(get_position(self), Point(1007.1735815460353, 2039.5746567240087));
+    EXPECT_EQ(get_position(self), Point(1009.6435014638267, 2039.6136750734829));
     EXPECT_EQ(self.getLife(), 99);
     EXPECT_EQ(updated_projectile, world.getProjectiles().end());
 }
@@ -220,7 +220,7 @@ TEST(simulation, wizard_try_evade_projectile_and_succeed) {
     const auto updated_projectile = std::find_if(world.getProjectiles().begin(), world.getProjectiles().end(),
         [&] (const auto& v) { return v.getId() == projectile.getId(); });
 
-    EXPECT_EQ(get_position(self), Point(1008.315504368285, 2051.1340546153483));
+    EXPECT_EQ(get_position(self), Point(1010.5797861657641, 2051.0584730715514));
     EXPECT_EQ(self.getLife(), 100);
     ASSERT_NE(updated_projectile, world.getProjectiles().end());
     EXPECT_EQ(get_position(*updated_projectile), Point(980, 2000));
@@ -320,15 +320,15 @@ TEST(simulation, wizard_apply_cast_action_to_other_and_hit) {
         simulator.next_tick();
     }
 
-    EXPECT_EQ(get_position(active_wizard), Point(1045.2462041546494, 1999.5521338364892));
-    EXPECT_EQ(get_position(passive_wizard), Point(1514.1268177486875, 2038.6877523657579));
+    EXPECT_EQ(get_position(active_wizard), Point(1051.9858107278924, 1999.7594910447128));
+    EXPECT_EQ(get_position(passive_wizard), Point(1500.199263066286, 2019.1841657797138));
     EXPECT_EQ(passive_wizard.getLife(), 88);
 }
 
 TEST(simulation, wizard_and_minion) {
     model::Wizard wizard(
         1, // Id
-        1000, // X
+        1200, // X
         2000, // Y
         0, // SpeedX
         0, // SpeedY
@@ -355,7 +355,7 @@ TEST(simulation, wizard_and_minion) {
 
     model::Minion minion(
         1, // Id
-        1000 + 300, // X
+        1500, // X
         2000, // Y
         0, // SpeedX
         0, // SpeedY
@@ -416,7 +416,7 @@ TEST(simulation, wizard_and_minion) {
         simulator.next_tick();
     }
 
-    EXPECT_EQ(get_position(wizard), Point(41.146940732030792, 1676.2096030634159));
+    EXPECT_EQ(get_position(wizard), Point(43.67857980603678, 2016.9608229177347));
 
     const auto minion_it = std::find_if(world.getMinions().begin(), world.getMinions().end(),
             [&] (const auto& v) { return v.getId() == minion.getId(); });
