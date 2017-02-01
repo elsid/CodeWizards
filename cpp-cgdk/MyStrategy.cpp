@@ -70,6 +70,7 @@ void MyStrategy::move(const model::Wizard& self, const model::World& world, cons
         }
         strategy_->apply(context);
         if (move.getSkillToLearn() != model::_SKILL_UNKNOWN_) {
+            using strategy::operator <<;
             SLOG(context) << "skill_to_learn " << move.getSkillToLearn() << '\n';
         }
 #ifndef ELSID_STRATEGY_DEBUG
