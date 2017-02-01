@@ -231,12 +231,14 @@ model::SkillType get_skill_to_learn(const Context& context, model::SkillType ski
         skills_priorities[skill_from_message] += 10;
     }
 
-    model::SkillType opposite;
-    int opposite_priority;
-    std::tie(opposite, opposite_priority) = get_opposite_skill(context);
+    if (!context.game().isRawMessagesEnabled()) {
+        model::SkillType opposite;
+        int opposite_priority;
+        std::tie(opposite, opposite_priority) = get_opposite_skill(context);
 
-    if (opposite != model::_SKILL_UNKNOWN_) {
-        skills_priorities[opposite] += opposite_priority;
+        if (opposite != model::_SKILL_UNKNOWN_) {
+            skills_priorities[opposite] += opposite_priority;
+        }
     }
 
     const auto max = std::max_element(skills_priorities.begin(), skills_priorities.end());
