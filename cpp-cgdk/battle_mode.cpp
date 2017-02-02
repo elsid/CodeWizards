@@ -25,30 +25,17 @@ void BattleMode::update_target(const Context& context) {
         return;
     }
 
-    const auto max_distances = {
-        context.game().getStaffRange(),
-        get_max_distance_for_unit_candidate(context),
-    };
-
     destination_.first = false;
 
-    for (const auto max_distance : max_distances) {
-        target_ = get_optimal_target(context, max_distance);
+    target_ = get_optimal_target(context, get_max_distance_for_unit_candidate(context));
 
-        if (!target_.is_some()) {
-            continue;
-        }
-
+    if (target_.is_some()) {
         target_.apply(context.cache(), [&] (auto target) {
             if (target) {
                 points_.clear();
                 destination_ = {true, this->get_optimal_position(context, target)};
             }
         });
-
-        if (destination_.first) {
-            break;
-        }
     }
 
     if (!destination_.first || will_cast_later(context)) {
