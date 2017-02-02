@@ -1,18 +1,5 @@
 #include "circle.hpp"
 
-#include <cmath>
-#include <tuple>
-
-#include "golden_section.hpp"
-
-#ifdef ELSID_STRATEGY_DEBUG
-
-#include "debug/output.hpp"
-
-#include <iostream>
-
-#endif
-
 namespace strategy {
 
 bool Circle::has_intersection(const Circle& circle, double max_error) const {
@@ -69,24 +56,6 @@ bool Circle::has_intersection(const Point& this_final_position, const Circle& ot
                 || has_intersection(Circle(other_final_position, other.radius()))
                 || Circle(this_final_position, radius()).has_intersection(other)
                 || Circle(this_final_position, radius()).has_intersection(Circle(other_final_position, other.radius()));
-    }
-}
-
-std::pair<bool, Point> Circle::intersection(const Circle& other, const Point& final_position, double max_error) const {
-    const auto direction = final_position - other.position();
-    const auto required_distance = radius() + other.radius();
-    const auto max_distance = other.position().distance(final_position);
-    const auto f = [&] (const auto distance) {
-        const auto other_position = other.position() + direction * distance;
-        return std::abs(position().distance(other_position) - required_distance) / max_distance;
-    };
-    const std::size_t iterations = std::ceil(std::log(max_error) / std::log(INVERTED_PHI));
-    const auto min_distance = golden_section(f, 0, 1, iterations);
-    const auto min_distance_diff = f(min_distance);
-    if (min_distance_diff <= max_error) {
-        return {true, other.position() + direction * min_distance};
-    } else {
-        return {false, Point()};
     }
 }
 

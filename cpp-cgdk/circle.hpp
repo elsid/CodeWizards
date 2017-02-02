@@ -17,7 +17,6 @@ public:
     bool has_intersection(const Circle& other, const Point& final_position, double max_error = 1e-3) const;
     bool has_intersection(const Point& this_final_position, const Circle& other,
                           const Point& other_final_position, double max_error = 1e-3) const;
-    std::pair<bool, Point> intersection(const Circle& other, const Point& final_position, double max_error = 1e-3) const;
 
 private:
     Point position_;

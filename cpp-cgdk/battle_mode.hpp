@@ -13,10 +13,6 @@ public:
         return points_;
     }
 
-    const char* name() const override final {
-        return "battle";
-    }
-
     bool is_under_fire(const Context& context) const;
 
 private:
