@@ -42,7 +42,7 @@ public:
         return std::abs(signed_distance(point));
     }
 
-    bool has_point(const Point& point, double max_error = 1e-3) const {
+    bool has_point(const Point& point, double max_error = 1e-8) const {
         const auto to_end = end_ - point;
         if (to_end.square() == 0) {
             return true;

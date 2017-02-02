@@ -104,6 +104,7 @@ add_executable(cpp-cgdk-tests
     tests/optimal_target.cpp
     tests/simulation.cpp
     tests/target.cpp
+    tests/circle.cpp
 )
 
 target_link_libraries(cpp-cgdk-tests

@@ -10,15 +10,21 @@ bool Circle::has_intersection(const Circle& circle, double max_error) const {
 
 bool Circle::has_intersection(const Line& line, double max_error) const {
     const auto nearest = line.nearest(position_);
-    return position_.distance(nearest) - radius_ <= max_error && line.has_point(nearest, max_error);
+    double distance;
+    if (line.has_point(nearest, max_error)) {
+        distance = position_.distance(nearest);
+    } else {
+        const auto to_begin = position_.distance(line.begin());
+        const auto to_end = position_.distance(line.end());
+        distance = std::min(to_begin, to_end);
+    }
+    const auto min_distance = radius_ + max_error;
+    return distance < min_distance;
 }
 
 bool Circle::has_intersection(const Circle& other, const Point& final_position, double max_error) const {
     if (final_position == other.position()) {
-        return has_intersection(other);
-    }
-    if (has_intersection(Circle(final_position, other.radius()))) {
-        return true;
+        return has_intersection(other, max_error);
     }
     return Circle(position(), radius() + other.radius())
             .has_intersection(Line(other.position(), final_position), max_error);
@@ -48,9 +54,9 @@ bool Circle::has_intersection(const Point& this_final_position, const Circle& ot
     if (this_has_point && other_has_point) {
         return true;
     } else if (this_has_point) {
-        return has_intersection(other, other_final_position, max_error);
+        return Circle(this_nearest, radius()).has_intersection(other, other_final_position, max_error);
     } else if (other_has_point) {
-        return other.has_intersection(*this, this_final_position, max_error);
+        return Circle(other_nearest, other.radius()).has_intersection(*this, this_final_position, max_error);
     } else {
         return has_intersection(other)
                 || has_intersection(Circle(other_final_position, other.radius()))
