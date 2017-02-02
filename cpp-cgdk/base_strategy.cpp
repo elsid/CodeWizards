@@ -158,7 +158,10 @@ void BaseStrategy::apply_action(Context& context) const {
     }
 
     std::vector<Target> candidates;
-    candidates.reserve(context.world().getWizards().size() + context.world().getMinions().size() + context.world().getBuildings().size());
+    candidates.reserve(context.world().getWizards().size()
+                       + context.world().getMinions().size()
+                       + context.world().getBuildings().size()
+                       + context.world().getTrees().size());
 
     const auto add_candidates = [&] (const auto& units) {
         for (const auto& unit : units) {
@@ -171,6 +174,13 @@ void BaseStrategy::apply_action(Context& context) const {
     add_candidates(context.world().getWizards());
     add_candidates(context.world().getMinions());
     add_candidates(context.world().getBuildings());
+
+    for (const auto& tree : context.world().getTrees()) {
+        const auto distance = get_position(tree).distance(get_position(context.self()));
+        if (distance <= get_max_distance_for_tree_candidate(context)) {
+            candidates.push_back(Target(get_id(tree)));
+        }
+    }
 
     const auto get_target_position = [&] (auto unit) { return get_position(*unit); };
 
