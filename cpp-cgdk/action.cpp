@@ -179,7 +179,7 @@ public:
         const auto projectile_path_length = std::min(distance_to_intersection, context_.self().getCastRange());
         const auto projectile_target = my_position + projectile_direction * projectile_path_length;
 
-        if (projectile_target.distance(intersection) > 1e-3) {
+        if (projectile_target.distance(intersection) > 1e-8) {
             return std::numeric_limits<double>::max();
         }
 
@@ -325,7 +325,7 @@ struct GetCastAction {
         if (time_delta > unit_radius_time) {
             const auto angle = normalize_angle(context.self().getAngle() + cast_angle);
 
-            if (std::abs(M_PI_2 - angle) < 1e-3) {
+            if (std::abs(M_PI_2 - angle) < 1e-8) {
                 return {false, Action()};
             }
 
@@ -376,7 +376,7 @@ struct GetCastAction {
         const auto nearest = trajectory.nearest(optimal_target);
         const auto has_point = trajectory.has_point(nearest);
 
-        if (!has_point || nearest.distance(optimal_target) > 1e-3) {
+        if (!has_point || nearest.distance(optimal_target) > 1e-8) {
             return {false, Action()};
         }
 
