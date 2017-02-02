@@ -427,7 +427,7 @@ private:
     }
 
     double get_friendly_fire_penalty(const model::CircularUnit& unit, const Point& position) const {
-        if (!target) {
+        if (!target || &unit == target) {
             return - std::numeric_limits<double>::max();
         }
 
