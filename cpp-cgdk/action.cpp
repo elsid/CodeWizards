@@ -452,7 +452,7 @@ struct GetCastAction {
             const Circle explosion(initial_position, projectile_explosion_radius);
             const Circle unit_circle(get_position(unit), unit.getRadius());
 
-            if (unit_circle.has_intersection(projectile, final_position)
+            if ((!unit.isMe() && unit_circle.has_intersection(projectile, final_position))
                     || (projectile_explosion_radius > projectile_radius && unit_circle.has_intersection(explosion))) {
                 return true;
             }
