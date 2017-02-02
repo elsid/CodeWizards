@@ -4,6 +4,10 @@
 
 namespace strategy {
 
+inline Circle make_circle(const model::CircularUnit& unit) {
+    return Circle(get_position(unit), unit.getRadius());
+}
+
 BattleMode::Result BattleMode::apply(const Context& context) {
     update_target(context);
 
@@ -51,7 +55,33 @@ void BattleMode::update_target(const Context& context) {
         target_ = Target();
         points_.clear();
         destination_ = {true, this->get_optimal_position(context)};
-        return;
+    }
+
+    const auto me = make_circle(context.self());
+    const auto my_position = get_position(context.self());
+    const auto distance_to_destination = my_position.distance(destination_.second);
+    auto closest_distance = target_.is_some()
+            ? target_.apply(context.cache(), [&] (auto unit) {
+                return unit ? std::min(get_position(*unit).distance(my_position), distance_to_destination) : distance_to_destination;
+            })
+            : distance_to_destination;
+    const model::Tree* closest_tree_barrier = nullptr;
+    for (const auto& tree : context.world().getTrees()) {
+        const auto distance = get_position(tree).distance(my_position);
+        if (closest_distance > distance && make_circle(tree).has_intersection(me, destination_.second)) {
+            closest_tree_barrier = &tree;
+            closest_distance = distance;
+        }
+    }
+
+    if (closest_tree_barrier) {
+        target_ = Target(get_id(*closest_tree_barrier));
+        target_.apply(context.cache(), [&] (auto unit) {
+            if (unit) {
+                points_.clear();
+                destination_ = {true, this->get_optimal_position(context, unit)};
+            }
+        });
     }
 }
 
