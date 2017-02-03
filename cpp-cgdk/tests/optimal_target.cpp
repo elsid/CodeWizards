@@ -13,8 +13,8 @@ using namespace testing;
 TEST(GetTargetScore, for_me_and_enemy_wizard) {
     const model::Wizard enemy(
         2, // Id
-        1100, // X
-        1100, // Y
+        1300, // X
+        1300, // Y
         0, // SpeedX
         0, // SpeedY
         0, // Angle
@@ -56,11 +56,128 @@ TEST(GetTargetScore, for_me_and_enemy_wizard) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const GetTargetScore get_target_score {context};
-    EXPECT_DOUBLE_EQ(get_target_score(enemy), 6.0291220400532506);
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 4.9623661201597518);
     EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 13.125);
     EXPECT_DOUBLE_EQ(get_target_score.get_angle_probability(enemy), 1);
     EXPECT_DOUBLE_EQ(get_target_score.get_hit_probability(enemy), 0.5);
-    EXPECT_DOUBLE_EQ(get_target_score.get_distance_probability(enemy), 0.91872335848430486);
+    EXPECT_DOUBLE_EQ(get_target_score.get_distance_probability(enemy), 0.75617007545291459);
+}
+
+TEST(GetTargetScore, for_me_and_enemy_minion) {
+    const model::Minion enemy(
+        2, // Id
+        1300, // X
+        1300, // Y
+        0, // SpeedX
+        0, // SpeedY
+        M_PI, // Angle
+        model::FACTION_RENEGADES, // Faction
+        25, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        model::MINION_ORC_WOODCUTTER, // Type
+        400, // VisionRange
+        12, // Damage
+        60, // CooldownTicks
+        0 // RemainingActionCooldownTicks
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {SELF}, // Wizards
+        {enemy}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
+    const GetTargetScore get_target_score {context};
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 4.5370204527174876);
+    EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 6);
+    EXPECT_DOUBLE_EQ(get_target_score.get_angle_probability(enemy), 1);
+    EXPECT_DOUBLE_EQ(get_target_score.get_hit_probability(enemy), 1);
+    EXPECT_DOUBLE_EQ(get_target_score.get_distance_probability(enemy), 0.75617007545291459);
+}
+
+TEST(GetTargetScore, for_me_and_enemy_building) {
+    const model::Wizard self(
+        1, // Id
+        4000 - 1929.29 - 300, // X
+        4000 - 2400 - 300, // Y
+        0, // SpeedX
+        0, // SpeedY
+        M_PI_4, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Building enemy(
+        2, // Id
+        4000 - 1929.29, // X
+        4000 - 2400, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_RENEGADES, // Faction
+        50, // Radius
+        500, // Life
+        500, // MaxLife
+        {}, // Statuses
+        model::BUILDING_GUARDIAN_TOWER, // Type
+        600, // VisionRange
+        600, // AttackRange
+        36, // Damage
+        240, // CooldownTicks
+        0 // RemainingActionCooldownTicks
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {enemy}, // Buildings
+        {} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
+    const GetTargetScore get_target_score {context};
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 4.5370204527174876);
+    EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 6);
+    EXPECT_DOUBLE_EQ(get_target_score.get_angle_probability(enemy), 1);
+    EXPECT_DOUBLE_EQ(get_target_score.get_hit_probability(enemy), 1);
+    EXPECT_DOUBLE_EQ(get_target_score.get_distance_probability(enemy), 0.75617007545291459);
 }
 
 TEST(get_optimal_target, for_me_and_enemy_wizard) {

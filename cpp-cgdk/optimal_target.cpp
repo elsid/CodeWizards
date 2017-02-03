@@ -256,14 +256,13 @@ double GetTargetScore::get_base(const model::Tree&) const {
 
 double GetTargetScore::get_base(const model::Building& unit) const {
     const auto immortal = is_immortal(context, unit);
-    double add = 0;
 
-    if (unit.getType() == model::BUILDING_FACTION_BASE && !immortal) {
-        add += context.game().getVictoryScore();
+    if (unit.getType() == model::BUILDING_FACTION_BASE) {
+        return immortal ? 0 : 2;
     }
 
-    return immortal ? 0 : add + get_base_by_damage(unit, context.game().getBuildingDamageScoreFactor(),
-                                                   context.game().getBuildingEliminationScoreFactor());
+    return immortal ? 0 : get_base_by_damage(unit, context.game().getBuildingDamageScoreFactor(),
+                                             context.game().getBuildingEliminationScoreFactor(), true);
 }
 
 double GetTargetScore::get_base(const model::Minion& unit) const {
@@ -271,19 +270,19 @@ double GetTargetScore::get_base(const model::Minion& unit) const {
         const auto& cached = get_units<model::Minion>(context.cache()).at(unit.getId());
         if (cached.is_active(context.world().getTickIndex())) {
             return get_base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
-                                      context.game().getMinionEliminationScoreFactor()) + 0.5;
+                                      context.game().getMinionEliminationScoreFactor(), false) * 2;
         } else {
             return 0.1;
         }
     } else {
         return get_base_by_damage(unit, context.game().getMinionDamageScoreFactor(),
-                                  context.game().getMinionEliminationScoreFactor()) + 1;
+                                  context.game().getMinionEliminationScoreFactor(), false) * 2;
     }
 }
 
 double GetTargetScore::get_base(const model::Wizard& unit) const {
     return get_base_by_damage(unit, context.game().getWizardDamageScoreFactor(),
-                          context.game().getWizardEliminationScoreFactor());
+                              context.game().getWizardEliminationScoreFactor(), false);
 }
 
 Damage GetTargetScore::get_my_max_damage(double distance) const {

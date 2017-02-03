@@ -113,7 +113,7 @@ struct GetTargetScore {
     double get_base(const model::Wizard& unit) const;
 
     template <class Unit>
-    double get_base_by_damage(const Unit& unit, double damage_score, double elimination_score_factor) const {
+    double get_base_by_damage(const Unit& unit, double damage_score, double elimination_score_factor, bool use_elimination_score_only_for_last) const {
         const ReduceDamage reduce_damage {context};
         const GetLifeRegeneration get_life_regeneration {context};
         const auto distance = get_position(context.self()).distance(get_position(unit));
@@ -124,7 +124,7 @@ struct GetTargetScore {
         if (unit.getLife() <= max_damage) {
             return max_damage * damage_score + elimination_score_factor * unit.getMaxLife();
         } else {
-            return max_damage * damage_score + elimination_score_factor * unit.getMaxLife() * max_damage / unit.getLife();
+            return max_damage * damage_score + (use_elimination_score_only_for_last ? 0 : elimination_score_factor * unit.getMaxLife() * max_damage / unit.getLife());
         }
     }
 
