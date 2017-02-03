@@ -141,7 +141,7 @@ public:
     static constexpr double FRIENDLY_FIRE_PENALTY_WEIGHT = 0.1;
     static constexpr double TARGET_PENALTY_WEIGHT = 0.05;
     static constexpr double BORDERS_PENALTY_WEIGHT = 1.4;
-    static constexpr double ELIMINATION_SCORE_WEIGHT = 1;
+    static constexpr double ELIMINATION_SCORE_WEIGHT = 0.2;
     static constexpr double FRIEND_WIZARDS_DISTANCE_PENALTY_WEIGHT = 0.1;
     static constexpr double SURROUND_PENALTY_WEIGHT = 0.75;
 

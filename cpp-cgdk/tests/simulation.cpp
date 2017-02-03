@@ -320,7 +320,7 @@ TEST(simulation, wizard_apply_cast_action_to_other_and_hit) {
         simulator.next_tick();
     }
 
-    EXPECT_EQ(get_position(active_wizard), Point(1051.9858107278924, 1999.7594910447128));
+    EXPECT_EQ(get_position(active_wizard), Point(1051.9858107268933, 1999.7594949917102));
     EXPECT_EQ(get_position(passive_wizard), Point(1500.199263066286, 2019.1841657797138));
     EXPECT_EQ(passive_wizard.getLife(), 88);
 }
@@ -416,7 +416,7 @@ TEST(simulation, wizard_and_minion) {
         simulator.next_tick();
     }
 
-    EXPECT_EQ(get_position(wizard), Point(72.901464732395539, 2077.4149975707151));
+    EXPECT_EQ(get_position(wizard), Point(49.352577476615913, 2000.490301080813));
 
     const auto minion_it = std::find_if(world.getMinions().begin(), world.getMinions().end(),
             [&] (const auto& v) { return v.getId() == minion.getId(); });
