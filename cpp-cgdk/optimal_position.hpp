@@ -95,6 +95,7 @@ struct GetUnitDangerPenalty {
     }
 
     double operator ()(const model::Minion& unit, const Point& position, double sum_damage_to_me) const;
+    double operator ()(const model::Building& unit, const Point& position, double sum_damage_to_me) const;
 
     template <class T>
     double get_base(const T& unit, const Point& position, double sum_damage_to_me) const {

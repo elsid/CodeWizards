@@ -73,6 +73,21 @@ double GetUnitDangerPenalty::operator ()(const model::Minion& unit, const Point&
     return get_base(unit, position, sum_enemy_damage);
 }
 
+double GetUnitDangerPenalty::operator ()(const model::Building& unit, const Point& position, double sum_damage_to_me) const {
+    const auto base = get_base(unit, position, sum_damage_to_me);
+    if (unit.getType() == model::BUILDING_FACTION_BASE) {
+        const Point corner(context.world().getWidth(), 0);
+        const auto distance = position.distance(corner);
+        const auto from_prev_minions_spawn = context.world().getTickIndex() % MINIONS_SPAWN_PERIOD + 1;
+        const auto safe_distance = context.game().getFactionBaseAttackRange() * double(from_prev_minions_spawn) / double(MINIONS_SPAWN_PERIOD + 1)
+                + get_position(unit).distance(corner) + context.game().getFactionBaseRadius();
+        const auto spawned_minions_danger = line_factor(distance, safe_distance, 0);
+        return std::max(base, spawned_minions_danger);
+    } else {
+        return base;
+    }
+}
+
 Line GetProjectileTrajectory::operator ()(const CachedUnit<model::Projectile>& cached_unit) const {
     const auto& unit = cached_unit.value();
     switch (unit.getType()) {

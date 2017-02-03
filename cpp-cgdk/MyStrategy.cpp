@@ -178,7 +178,7 @@ void MyStrategy::update_cache(const model::Wizard& self, const model::World& wor
 }
 
 void MyStrategy::add_fake_bonuses(const model::World& world) {
-    if (world.getTickIndex() == 0 || world.getTickIndex() % 2500 != 0) {
+    if (world.getTickIndex() == 0 || world.getTickIndex() % strategy::BONUSES_SPAWN_PERIOD != 0) {
         return;
     }
     strategy::get_cache<model::Bonus>(cache_).update(strategy::FAKE_TOP_BONUS, world.getTickIndex());
