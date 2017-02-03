@@ -3,20 +3,18 @@
 #include "battle_mode.hpp"
 #include "move_mode.hpp"
 
-#include <memory>
-
 namespace strategy {
 
 class RetreatMode : public Mode {
 public:
-    RetreatMode(std::shared_ptr<BattleMode> battle_mode, std::shared_ptr<MoveMode> move_mode);
+    RetreatMode(BattleMode& battle_mode, MoveMode& move_mode);
 
     Result apply(const Context& context) override final;
     void reset() override final;
 
 private:
-    std::shared_ptr<BattleMode> battle_mode_;
-    std::shared_ptr<MoveMode> move_mode_;
+    BattleMode& battle_mode_;
+    MoveMode& move_mode_;
 };
 
 }

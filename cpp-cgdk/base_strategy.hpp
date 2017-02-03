@@ -34,11 +34,11 @@ public:
     }
 
     const BattleMode& battle_mode() const {
-        return *battle_mode_;
+        return battle_mode_;
     }
 
     const MoveMode& move_mode() const {
-        return *move_mode_;
+        return move_mode_;
     }
 
     const Mode& mode() const {
@@ -57,10 +57,10 @@ public:
 
 private:
     const WorldGraph graph_;
-    const std::shared_ptr<BattleMode> battle_mode_;
-    const std::shared_ptr<MoveMode> move_mode_;
-    const std::shared_ptr<RetreatMode> retreat_mode_;
-    std::shared_ptr<Mode> mode_;
+    BattleMode battle_mode_;
+    MoveMode move_mode_;
+    RetreatMode retreat_mode_;
+    Mode* mode_ = nullptr;
     Target target_;
     Point destination_;
     MoveToPosition move_to_position_;
@@ -81,7 +81,7 @@ private:
     void use_move_mode();
     void use_battle_mode();
     void use_retreat_mode();
-    void use_mode(const std::shared_ptr<Mode>& mode);
+    void use_mode(Mode& mode);
 };
 
 }

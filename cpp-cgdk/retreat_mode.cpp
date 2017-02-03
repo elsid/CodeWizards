@@ -3,12 +3,12 @@
 
 namespace strategy {
 
-RetreatMode::RetreatMode(std::shared_ptr<BattleMode> battle_mode, std::shared_ptr<MoveMode> move_mode)
-    : battle_mode_(std::move(battle_mode)), move_mode_(std::move(move_mode)) {}
+RetreatMode::RetreatMode(BattleMode& battle_mode, MoveMode& move_mode)
+    : battle_mode_(battle_mode), move_mode_(move_mode) {}
 
 Mode::Result RetreatMode::apply(const Context& context) {
-    const auto battle_result = battle_mode_->apply(context);
-    const auto move_result = move_mode_->apply(context);
+    const auto battle_result = battle_mode_.apply(context);
+    const auto move_result = move_mode_.apply(context);
 
     if (!battle_result.active()) {
         return move_result;
@@ -35,7 +35,7 @@ Mode::Result RetreatMode::apply(const Context& context) {
 }
 
 void RetreatMode::reset() {
-    move_mode_->reset();
+    move_mode_.reset();
 }
 
 }
