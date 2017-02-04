@@ -247,7 +247,7 @@ double GetTargetScore::get_hit_probability_by_status(const model::LivingUnit& un
 }
 
 double GetTargetScore::get_base(const model::Bonus&) const {
-    return 1;
+    return 0.3;
 }
 
 double GetTargetScore::get_base(const model::Tree&) const {
@@ -258,7 +258,7 @@ double GetTargetScore::get_base(const model::Building& unit) const {
     const auto immortal = is_immortal(context, unit);
 
     if (unit.getType() == model::BUILDING_FACTION_BASE) {
-        return immortal ? 0 : 2;
+        return immortal ? 0 : 0.4;
     }
 
     return immortal ? 0 : get_base_by_damage(unit, context.game().getBuildingDamageScoreFactor(),
