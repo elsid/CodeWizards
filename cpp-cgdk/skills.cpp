@@ -97,7 +97,7 @@ const std::array<int, model::_SKILL_COUNT_> FIRE_SKILLS_PRIORITIES = {{
     4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_1
     4, // SKILL_MAGICAL_DAMAGE_BONUS_PASSIVE_2
     4, // SKILL_MAGICAL_DAMAGE_BONUS_AURA_2
-    3, // SKILL_FROST_BOLT
+    4, // SKILL_FROST_BOLT
     5, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_1
     5, // SKILL_STAFF_DAMAGE_BONUS_AURA_1
     5, // SKILL_STAFF_DAMAGE_BONUS_PASSIVE_2
@@ -242,8 +242,9 @@ model::SkillType get_skill_to_learn(const Context& context, model::SkillType ski
     }
 
     const auto max = std::max_element(skills_priorities.begin(), skills_priorities.end());
+    const auto skill_to_learn = model::SkillType(max - skills_priorities.begin());
 
-    return get_next_skill_to_learn(context.self(), model::SkillType(max - skills_priorities.begin()));
+    return get_next_skill_to_learn(context.self(), skill_to_learn);
 }
 
 model::SkillType get_skill_to_recommend(const model::Wizard& wizard, Specialization specialization) {
