@@ -101,8 +101,8 @@ TEST(GetTargetScore, for_me_and_enemy_minion) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const GetTargetScore get_target_score {context};
-    EXPECT_DOUBLE_EQ(get_target_score(enemy), 0.30246803018116586);
-    EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 0.40000000000000002);
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 3.0246803018116584);
+    EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 4);
     EXPECT_DOUBLE_EQ(get_target_score.get_angle_probability(enemy), 1);
     EXPECT_DOUBLE_EQ(get_target_score.get_hit_probability(enemy), 1);
     EXPECT_DOUBLE_EQ(get_target_score.get_distance_probability(enemy), 0.75617007545291459);
