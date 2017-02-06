@@ -56,8 +56,8 @@ TEST(GetTargetScore, for_me_and_enemy_wizard) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const GetTargetScore get_target_score {context};
-    EXPECT_DOUBLE_EQ(get_target_score(enemy), 4.9623661201597518);
-    EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 13.125);
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 0.99247322403195037);
+    EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 2.625);
     EXPECT_DOUBLE_EQ(get_target_score.get_angle_probability(enemy), 1);
     EXPECT_DOUBLE_EQ(get_target_score.get_hit_probability(enemy), 0.5);
     EXPECT_DOUBLE_EQ(get_target_score.get_distance_probability(enemy), 0.75617007545291459);
@@ -101,8 +101,8 @@ TEST(GetTargetScore, for_me_and_enemy_minion) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
     const GetTargetScore get_target_score {context};
-    EXPECT_DOUBLE_EQ(get_target_score(enemy), 4.5370204527174876);
-    EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 6);
+    EXPECT_DOUBLE_EQ(get_target_score(enemy), 0.30246803018116586);
+    EXPECT_DOUBLE_EQ(get_target_score.get_base(enemy), 0.40000000000000002);
     EXPECT_DOUBLE_EQ(get_target_score.get_angle_probability(enemy), 1);
     EXPECT_DOUBLE_EQ(get_target_score.get_hit_probability(enemy), 1);
     EXPECT_DOUBLE_EQ(get_target_score.get_distance_probability(enemy), 0.75617007545291459);
