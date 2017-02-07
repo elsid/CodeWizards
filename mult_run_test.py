@@ -45,8 +45,8 @@ for run in range(args.number):
     with AutoKillProcess(runner + [config_path]) as p:
         sleep(3)
         with AutoKillProcess(['bash', command, '127.0.0.1', str(port), '0000000000000000'], env=environ) as strategy:
-            strategy.wait()
-        p.wait()
+            strategy.wait(timeout=300)
+        p.wait(timeout=300)
     with open(run_log) as f:
         print(f.read())
     finish = time()
