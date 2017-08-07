@@ -8,7 +8,7 @@
 
 #include <map>
 #include <unordered_map>
-#include <unordered_set>
+#include <set>
 #include <string>
 
 namespace strategy {
@@ -24,7 +24,7 @@ public:
     };
 
     using Nodes = std::map<NodeId, Node>;
-    using LanesNodes = std::unordered_map<model::LaneType, std::unordered_set<NodeId>>;
+    using LanesNodes = std::unordered_map<model::LaneType, std::set<NodeId>>;
 
     struct Path {
         double length;

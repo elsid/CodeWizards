@@ -11,13 +11,39 @@ namespace tests {
 using namespace testing;
 
 TEST(get_optimal_destination, for_all_default) {
+    const model::Wizard self(
+        1, // Id
+        200, // X
+        3800, // Y
+        0, // SpeedX
+        0, // SpeedY
+        -0.79, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
     const model::World world(
         0, // TickIndex
         20000, // TickCount
         4000, // Width
         4000, // Height
         {}, // Players
-        {SELF}, // Wizards
+        {self}, // Wizards
         {}, // Minions
         {}, // Projectiles
         {}, // Bonuses
@@ -28,9 +54,9 @@ TEST(get_optimal_destination, for_all_default) {
     const Profiler profiler;
     FullCache cache;
     update_cache(cache, world);
-    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
+    const Context context(self, world, GAME, move, cache, cache, profiler, Duration::max());
     WorldGraph graph(GAME);
-    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, SELF).id, 46u);
+    EXPECT_EQ(get_optimal_destination(context, graph, model::_LANE_UNKNOWN_, self).id, 2u);
 }
 
 const model::Building FIRST_MIDDLE_ENEMY_TOWER(
