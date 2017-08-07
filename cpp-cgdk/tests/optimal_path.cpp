@@ -271,7 +271,8 @@ TEST(GetOptimalPath, with_static_barrier) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 8u);
+    ASSERT_FALSE(result.empty());
+    EXPECT_EQ(result.size(), 8u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -349,7 +350,8 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 2u);
+    ASSERT_FALSE(result.empty());
+    EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -427,7 +429,8 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_opposite_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 2u);
+    ASSERT_FALSE(result.empty());
+    EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -505,7 +508,8 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_crossing_direction) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 4u);
+    ASSERT_FALSE(result.empty());
+    EXPECT_EQ(result.size(), 4u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
 }
@@ -570,7 +574,8 @@ TEST(GetOptimalPath, with_static_occupier) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3)(context, target);
-    ASSERT_EQ(result.size(), 2u);
+    ASSERT_FALSE(result.empty());
+    EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), Point(1169.7105516901372, 1226.4491837508108));
 }
@@ -635,7 +640,8 @@ TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
     const auto result = GetOptimalPath().step_size(3).max_iterations(50)(context, target);
-    ASSERT_EQ(result.size(), 2u);
+    ASSERT_FALSE(result.empty());
+    EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), Point(1169.7105516901372, 1226.4491837508108));
 }
