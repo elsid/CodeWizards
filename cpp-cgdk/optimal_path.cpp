@@ -44,13 +44,13 @@ public:
     }
 
 private:
-    struct LessByPriority {
+    struct GreaterByPriority {
         bool operator ()(const StepState& lhs, const StepState& rhs) const {
             return lhs.priority() > rhs.priority();
         }
     };
 
-    using Queue = std::priority_queue<StepState, std::deque<StepState>, LessByPriority>;
+    using Queue = std::priority_queue<StepState, std::deque<StepState>, GreaterByPriority>;
 
     const Context& context;
     const Point target;
