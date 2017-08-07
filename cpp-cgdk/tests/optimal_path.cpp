@@ -11,6 +11,18 @@ namespace tests {
 
 using namespace testing;
 
+double length(const Path& path) {
+    if (path.empty()) {
+        return 0;
+    }
+
+    double result = 0;
+    for (std::size_t i = 0; i < path.size() - 1; ++i) {
+        result += path[i].distance(path[i + 1]);
+    }
+    return result;
+}
+
 TEST(has_intersection_with_borders, all) {
     EXPECT_TRUE(has_intersection_with_borders(Circle(Point(0, 0), 10), 100));
     EXPECT_TRUE(has_intersection_with_borders(Circle(Point(50, 0), 10), 100));
@@ -275,6 +287,7 @@ TEST(GetOptimalPath, with_static_barrier) {
     EXPECT_EQ(result.size(), 8u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
+    EXPECT_NEAR(length(result), 298.412, 1e-3);
 }
 
 TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
@@ -354,6 +367,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
     EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
+    EXPECT_NEAR(length(result), 282.843, 1e-3);
 }
 
 TEST(GetOptimalPath, with_dynamic_barrier_moving_in_opposite_direction) {
@@ -433,6 +447,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_opposite_direction) {
     EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
+    EXPECT_NEAR(length(result), 282.843, 1e-3);
 }
 
 TEST(GetOptimalPath, with_dynamic_barrier_moving_in_crossing_direction) {
@@ -512,6 +527,7 @@ TEST(GetOptimalPath, with_dynamic_barrier_moving_in_crossing_direction) {
     EXPECT_EQ(result.size(), 4u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
+    EXPECT_NEAR(length(result), 349.772, 1e-3);
 }
 
 TEST(GetOptimalPath, with_static_occupier) {
@@ -578,6 +594,7 @@ TEST(GetOptimalPath, with_static_occupier) {
     EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), Point(1169.7105516901372, 1226.4491837508108));
+    EXPECT_NEAR(length(result), 282.986, 1e-3);
 }
 
 TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
@@ -644,6 +661,7 @@ TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
     EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), Point(1169.7105516901372, 1226.4491837508108));
+    EXPECT_NEAR(length(result), 282.986, 1e-3);
 }
 
 }
