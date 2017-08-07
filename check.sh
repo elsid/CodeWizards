@@ -6,7 +6,7 @@ set -ex
 ./ubsan.sh
 ./asan.sh
 ./msan.sh
-./kcov.sh
+./coverage.sh
 
 env ASAN_OPTIONS=strict_string_checks=1:detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1 \
     ./mult_run_test.py --binary cpp-cgdk-asan/bin/cpp-cgdk 1
