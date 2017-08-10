@@ -6,7 +6,6 @@
 #include <map>
 #include <queue>
 #include <unordered_map>
-#include <unordered_set>
 
 #ifdef ELSID_STRATEGY_DEBUG
 
