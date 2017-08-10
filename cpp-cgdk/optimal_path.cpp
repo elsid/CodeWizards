@@ -78,7 +78,7 @@ private:
     TickState make_tick_state(double prev_tick, double tick) const;
     const TickState& get_tick_state(double prev_tick, double tick);
     double get_priority(const Point& position) const;
-    double get_next_cost(const StepState& step_state) const;
+    double get_tentative_cost(const StepState& step_state, const Point& target) const;
     double get_next_tick(const StepState& step_state, const Point& next_position) const;
     Path reconstruct_path(Point position, const std::map<Point, StepState>& came_from) const;
     void fill_steps_states(StepState step_state, const std::map<Point, StepState>& came_from);
@@ -165,8 +165,8 @@ double GetOptimalPathImpl::get_priority(const Point& position) const {
     return target.distance(position);
 }
 
-double GetOptimalPathImpl::get_next_cost(const StepState& step_state) const {
-    const auto distance = step_state.position().distance(step_state.target());
+double GetOptimalPathImpl::get_tentative_cost(const StepState& step_state, const Point& target) const {
+    const auto distance = step_state.position().distance(target);
     return step_state.cost() + distance;
 }
 
@@ -232,18 +232,17 @@ void GetOptimalPathImpl::add_state(const StepState& step_state, const Point& nex
         return;
     }
 
-    if (!pushed.insert({step_state.position().to_int(), next_target.to_int()}).second) {
-        return;
-    }
-
     const auto other = costs.find(next_target.to_int());
-    const auto distance = next_target.distance(target);
+    const auto tentative_cost = get_tentative_cost(step_state, next_target);
 
-    if (other != costs.end() && other->second > step_state.cost() + distance) {
+    if (other != costs.end() && other->second <= tentative_cost) {
         return;
     }
 
-    queue.push(StepState(distance, step_state.cost(), step_state.tick(), step_state.position(), next_target));
+    if (pushed.insert({step_state.position().to_int(), next_target.to_int()}).second) {
+        const auto priority = tentative_cost + get_priority(next_target);
+        queue.push(StepState(priority, step_state.cost(), step_state.tick(), step_state.position(), next_target));
+    }
 }
 
 std::vector<Circle>::const_iterator get_closest_barrier(const Circle& my_barrier, const Point& target, const std::vector<Circle>& static_barriers) {
@@ -336,6 +335,8 @@ Path GetOptimalPathImpl::operator ()() {
     came_from.clear();
 
     queue.push(initial_state);
+    pushed.insert({initial_position.to_int(), target.to_int()});
+    costs.insert({initial_position.to_int(), 0});
 
     while (!queue.empty()) {
         context.check_timeout(__PRETTY_FUNCTION__, __FILE__, __LINE__);
@@ -349,7 +350,7 @@ Path GetOptimalPathImpl::operator ()() {
             break;
         }
 
-        if (final_state.priority() > step_state.priority()) {
+        if (get_priority(final_state.position()) - get_priority(step_state.position()) >= 0.5) {
             final_state = step_state;
         }
 
@@ -397,21 +398,21 @@ Path GetOptimalPathImpl::operator ()() {
             }
         } else {
             const auto other = costs.find(step_state.target().to_int());
+            const auto cost = get_tentative_cost(step_state, step_state.target());
 
             if (other == costs.end()) {
-                costs.insert({step_state.target().to_int(), step_state.cost()});
+                costs.insert({step_state.target().to_int(), cost});
             } else if (other->second > step_state.cost()) {
-                other->second = step_state.cost();
+                other->second = cost;
             } else {
                 continue;
             }
 
-            if (pushed.insert({step_state.target().to_int(), target.to_int()}).second) {
-                queue.push(StepState(0, get_next_cost(step_state), get_next_tick(step_state, step_state.target()), step_state.target(), target));
+            came_from[step_state.target()] = step_state;
 
-                if (step_state.target() != step_state.position()) {
-                    came_from[step_state.target()] = step_state;
-                }
+            if (pushed.insert({step_state.target().to_int(), target.to_int()}).second) {
+                const auto priority = cost + get_priority(step_state.target());
+                queue.push(StepState(priority, cost, get_next_tick(step_state, step_state.target()), step_state.target(), target));
             }
         }
 

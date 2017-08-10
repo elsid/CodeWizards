@@ -416,7 +416,7 @@ TEST(simulation, wizard_and_minion) {
         simulator.next_tick();
     }
 
-    EXPECT_EQ(get_position(wizard), Point(49.352577476615913, 2000.490301080813));
+    EXPECT_EQ(get_position(wizard), Point(53.807548210142677, 2007.4848221895459));
 
     const auto minion_it = std::find_if(world.getMinions().begin(), world.getMinions().end(),
             [&] (const auto& v) { return v.getId() == minion.getId(); });

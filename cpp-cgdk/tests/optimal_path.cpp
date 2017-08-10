@@ -377,10 +377,10 @@ TEST(GetOptimalPath, with_static_barrier_at_direct_path_and_at_paths_around_it) 
     const Point target(1300, 1000);
     const auto result = GetOptimalPath().step_size(3)(context, target);
     ASSERT_FALSE(result.empty());
-    EXPECT_EQ(result.size(), 103u);
+    EXPECT_EQ(result.size(), 53u);
     EXPECT_EQ(result.front(), get_position(self));
     EXPECT_EQ(result.back(), target);
-    EXPECT_NEAR(length(result), 1101.9328576726953, 1e-3);
+    EXPECT_NEAR(length(result), 624.30737768171286, 1e-3);
 }
 
 TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
