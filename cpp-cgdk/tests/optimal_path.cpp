@@ -290,6 +290,99 @@ TEST(GetOptimalPath, with_static_barrier) {
     EXPECT_NEAR(length(result), 298.412, 1e-3);
 }
 
+TEST(GetOptimalPath, with_static_barrier_at_direct_path_and_at_paths_around_it) {
+    const model::Wizard self(
+        1, // Id
+        1000, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_ACADEMY, // Faction
+        35, // Radius
+        100, // Life
+        100, // MaxLife
+        {}, // Statuses
+        1, // OwnerPlayerId
+        true, // Me
+        100, // Mana
+        100, // MaxMana
+        600, // VisionRange
+        500, // CastRange
+        0, // Xp
+        0, // Level
+        {}, // Skills
+        0, // RemainingActionCooldownTicks
+        {0, 0, 0, 0, 0, 0, 0}, // RemainingCooldownTicksByAction
+        true, // Master
+        {} // Messages
+    );
+    const model::Tree first(
+        2, // Id
+        1000 + 35 + 40 + 100, // X
+        1000, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_OTHER, // Faction
+        40, // Radius
+        17, // Life
+        17, // MaxLife
+        {} // Statuses
+    );
+    const model::Tree second(
+        3, // Id
+        1000 + 35 + 40 + 100, // X
+        1000 - 40 - 80 - 5, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_OTHER, // Faction
+        80, // Radius
+        17, // Life
+        17, // MaxLife
+        {} // Statuses
+    );
+    const model::Tree third(
+        4, // Id
+        1000 + 35 + 40 + 100, // X
+        1000 + 40 + 80 + 5, // Y
+        0, // SpeedX
+        0, // SpeedY
+        0, // Angle
+        model::FACTION_OTHER, // Faction
+        80, // Radius
+        17, // Life
+        17, // MaxLife
+        {} // Statuses
+    );
+    const model::World world(
+        0, // TickIndex
+        20000, // TickCount
+        4000, // Width
+        4000, // Height
+        {}, // Players
+        {self}, // Wizards
+        {}, // Minions
+        {}, // Projectiles
+        {}, // Bonuses
+        {}, // Buildings
+        {first, second, third} // Trees
+    );
+    model::Move move;
+    const Profiler profiler;
+    FullCache cache;
+    update_cache(cache, world);
+    const Context context(SELF, world, GAME, move, cache, cache, profiler, Duration::max());
+    const Point target(1300, 1000);
+    const auto result = GetOptimalPath().step_size(3)(context, target);
+    ASSERT_FALSE(result.empty());
+    EXPECT_EQ(result.size(), 103u);
+    EXPECT_EQ(result.front(), get_position(self));
+    EXPECT_EQ(result.back(), target);
+    EXPECT_NEAR(length(result), 1101.9328576726953, 1e-3);
+}
+
 TEST(GetOptimalPath, with_dynamic_barrier_moving_in_same_direction) {
     const model::Wizard self(
         1, // Id
