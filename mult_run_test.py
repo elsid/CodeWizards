@@ -32,7 +32,7 @@ for run in range(args.number):
     mkdir(run_path)
     run_log = join(run_path, 'run.log')
     with open(command, 'w') as f:
-        f.write('nice -n -20 %s ${@} &> %s\n' % (binary, run_log))
+        f.write('%s ${@} &> %s\n' % (binary, run_log))
     chmod(command, 0o755)
     config_path = join(run_path, 'config.properties')
     result_path = join(run_path, 'result.txt')
