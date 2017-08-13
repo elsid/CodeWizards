@@ -52,5 +52,15 @@ TEST(Circle, has_intersection_moving_with_moving_circle) {
     EXPECT_FALSE(Circle(Point(0, 0), 1).has_intersection(Point(1, 0), Circle(Point(3, 3), 1), Point(3, 2)));
 }
 
+TEST(Circle, get_intersection_with_line) {
+    EXPECT_EQ(Circle(Point(0, 0), 2).get_intersection(Line(Point(0, -2), Point(0, 2))), Point(0, -2));
+    EXPECT_EQ(Circle(Point(0, 0), 2).get_intersection(Line(Point(2, -2), Point(2, 2))), Point(2, 0));
+    EXPECT_EQ(Circle(Point(0, 0), 2).get_intersection(Line(Point(1, -2), Point(1, 2))), Point(1, -1.7320508075688772));
+    EXPECT_EQ(Circle(Point(0, 0), 2).get_intersection(Line(Point(1, -2), Point(1, 0))), Point(1, -1.7320508075688772));
+    EXPECT_EQ(Circle(Point(0, 0), 2).get_intersection(Line(Point(-1, -2), Point(-1, 2))), Point(-1, -1.7320508075688772));
+    EXPECT_EQ(Circle(Point(0, 0), 2).get_intersection(Line(Point(-1, -2), Point(-1, 2))), Point(-1, -1.7320508075688772));
+    EXPECT_EQ(Circle(Point(0, 0), 2).get_intersection(Line(Point(-1, -2), Point(1, -1))), Point(-0.72664991614215979, -1.86332495807108));
+}
+
 }
 }

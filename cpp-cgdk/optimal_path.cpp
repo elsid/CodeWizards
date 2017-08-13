@@ -219,6 +219,10 @@ std::pair<Point, Point> get_tangent_points(const Circle& circle, const Point& so
     return {to_left_tangent, to_right_tangent};
 }
 
+Point get_closest_point(const Circle& circle, const Point& source, const Point& target) {
+    return circle.get_intersection(Line(source, target));
+}
+
 Point GetOptimalPathImpl::adjust_target(const Point& position, const Point& target) const {
     const auto to_target = target - position;
     const auto norm = to_target.norm();
@@ -383,10 +387,16 @@ Path GetOptimalPathImpl::operator ()() {
             const Circle barrier(closest->position(), closest->radius() + context.self().getRadius() + 0.1);
 
             if (step_state.position().distance(barrier.position()) > barrier.radius()) {
-                const auto tangents = get_tangent_points(barrier, step_state.position());
+                if (step_state.target() == target && barrier.position().distance(target) <= barrier.radius()) {
+                    const auto closest_point = get_closest_point(barrier, step_state.position(), target);
 
-                add_state(step_state, adjust_target(step_state.position(), tangents.first));
-                add_state(step_state, adjust_target(step_state.position(), tangents.second));
+                    add_state(step_state, closest_point);
+                } else {
+                    const auto tangents = get_tangent_points(barrier, step_state.position());
+
+                    add_state(step_state, adjust_target(step_state.position(), tangents.first));
+                    add_state(step_state, adjust_target(step_state.position(), tangents.second));
+                }
             } else if (iterations <= 1) {
                 const auto from_barrier = (step_state.position() - closest->position()).normalized();
                 const auto border = closest->position() + from_barrier * (closest->radius() + context.self().getRadius() + 1);

@@ -686,8 +686,8 @@ TEST(GetOptimalPath, with_static_occupier) {
     ASSERT_FALSE(result.empty());
     EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
-    EXPECT_EQ(result.back(), Point(1169.7105516901372, 1226.4491837508108));
-    EXPECT_NEAR(length(result), 282.986, 1e-3);
+    EXPECT_EQ(result.back(), Point(1171.6450180744196, 1171.6450180744196));
+    EXPECT_NEAR(length(result), 242.7427124746192, 1e-3);
 }
 
 TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
@@ -749,12 +749,12 @@ TEST(GetOptimalPath, with_static_occupier_and_limited_iterations) {
     update_cache(cache, world);
     const Context context(SELF, world, GAME,move, cache, cache, profiler, Duration::max());
     const Point target(1200, 1200);
-    const auto result = GetOptimalPath().step_size(3).max_iterations(50)(context, target);
+    const auto result = GetOptimalPath().step_size(3).max_iterations(2)(context, target);
     ASSERT_FALSE(result.empty());
     EXPECT_EQ(result.size(), 2u);
     EXPECT_EQ(result.front(), get_position(self));
-    EXPECT_EQ(result.back(), Point(1169.7105516901372, 1226.4491837508108));
-    EXPECT_NEAR(length(result), 282.986, 1e-3);
+    EXPECT_EQ(result.back(), Point(1171.6450180744196, 1171.6450180744196));
+    EXPECT_NEAR(length(result), 242.7427124746192, 1e-3);
 }
 
 }

@@ -65,4 +65,17 @@ bool Circle::has_intersection(const Point& this_final_position, const Circle& ot
     }
 }
 
+Point Circle::get_intersection(const Line& line) const {
+    const auto nearest = line.nearest(position_);
+    const auto far_cathetus = position_.distance(nearest);
+    if (far_cathetus >= radius_) {
+        return nearest;
+    }
+    const auto near_cathetus = std::sqrt(math::square(radius_) - math::square(far_cathetus));
+    const auto path = nearest - line.begin();
+    const auto length = path.norm() - near_cathetus;
+    const auto end = path.normalized() * length;
+    return line.begin() + end;
+}
+
 }
