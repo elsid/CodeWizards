@@ -27,19 +27,15 @@ public:
         return begin_.distance(end_);
     }
 
-    double signed_distance(const Point& point) const {
-        if (begin() == end()) {
-            return begin().distance(point);
+    double distance(const Point& point) const {
+        if (begin_ == end_) {
+            return begin_.distance(point);
         }
-        return (
+        return std::abs(
             (begin_.y() - end_.y()) * point.x()
             + (end_.x() - begin_.x()) * point.y()
-            + (begin_.x() * end_.y() - end_.x() * begin_.y())
+            + begin_.x() * end_.y() - end_.x() * begin_.y()
         ) / length();
-    }
-
-    double distance(const Point& point) const {
-        return std::abs(signed_distance(point));
     }
 
     bool has_point(const Point& point, double max_error = 1e-8) const {

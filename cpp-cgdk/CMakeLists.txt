@@ -106,6 +106,7 @@ add_executable(cpp-cgdk-tests
     tests/target.cpp
     tests/circle.cpp
     tests/skills.cpp
+    tests/line.cpp
 )
 
 target_link_libraries(cpp-cgdk-tests
