@@ -20,9 +20,9 @@ rm -rf coverage
 mkdir -p coverage
 
 python2 /home/elsid/.local/bin/gcovr \
-   --html \
-   --html-details \
-   --root="/home/elsid/dev/russianaicup/CodeWizards" \
-   --filter='.*/cpp-cgdk/.*' \
-   --exclude='.*(/(tests|googletest|model|csimplesocket)/)|((RemoteProcessClient|Runner|altmov|bobyqb|impl|prelim|rescue|trsbox|update|utils).*)' \
-   --output='coverage/index.html'
+    --html \
+    --html-details \
+    --root="/home/elsid/dev/russianaicup/CodeWizards" \
+    --filter='.*/cpp-cgdk/.*' \
+    --exclude='.*(/(tests|googletest|model|csimplesocket)/)|((RemoteProcessClient|Runner|altmov|bobyqb|impl|prelim|rescue|trsbox|update|utils).*)' \
+    --output='coverage/index.html'
